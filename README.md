@@ -44,11 +44,8 @@ name,sku,price,currency,category,description,published
    - **Supabase**: Project Settings → Database → Connection string. `DATABASE_URL` = *Transaction pooler* (port 6543) + `?pgbouncer=true&connection_limit=1`; `DIRECT_URL` = *Session pooler* (port 5432).
 3. **Storage → Blob** → Connect Project (sukurs `BLOB_READ_WRITE_TOKEN`, reikalingas nuotraukų įkėlimui).
 4. **Settings → Environment Variables** pridėkite `SESSION_SECRET` (`openssl rand -hex 32`).
-5. **Deploy**. Build komanda `prisma migrate deploy && next build` sukuria lenteles automatiškai.
-6. Sukurkite administratorių — vieną kartą lokaliai su produkcijos `DATABASE_URL` savo `.env`:
-   ```bash
-   SEED_ADMIN_EMAIL=you@simetria.lt SEED_ADMIN_PASSWORD=strong-password npm run db:seed
-   ```
+5. Ten pat pridėkite `SEED_ADMIN_EMAIL` ir `SEED_ADMIN_PASSWORD` — administratorius sukuriamas automatiškai per build (`prisma db seed`; produkcijoje pavyzdiniai duomenys nekuriami).
+6. **Deploy**. Build komanda `prisma migrate deploy && prisma db seed && next build` sukuria lenteles ir administratorių.
 7. Nuotraukos iš Figma dedamos į `public/images/` (žr. `public/images/README.md`) ir commit'inamos į repo.
 
 Produkte produktų nuotraukos keliamos į Vercel Blob; lokaliai (be `BLOB_READ_WRITE_TOKEN`) — į `public/uploads/`.

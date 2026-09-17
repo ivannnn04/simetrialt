@@ -17,6 +17,9 @@ async function main() {
   });
   console.log(`Admin user ready: ${email}`);
 
+  // Sample content is only for local development; production starts empty.
+  if (process.env.NODE_ENV === "production") return;
+
   await db.page.upsert({
     where: { slug: "home" },
     update: {},
