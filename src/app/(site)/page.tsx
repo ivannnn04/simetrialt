@@ -1,69 +1,53 @@
-import Link from "next/link";
 import { db } from "@/lib/db";
 import { formatPrice } from "@/lib/slug";
-import { CmsContent } from "@/components/SiteChrome";
+import { LetsTalk, ProjectsSection, ServicesList } from "@/components/site/Sections";
+import {
+  AboutSection,
+  BrandsSection,
+  FeaturesSection,
+  Hero,
+  ProductLine,
+  WhySection,
+  type ProductCardData,
+} from "@/components/home/HomeSections";
 
 export const dynamic = "force-dynamic";
 
+// Placeholder cards from the Figma mock, used until the catalogue has three published products.
+const SAMPLE_PRODUCTS: ProductCardData[] = [
+  { name: "n35", category: "Lighting", price: "$5,000", href: "/catalogue" },
+  { name: "Okha Repose sofa", category: "Sofas", price: "$5,000", href: "/catalogue" },
+  { name: "Okha Repose", category: "Tables", price: "$5,000", href: "/catalogue" },
+];
+
 export default async function HomePage() {
-  const [homePage, featured] = await Promise.all([
-    db.page.findFirst({ where: { slug: "home", published: true } }),
-    db.product.findMany({
-      where: { published: true },
-      orderBy: { updatedAt: "desc" },
-      take: 6,
-      include: { images: { orderBy: { sort: "asc" }, take: 1 } },
-    }),
-  ]);
+  const products = await db.product.findMany({
+    where: { published: true },
+    orderBy: { updatedAt: "desc" },
+    take: 3,
+    include: { category: true, images: { orderBy: { sort: "asc" }, take: 1 } },
+  });
+
+  const cards: ProductCardData[] = products.map((p) => ({
+    name: p.name,
+    category: p.category?.name ?? "",
+    price: formatPrice(p.priceCents, p.currency),
+    href: `/catalogue/${p.slug}`,
+    image: p.images[0]?.url ?? null,
+  }));
+  while (cards.length < 3) cards.push(SAMPLE_PRODUCTS[cards.length]);
 
   return (
-    <div className="space-y-12">
-      <section>
-        <h1 className="mb-4 text-3xl font-semibold tracking-tight">
-          {homePage?.title ?? "Simetria LT"}
-        </h1>
-        {homePage ? (
-          <CmsContent content={homePage.content} />
-        ) : (
-          <p className="text-zinc-600">
-            Sveiki atvykę! Turinį galite redaguoti administratoriaus aplinkoje
-            sukūrę puslapį su nuoroda „home“.
-          </p>
-        )}
-      </section>
-
-      {featured.length > 0 && (
-        <section>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Katalogas</h2>
-            <Link href="/catalogue" className="text-sm hover:underline">
-              Visi produktai →
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-            {featured.map((p) => (
-              <Link
-                key={p.id}
-                href={`/catalogue/${p.slug}`}
-                className="overflow-hidden rounded-xl bg-white shadow-sm hover:shadow"
-              >
-                {p.images[0] ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={p.images[0].url} alt={p.images[0].alt} className="aspect-square w-full object-cover" />
-                ) : (
-                  <div className="flex aspect-square items-center justify-center bg-zinc-100 text-zinc-400">
-                    Nėra nuotraukos
-                  </div>
-                )}
-                <div className="p-3">
-                  <p className="font-medium">{p.name}</p>
-                  <p className="text-sm text-zinc-500">{formatPrice(p.priceCents, p.currency)}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-    </div>
+    <>
+      <Hero />
+      <WhySection />
+      <FeaturesSection />
+      <ProductLine products={cards} />
+      <BrandsSection />
+      <ServicesList />
+      <ProjectsSection />
+      <AboutSection />
+      <LetsTalk />
+    </>
   );
 }

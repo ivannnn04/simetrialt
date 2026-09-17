@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { formatPrice } from "@/lib/slug";
-import { CmsContent } from "@/components/SiteChrome";
+import { CmsContent } from "@/components/CmsContent";
 
 export const dynamic = "force-dynamic";
 

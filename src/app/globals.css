@@ -1,26 +1,30 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* Simetria design tokens (Figma: Simetria LT / Стилі) */
+  --color-cream: #f9f8f4;
+  --color-ink: #262626;
+  --color-dark: #282828;
+  --color-line: #d9d9d9;
+  --color-secondary: #898989;
+  --color-tertiary: #b5b5b5;
+  --color-label: #4c4c4c;
+  --color-body: #6e6e6e;
+  --color-accent: #a67c3d;
+  --color-warm: #e8e1d7;
+  --color-warm-overlay: #ddd1c3;
+
+  --font-sans: "Switzer", "Switzer Variable", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Helvetica, Arial, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }

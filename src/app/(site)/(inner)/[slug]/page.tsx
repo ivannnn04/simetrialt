@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
-import { CmsContent } from "@/components/SiteChrome";
+import { CmsContent } from "@/components/CmsContent";
 
 export const dynamic = "force-dynamic";
 
