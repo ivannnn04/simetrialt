@@ -9,7 +9,7 @@ export function CsvImportForm() {
     <form action={formAction} className="rounded-xl bg-white p-5 shadow-sm">
       <h2 className="mb-2 text-lg font-medium">Katalogo įkėlimas (CSV)</h2>
       <p className="mb-3 text-sm text-zinc-500">
-        Stulpeliai: <code>name, sku, price, currency, category, description, published</code>.
+        Stulpeliai: <code>name, sku, price, sale_price, currency, category, brand, typology, material, in_showroom, description, published</code>.
         Produktai atnaujinami pagal SKU arba pavadinimą.
       </p>
       <div className="flex items-center gap-3">

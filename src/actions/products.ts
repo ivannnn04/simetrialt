@@ -13,6 +13,12 @@ function parsePriceCents(raw: string): number {
   return Math.round(n * 100);
 }
 
+function optionalCents(raw: string): number | null {
+  return raw.trim() ? parsePriceCents(raw) : null;
+}
+
+const optional = (v: FormDataEntryValue | null | string) => String(v ?? "").trim() || null;
+
 export async function saveProduct(id: string | null, formData: FormData) {
   await requireUser();
   const name = String(formData.get("name") ?? "").trim();
@@ -27,7 +33,12 @@ export async function saveProduct(id: string | null, formData: FormData) {
     sku,
     description: String(formData.get("description") ?? ""),
     priceCents: parsePriceCents(String(formData.get("price") ?? "0")),
+    salePriceCents: optionalCents(String(formData.get("salePrice") ?? "")),
     currency: String(formData.get("currency") ?? "EUR"),
+    brand: optional(formData.get("brand")),
+    typology: optional(formData.get("typology")),
+    material: optional(formData.get("material")),
+    inShowroom: formData.get("inShowroom") === "on",
     published: formData.get("published") === "on",
     categoryId,
   };
@@ -84,7 +95,7 @@ export async function deleteCategory(id: string) {
 
 /**
  * Bulk catalogue upload from CSV.
- * Expected header: name,sku,price,currency,category,description,published
+ * Expected header: name,sku,price,sale_price,currency,category,brand,typology,material,in_showroom,description,published
  * Rows are upserted by SKU when present, otherwise by slug(name).
  */
 export async function importCatalogueCsv(
@@ -133,7 +144,12 @@ export async function importCatalogueCsv(
         name,
         description: get("description"),
         priceCents: parsePriceCents(get("price") || "0"),
+        salePriceCents: optionalCents(get("sale_price")),
         currency: get("currency") || "EUR",
+        brand: optional(get("brand")),
+        typology: optional(get("typology")),
+        material: optional(get("material")),
+        inShowroom: ["true", "1", "yes", "taip"].includes(get("in_showroom").toLowerCase()),
         published: ["true", "1", "yes", "taip"].includes(get("published").toLowerCase()),
         categoryId,
       };

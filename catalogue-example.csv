@@ -1,4 +1,4 @@
-name,sku,price,currency,category,description,published
-Produktas A,SKU-001,19.99,EUR,Kategorija 1,Produkto A aprašymas,true
-Produktas B,SKU-002,49.50,EUR,Kategorija 1,Produkto B aprašymas,true
-Produktas C,SKU-003,120,EUR,Kategorija 2,"Aprašymas su, kableliu",false
+name,sku,price,sale_price,currency,category,brand,typology,material,in_showroom,description,published
+Okha Repose sofa,SKU-001,5000,4250,EUR,Sofas,Sancal,3-seater,Fabric,true,Three-seater sofa with oak base,true
+Okha Repose armchair,SKU-002,2100,,EUR,Sofas,Sancal,Loveseat,Fabric,false,Compact loveseat,true
+Clay dining table,SKU-003,3900,,EUR,Tables,Desalto,Dining,Ceramic,true,"Round table, ceramic top",true

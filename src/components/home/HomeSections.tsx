@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { DotButton } from "@/components/ui/Button";
 import { Photo } from "@/components/ui/Photo";
-import { ArrowIcon, HeartIcon } from "@/components/ui/Icons";
+import { ArrowIcon } from "@/components/ui/Icons";
+import { ProductCard, type ProductCardData } from "@/components/catalogue/ProductCard";
 import { Badge } from "@/components/site/Sections";
 import { SiteHeader } from "@/components/site/Header";
 
@@ -99,14 +99,6 @@ export function FeaturesSection({
 
 // ---------- Our product line (Figma "products best", node 4189:23079) ----------
 
-export type ProductCardData = {
-  name: string;
-  category: string;
-  price: string;
-  href: string;
-  image?: string | null;
-};
-
 type ProductLineProps = {
   products: ProductCardData[];
   title?: string;
@@ -136,27 +128,7 @@ export function ProductLine({
         </div>
         <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-3">
           {products.map((p) => (
-            <Link
-              key={p.href + p.name}
-              href={p.href}
-              className="relative flex h-[449px] flex-col justify-between overflow-hidden bg-[#f2f2f2] p-4 transition-shadow hover:shadow-lg"
-            >
-              {p.image && (
-                <div
-                  aria-hidden
-                  className="absolute inset-0 bg-cover bg-center"
-                  style={{ backgroundImage: `url(${p.image})` }}
-                />
-              )}
-              <div className="relative flex items-start justify-between">
-                <div className="flex flex-col gap-[5px] leading-none">
-                  <p className="text-[14px] tracking-[-0.04em] text-black">{p.name}</p>
-                  <p className="text-[13px] tracking-[-0.04em] text-tertiary">{p.category}</p>
-                </div>
-                <HeartIcon className="text-black" />
-              </div>
-              <p className="relative text-[16px] leading-[1.3] tracking-[-0.04em] text-black">{p.price}</p>
-            </Link>
+            <ProductCard key={p.id} product={p} className="h-[449px]" />
           ))}
         </div>
         <DotButton href={cta.href}>{cta.label}</DotButton>

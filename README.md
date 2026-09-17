@@ -29,7 +29,7 @@ Numatytasis administratorius (keičiamas per `.env` prieš `db:seed`):
 Katalogo įkėlimas per `/admin/products` → „Katalogo įkėlimas (CSV)“. Stulpeliai:
 
 ```
-name,sku,price,currency,category,description,published
+name,sku,price,sale_price,currency,category,brand,typology,material,in_showroom,description,published
 ```
 
 - `name` privalomas; kiti neprivalomi.

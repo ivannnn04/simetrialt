@@ -72,6 +72,35 @@ export function ProductForm({
             </select>
           </div>
         </div>
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <label className="mb-1 block text-sm font-medium">Akcijos kaina</label>
+            <input
+              name="salePrice"
+              defaultValue={product?.salePriceCents != null ? (product.salePriceCents / 100).toFixed(2) : ""}
+              placeholder="—"
+              className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium">Prekės ženklas</label>
+            <input name="brand" defaultValue={product?.brand ?? ""} className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium">Tipologija</label>
+            <input name="typology" defaultValue={product?.typology ?? ""} placeholder="pvz. 3-seater" className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" />
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <label className="mb-1 block text-sm font-medium">Medžiaga</label>
+            <input name="material" defaultValue={product?.material ?? ""} className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" />
+          </div>
+          <label className="flex items-center gap-2 self-end pb-2 text-sm">
+            <input type="checkbox" name="inShowroom" defaultChecked={product?.inShowroom} />
+            Yra salone
+          </label>
+        </div>
         <div>
           <label className="mb-1 block text-sm font-medium">Aprašymas</label>
           <textarea name="description" defaultValue={product?.description} rows={8} className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" />

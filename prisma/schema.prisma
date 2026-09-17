@@ -56,11 +56,17 @@ model Product {
   sku         String?        @unique
   description String         @default("")
   priceCents  Int            @default(0)
+  salePriceCents Int?
   currency    String         @default("EUR")
+  brand       String?
+  typology    String?
+  material    String?
+  inShowroom  Boolean        @default(false)
   published   Boolean        @default(false)
   category    Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   categoryId  String?
   images      ProductImage[]
+  savedIn     CollectionItem[]
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 }
@@ -96,4 +102,38 @@ model Note {
   lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
   leadId    String
   createdAt DateTime @default(now())
+}
+
+// ---------- Customer accounts & moodboards ----------
+
+model Customer {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  passwordHash String
+  name         String
+  company      String?
+  collections  Collection[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+model Collection {
+  id         String           @id @default(cuid())
+  name       String
+  customer   Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customerId String
+  items      CollectionItem[]
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+}
+
+model CollectionItem {
+  id           String     @id @default(cuid())
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  collectionId String
+  product      Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId    String
+  createdAt    DateTime   @default(now())
+
+  @@unique([collectionId, productId])
 }
