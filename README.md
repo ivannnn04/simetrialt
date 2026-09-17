@@ -39,13 +39,16 @@ name,sku,price,currency,category,description,published
 ## Diegimas į Vercel
 
 1. Vercel → **Add New Project** → importuokite šį GitHub repo (framework: Next.js, nustatymai iš `vercel.json`).
-2. **Storage** → sukurkite **Postgres** (Neon) ir **Blob** saugyklą ir prijunkite prie projekto — Vercel pats sukurs `DATABASE_URL` ir `BLOB_READ_WRITE_TOKEN`.
-3. **Settings → Environment Variables** pridėkite `SESSION_SECRET` (`openssl rand -hex 32`).
-4. **Deploy**. Build komanda `prisma migrate deploy && next build` sukuria lenteles automatiškai.
-5. Sukurkite administratorių — vieną kartą lokaliai su produkcijos `DATABASE_URL` savo `.env`:
+2. Duomenų bazė — vienas iš variantų:
+   - **Vercel Storage → Neon Postgres** → Connect Project: Vercel sukurs `DATABASE_URL`; papildomai pridėkite `DIRECT_URL` su ta pačia reikšme.
+   - **Supabase**: Project Settings → Database → Connection string. `DATABASE_URL` = *Transaction pooler* (port 6543) + `?pgbouncer=true&connection_limit=1`; `DIRECT_URL` = *Session pooler* (port 5432).
+3. **Storage → Blob** → Connect Project (sukurs `BLOB_READ_WRITE_TOKEN`, reikalingas nuotraukų įkėlimui).
+4. **Settings → Environment Variables** pridėkite `SESSION_SECRET` (`openssl rand -hex 32`).
+5. **Deploy**. Build komanda `prisma migrate deploy && next build` sukuria lenteles automatiškai.
+6. Sukurkite administratorių — vieną kartą lokaliai su produkcijos `DATABASE_URL` savo `.env`:
    ```bash
    SEED_ADMIN_EMAIL=you@simetria.lt SEED_ADMIN_PASSWORD=strong-password npm run db:seed
    ```
-6. Nuotraukos iš Figma dedamos į `public/images/` (žr. `public/images/README.md`) ir commit'inamos į repo.
+7. Nuotraukos iš Figma dedamos į `public/images/` (žr. `public/images/README.md`) ir commit'inamos į repo.
 
 Produkte produktų nuotraukos keliamos į Vercel Blob; lokaliai (be `BLOB_READ_WRITE_TOKEN`) — į `public/uploads/`.
