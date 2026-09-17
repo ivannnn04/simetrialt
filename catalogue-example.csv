@@ -1,0 +1,4 @@
+name,sku,price,currency,category,description,published
+Produktas A,SKU-001,19.99,EUR,Kategorija 1,Produkto A aprašymas,true
+Produktas B,SKU-002,49.50,EUR,Kategorija 1,Produkto B aprašymas,true
+Produktas C,SKU-003,120,EUR,Kategorija 2,"Aprašymas su, kableliu",false
