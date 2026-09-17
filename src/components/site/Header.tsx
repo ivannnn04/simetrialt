@@ -52,13 +52,13 @@ const MENU_CARDS = [
 
 const LEFT_LINKS = [
   { label: "Services", href: "/services" },
-  { label: "Projects", href: "/#projects" },
-  { label: "Brands", href: "/#brands" },
+  { label: "Projects", href: "/projects" },
+  { label: "Brands", href: "/brands" },
   { label: "Outlet", href: "/catalogue" },
 ];
 
 const RIGHT_LINKS = [
-  { label: "About", href: "/#about" },
+  { label: "About", href: "/about" },
   { label: "Contacts", href: "/contact" },
   { label: "Search", href: "/catalogue" },
   { label: "My albums (2)", href: "/catalogue" },

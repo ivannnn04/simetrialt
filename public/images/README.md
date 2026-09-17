@@ -19,5 +19,11 @@ reference them and fall back to a tonal gradient while a file is missing.
 | `services/process-1.jpg` … `process-4.jpg` | Services process cards | 3 section / card |
 | `services/cta.jpg` | Services CTA thumbnail | CTA section / image |
 | `menu/icons.jpg`, `menu/outlet.jpg` | Products mega-menu cards | open menu / cards |
+| `projects/<slug>/cover.jpg` | Projects grid card | card project / image |
+| `projects/<slug>/hero.jpg`, `1.jpg`…`7.jpg` | Project detail page | hero case, images, images grid |
+| `brands/<slug>.jpg` | Brand card hover photo | brand card (hover) |
+| `brands/<slug>-collection-1.jpg`…`-4.jpg`, `brands/<slug>-cta.jpg` | Brand detail page | Signature collections, section cta |
+| `about/hero.jpg`, `about/features.jpg`, `about/cta.jpg`, `about/banner.jpg`, `about/team-1.jpg`…`team-8.jpg` | About page | hero, features, CTA, banner, Team Member Card |
+| `contact/hero.jpg` | Contact page | image 6478 |
 
 Recommended size: 2880px wide for full-bleed sections (2× of 1440), JPEG quality ~80.

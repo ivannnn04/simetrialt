@@ -64,25 +64,32 @@ export function WhySection() {
 
 // ---------- Long-term partnerships (Figma "features", node 4048:30474) ----------
 
-export function FeaturesSection() {
+type FeaturesProps = {
+  title?: string;
+  text?: string;
+  image?: string;
+  bars?: number;
+};
+
+export function FeaturesSection({
+  title = "Long-term partnerships",
+  text = "Trusted by architects and designers for reliable collaboration, thoughtful guidance, and consistent support across every stage of a project.",
+  image = "/images/home/features.jpg",
+  bars = 3,
+}: FeaturesProps) {
   return (
     <section id="features" className="w-full">
-      <Photo src="/images/home/features.jpg" className="w-full">
+      <Photo src={image} className="w-full">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black/70" />
         <div className="relative flex flex-col items-center gap-14 pt-[320px] lg:pt-[526px]">
           <div className="flex flex-col items-center gap-6 px-4 text-center text-white">
-            <h2 className="text-[44px] font-medium leading-none tracking-[-0.04em] md:text-[74px]">
-              Long-term partnerships
-            </h2>
-            <p className="max-w-[598px] text-[16px] leading-[1.3] tracking-[-0.04em]">
-              Trusted by architects and designers for reliable collaboration, thoughtful guidance, and consistent
-              support across every stage of a project.
-            </p>
+            <h2 className="text-[44px] font-medium leading-none tracking-[-0.04em] md:text-[74px]">{title}</h2>
+            <p className="max-w-[598px] text-[16px] leading-[1.3] tracking-[-0.04em]">{text}</p>
           </div>
           <div className="flex w-full items-center gap-2" aria-hidden>
-            <span className="h-2 flex-1 bg-cream" />
-            <span className="h-2 flex-1 bg-cream/20" />
-            <span className="h-2 flex-1 bg-cream/20" />
+            {Array.from({ length: bars }).map((_, i) => (
+              <span key={i} className={cn("h-2 flex-1", i === 0 ? "bg-cream" : "bg-cream/20")} />
+            ))}
           </div>
         </div>
       </Photo>
@@ -100,14 +107,24 @@ export type ProductCardData = {
   image?: string | null;
 };
 
-export function ProductLine({ products }: { products: ProductCardData[] }) {
+type ProductLineProps = {
+  products: ProductCardData[];
+  title?: string;
+  cta?: { label: string; href: string };
+  className?: string;
+};
+
+export function ProductLine({
+  products,
+  title = "Our product line",
+  cta = { label: "Catalog", href: "/catalogue" },
+  className = "pt-[120px]",
+}: ProductLineProps) {
   return (
-    <section className="w-full bg-cream px-4 pt-[120px] md:px-10">
+    <section className={cn("w-full bg-cream px-4 md:px-10", className)}>
       <div className="mx-auto flex max-w-[1440px] flex-col items-center gap-10">
         <div className="flex w-full items-center justify-between">
-          <h2 className="text-[36px] font-medium leading-[1.1] tracking-[-0.04em] text-ink md:text-[52px]">
-            Our product line
-          </h2>
+          <h2 className="text-[36px] font-medium leading-[1.1] tracking-[-0.04em] text-ink md:text-[52px]">{title}</h2>
           <div className="flex items-center gap-2" aria-hidden>
             <span className="flex size-[46px] items-center justify-center border border-line text-ink">
               <ArrowIcon className="rotate-180" />
@@ -142,7 +159,7 @@ export function ProductLine({ products }: { products: ProductCardData[] }) {
             </Link>
           ))}
         </div>
-        <DotButton href="/catalogue">Catalog</DotButton>
+        <DotButton href={cta.href}>{cta.label}</DotButton>
       </div>
     </section>
   );

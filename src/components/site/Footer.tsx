@@ -2,15 +2,42 @@ import Link from "next/link";
 import { DotButton } from "@/components/ui/Button";
 import { MailIcon, PhoneIcon, PinIcon } from "@/components/ui/Icons";
 
-const COLUMNS = [
-  { heading: "Products", items: ["Furniture", "Lighting", "Decor (Accessories)", "Outlet"], href: "/catalogue" },
+type Item = { label: string; href: string };
+const COLUMNS: { heading: string; items: Item[] }[] = [
+  {
+    heading: "Products",
+    items: [
+      { label: "Furniture", href: "/catalogue?category=furniture" },
+      { label: "Lighting", href: "/catalogue?category=lighting" },
+      { label: "Decor (Accessories)", href: "/catalogue?category=decor" },
+      { label: "Outlet", href: "/catalogue" },
+    ],
+  },
   {
     heading: "Services",
-    items: ["Lighting design & solutions", "Smart home systems", "Bespoke interior solutions", "Installation & after-sales support"],
-    href: "/services",
+    items: [
+      { label: "Lighting design & solutions", href: "/services" },
+      { label: "Smart home systems", href: "/services" },
+      { label: "Bespoke interior solutions", href: "/services" },
+      { label: "Installation & after-sales support", href: "/services" },
+    ],
   },
-  { heading: "Company", items: ["Projects", "Brands", "About", "Contacts"], href: "/" },
-  { heading: "Social media", items: ["Instagram", "Facebook"], href: "#" },
+  {
+    heading: "Company",
+    items: [
+      { label: "Projects", href: "/projects" },
+      { label: "Brands", href: "/brands" },
+      { label: "About", href: "/about" },
+      { label: "Contacts", href: "/contact" },
+    ],
+  },
+  {
+    heading: "Social media",
+    items: [
+      { label: "Instagram", href: "#" },
+      { label: "Facebook", href: "#" },
+    ],
+  },
 ];
 
 const CONTACTS = [
@@ -46,11 +73,11 @@ export function SiteFooter() {
                   <p className="pb-4 text-[12px] leading-none tracking-[-0.04em] text-body">{col.heading}</p>
                   {col.items.map((item) => (
                     <Link
-                      key={item}
-                      href={col.href}
+                      key={item.label}
+                      href={item.href}
                       className="flex h-[30px] items-center py-2 text-[14px] leading-none tracking-[-0.04em] text-dark hover:text-accent"
                     >
-                      {item}
+                      {item.label}
                     </Link>
                   ))}
                 </div>

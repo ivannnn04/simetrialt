@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site/Header";
 import { DotButton } from "@/components/ui/Button";
 import { Photo } from "@/components/ui/Photo";
-import { LetsTalk, ProjectsSection, ServicesList } from "@/components/site/Sections";
+import { CtaSection, LetsTalk, ProjectsSection, ServicesList } from "@/components/site/Sections";
 
 export const metadata: Metadata = {
   title: "Services — Simetria LT",
@@ -59,28 +59,13 @@ export default function ServicesPage() {
         ))}
       </section>
 
-      {/* CTA (Figma "CTA section", node 4075:23492) */}
-      <section className="w-full bg-cream px-4 py-[120px] md:px-10">
-        <div className="mx-auto flex max-w-[1440px] flex-col items-center gap-8">
-          <div className="flex flex-col items-center gap-10">
-            <p className="text-center text-[18px] font-medium leading-none tracking-[-0.04em] text-dark">
-              Check out our projects
-            </p>
-            <Photo src="/images/services/cta.jpg" className="h-[134px] w-[169px] rounded-[2px]" />
-          </div>
-          <div className="flex w-full flex-col items-center gap-8">
-            <div className="flex flex-col items-center gap-4 pb-[11px] text-center">
-              <h2 className="max-w-[880px] text-[40px] font-medium leading-none tracking-[-0.04em] text-ink md:text-[64px]">
-                A dedicated design partner for full-cycle lighting development and interior solutions.
-              </h2>
-              <p className="text-[14px] leading-[1.3] tracking-[-0.04em] text-secondary">
-                Calculations, compliance, smart integration, and custom fixtures.
-              </p>
-            </div>
-            <DotButton href="#projects">Scroll</DotButton>
-          </div>
-        </div>
-      </section>
+      <CtaSection
+        eyebrow="Check out our projects"
+        image="/images/services/cta.jpg"
+        title="A dedicated design partner for full-cycle lighting development and interior solutions."
+        text="Calculations, compliance, smart integration, and custom fixtures."
+        button={{ label: "Scroll", href: "#projects" }}
+      />
 
       <ProjectsSection />
       <LetsTalk />

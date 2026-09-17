@@ -2,6 +2,8 @@ import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { DotButton } from "@/components/ui/Button";
 import { Photo } from "@/components/ui/Photo";
+import { ArrowIcon } from "@/components/ui/Icons";
+import { Breadcrumbs } from "@/components/site/Breadcrumbs";
 
 // ---------- Services list (Figma "services", node 4188:22369) ----------
 
@@ -150,5 +152,91 @@ export function LetsTalk() {
 export function Badge({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
     <p className={cn("text-[16px] font-semibold uppercase leading-none tracking-[-0.04em]", className)}>{children}</p>
+  );
+}
+
+// ---------- CTA section (Figma "CTA section", node 4075:23492) ----------
+
+type CtaProps = {
+  eyebrow: string;
+  image: string;
+  title: string;
+  text: string;
+  button: { label: string; href: string };
+};
+
+export function CtaSection({ eyebrow, image, title, text, button }: CtaProps) {
+  return (
+    <section className="w-full bg-cream px-4 py-[120px] md:px-10">
+      <div className="mx-auto flex max-w-[1440px] flex-col items-center gap-8">
+        <div className="flex flex-col items-center gap-10">
+          <p className="text-center text-[18px] font-medium leading-none tracking-[-0.04em] text-dark">{eyebrow}</p>
+          <Photo src={image} className="h-[134px] w-[169px] rounded-[2px]" />
+        </div>
+        <div className="flex w-full flex-col items-center gap-8">
+          <div className="flex flex-col items-center gap-4 pb-[11px] text-center">
+            <h2 className="max-w-[880px] text-[40px] font-medium leading-none tracking-[-0.04em] text-ink md:text-[64px]">
+              {title}
+            </h2>
+            <p className="text-[14px] leading-[1.3] tracking-[-0.04em] text-secondary">{text}</p>
+          </div>
+          <DotButton href={button.href}>{button.label}</DotButton>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ---------- Underlined arrow link (Figma "button stroke") ----------
+
+export function SectionLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="flex h-[27px] items-center gap-2 border-b border-black pb-1.5 text-[18px] font-medium leading-none tracking-[-0.04em] text-black hover:border-accent hover:text-accent"
+    >
+      {children}
+      <ArrowIcon className="size-5" />
+    </Link>
+  );
+}
+
+// ---------- Page hero: breadcrumbs + display title + side copy (Figma "hero section") ----------
+
+type PageHeroProps = {
+  crumbs?: { label: string; href?: string }[];
+  title: React.ReactNode;
+  text?: string;
+  button?: { label: string; href: string };
+  titleClassName?: string;
+  children?: React.ReactNode;
+};
+
+export function PageHero({ crumbs, title, text, button, titleClassName, children }: PageHeroProps) {
+  return (
+    <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-10 px-4 md:px-10 lg:flex-row lg:items-end">
+      <div className="flex flex-1 flex-col gap-6">
+        {crumbs && <Breadcrumbs items={crumbs} />}
+        <h1
+          className={cn(
+            "text-[56px] font-medium leading-[0.92] tracking-[-0.04em] text-black md:text-[80px] xl:text-[105px]",
+            titleClassName
+          )}
+        >
+          {title}
+        </h1>
+        {children}
+      </div>
+      {(text || button) && (
+        <div className="flex flex-col gap-6 lg:w-[382px] lg:shrink-0">
+          {text && <p className="text-[16px] leading-[1.3] tracking-[-0.04em] text-body">{text}</p>}
+          {button && (
+            <div>
+              <DotButton href={button.href}>{button.label}</DotButton>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

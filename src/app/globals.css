@@ -28,3 +28,12 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
+
+/* Contact page ticker (Figma "ticker") */
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.ticker {
+  animation: ticker 40s linear infinite;
+}

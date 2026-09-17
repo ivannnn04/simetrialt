@@ -22,8 +22,10 @@ export async function submitContact(
   // Honeypot field — bots fill it, humans don't see it.
   if (String(formData.get("website") ?? "")) return { message: "Ačiū!" };
 
+  const first = String(formData.get("firstName") ?? "").trim();
+  const last = String(formData.get("lastName") ?? "").trim();
   const parsed = contactSchema.safeParse({
-    name: String(formData.get("name") ?? "").trim(),
+    name: String(formData.get("name") ?? "").trim() || `${first} ${last}`.trim(),
     email: String(formData.get("email") ?? "").trim(),
     phone: String(formData.get("phone") ?? "").trim(),
     company: String(formData.get("company") ?? "").trim(),
