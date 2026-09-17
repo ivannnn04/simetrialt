@@ -1,6 +1,6 @@
 # Simetria LT
 
-Svetainė su savu CMS, CRM ir produktų katalogu, sukurta su [Next.js](https://nextjs.org) (App Router), [Prisma](https://www.prisma.io) ir Tailwind CSS.
+Svetainė su savu CMS, CRM ir produktų katalogu, sukurta su [Next.js](https://nextjs.org) (App Router), [Prisma](https://www.prisma.io) + PostgreSQL ir Tailwind CSS.
 
 ## Funkcijos
 
@@ -14,7 +14,7 @@ Svetainė su savu CMS, CRM ir produktų katalogu, sukurta su [Next.js](https://n
 ```bash
 npm install
 cp .env.example .env        # sugeneruokite SESSION_SECRET: openssl rand -hex 32
-npx prisma migrate dev      # sukuria SQLite duomenų bazę
+npx prisma migrate deploy   # pritaiko migracijas PostgreSQL duomenų bazei (DATABASE_URL)
 npm run db:seed             # sukuria administratorių ir pavyzdinius duomenis
 npm run dev
 ```
@@ -36,8 +36,16 @@ name,sku,price,currency,category,description,published
 - Produktai atnaujinami pagal `sku`, o jei jo nėra — pagal pavadinimą.
 - Kategorijos sukuriamos automatiškai.
 
-## Produkcija
+## Diegimas į Vercel
 
-- `prisma/schema.prisma` pakeiskite `provider = "sqlite"` į `postgresql` ir nurodykite `DATABASE_URL`.
-- Nuotraukos saugomos `public/uploads/` — diegiant į serverless aplinką (pvz., Vercel) perkelkite į S3/Cloudinary ar pan.
-- `npm run build && npm start`.
+1. Vercel → **Add New Project** → importuokite šį GitHub repo (framework: Next.js, nustatymai iš `vercel.json`).
+2. **Storage** → sukurkite **Postgres** (Neon) ir **Blob** saugyklą ir prijunkite prie projekto — Vercel pats sukurs `DATABASE_URL` ir `BLOB_READ_WRITE_TOKEN`.
+3. **Settings → Environment Variables** pridėkite `SESSION_SECRET` (`openssl rand -hex 32`).
+4. **Deploy**. Build komanda `prisma migrate deploy && next build` sukuria lenteles automatiškai.
+5. Sukurkite administratorių — vieną kartą lokaliai su produkcijos `DATABASE_URL` savo `.env`:
+   ```bash
+   SEED_ADMIN_EMAIL=you@simetria.lt SEED_ADMIN_PASSWORD=strong-password npm run db:seed
+   ```
+6. Nuotraukos iš Figma dedamos į `public/images/` (žr. `public/images/README.md`) ir commit'inamos į repo.
+
+Produkte produktų nuotraukos keliamos į Vercel Blob; lokaliai (be `BLOB_READ_WRITE_TOKEN`) — į `public/uploads/`.

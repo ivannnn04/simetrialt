@@ -41,9 +41,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# database
-prisma/*.db
-prisma/*.db-journal
 
 # user uploads
 /public/uploads/

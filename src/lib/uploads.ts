@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import { randomBytes } from "crypto";
+import { put } from "@vercel/blob";
 
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
 const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
@@ -13,7 +14,11 @@ const EXT: Record<string, string> = {
   "image/gif": ".gif",
 };
 
-/** Saves an uploaded image under public/uploads and returns its public URL path. */
+/**
+ * Saves an uploaded image and returns its public URL.
+ * On Vercel (BLOB_READ_WRITE_TOKEN set) the file goes to Vercel Blob storage;
+ * locally it is written under public/uploads.
+ */
 export async function saveImage(file: File): Promise<string> {
   if (!ALLOWED.has(file.type)) {
     throw new Error(`Nepalaikomas failo tipas: ${file.type || "nežinomas"}`);
@@ -21,8 +26,14 @@ export async function saveImage(file: File): Promise<string> {
   if (file.size > MAX_BYTES) {
     throw new Error("Failas per didelis (maks. 8 MB)");
   }
-  await mkdir(UPLOAD_DIR, { recursive: true });
   const name = `${Date.now()}-${randomBytes(6).toString("hex")}${EXT[file.type]}`;
+
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    const blob = await put(`products/${name}`, file, { access: "public", contentType: file.type });
+    return blob.url;
+  }
+
+  await mkdir(UPLOAD_DIR, { recursive: true });
   const buffer = Buffer.from(await file.arrayBuffer());
   await writeFile(path.join(UPLOAD_DIR, name), buffer);
   return `/uploads/${name}`;
