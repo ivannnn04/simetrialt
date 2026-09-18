@@ -74,9 +74,9 @@ type FeaturesProps = {
 export function FeaturesSection({ slides, image = "/images/home/features.jpg" }: FeaturesProps) {
   return (
     <section id="features" className="w-full">
-      <Photo src={image} className="w-full">
+      <Photo src={image} className="flex min-h-[100svh] w-full flex-col justify-end">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black/70" />
-        <div className="relative pt-[320px] lg:pt-[526px]">
+        <div className="relative pt-[200px]">
           <FeatureSlider slides={slides} />
         </div>
       </Photo>
