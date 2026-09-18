@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { formatPrice } from "@/lib/slug";
 import { CmsContent } from "@/components/CmsContent";
 import { SaveButton } from "@/components/catalogue/SaveButton";
+import { PRODUCT_PLACEHOLDER_IMAGE } from "@/lib/placeholder";
 
 export const dynamic = "force-dynamic";
 
@@ -31,8 +32,13 @@ export default async function ProductPage({
       <div className="grid gap-8 md:grid-cols-2">
         <div className="space-y-3">
           {product.images.length === 0 && (
-            <div className="flex aspect-square items-center justify-center rounded-xl bg-zinc-100 text-zinc-400">
-              Nėra nuotraukos
+            <div className="flex aspect-square items-center justify-center bg-[#f2f2f2]">
+              {PRODUCT_PLACEHOLDER_IMAGE ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={PRODUCT_PLACEHOLDER_IMAGE} alt={product.name} className="max-h-[70%] max-w-[80%] object-contain" />
+              ) : (
+                <span className="text-zinc-400">No photo</span>
+              )}
             </div>
           )}
           {product.images.map((img) => (

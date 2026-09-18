@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { addToCollection, getMyCollections, type CollectionSummary } from "@/actions/collections";
 import { HeartIcon } from "@/components/ui/Icons";
 import { cn } from "@/lib/cn";
+import { PRODUCT_PLACEHOLDER_IMAGE } from "@/lib/placeholder";
 
 type Props = { productId: string; className?: string; light?: boolean };
 
@@ -99,8 +100,12 @@ export function SaveButton({ productId, className, light }: Props) {
                   onClick={() => save(c.id)}
                   className="flex w-full items-center gap-5 px-2 py-2.5 text-left hover:bg-cream sm:px-5"
                 >
-                  <span className="flex size-[59px] shrink-0 items-center justify-center bg-[#f2f2f2] text-[11px] text-secondary">
-                    {c.count}
+                  <span className="relative flex size-[59px] shrink-0 items-center justify-center overflow-hidden bg-[#f2f2f2]">
+                    {PRODUCT_PLACEHOLDER_IMAGE && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={PRODUCT_PLACEHOLDER_IMAGE} alt="" className="max-h-[70%] max-w-[85%] object-contain" />
+                    )}
+                    <span className="absolute bottom-0 right-0 bg-white/80 px-1 text-[10px] leading-none text-secondary">{c.count}</span>
                   </span>
                   <span className="flex flex-1 flex-col">
                     <span className="text-[18px] font-medium leading-[1.3] tracking-[-0.04em] text-[#1a1c18] sm:text-[20px]">{c.name}</span>

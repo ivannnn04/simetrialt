@@ -7,7 +7,7 @@ import { logoutCustomerAction } from "@/actions/account";
 import { SiteHeader } from "@/components/site/Header";
 import { NewCollectionButton } from "@/components/account/NewCollectionForm";
 import { cn } from "@/lib/cn";
-import { PLACEHOLDER_IMAGE } from "@/lib/placeholder";
+import { PRODUCT_PLACEHOLDER_IMAGE } from "@/lib/placeholder";
 
 export const metadata: Metadata = { title: "My albums — Simetria LT" };
 
@@ -18,12 +18,12 @@ const SORTS = {
 } as const;
 
 function Thumb({ url, empty, className }: { url?: string | null; empty?: boolean; className?: string }) {
-  const image = empty ? null : url ?? PLACEHOLDER_IMAGE;
+  const image = empty ? null : url ?? PRODUCT_PLACEHOLDER_IMAGE;
   return (
     <div className={cn("relative overflow-hidden bg-[#f2f2f2]", className)}>
       {image && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={image} alt="" className={cn("absolute", url ? "inset-0 m-auto max-h-[70%] max-w-[85%] object-contain" : "inset-0 size-full object-cover")} />
+        <img src={image} alt="" className="absolute inset-0 m-auto max-h-[70%] max-w-[85%] object-contain" />
       )}
     </div>
   );
