@@ -7,6 +7,7 @@ import { logoutCustomerAction } from "@/actions/account";
 import { SiteHeader } from "@/components/site/Header";
 import { NewCollectionButton } from "@/components/account/NewCollectionForm";
 import { cn } from "@/lib/cn";
+import { PLACEHOLDER_IMAGE } from "@/lib/placeholder";
 
 export const metadata: Metadata = { title: "My albums — Simetria LT" };
 
@@ -16,12 +17,13 @@ const SORTS = {
   name: { name: "asc" },
 } as const;
 
-function Thumb({ url, className }: { url?: string | null; className?: string }) {
+function Thumb({ url, empty, className }: { url?: string | null; empty?: boolean; className?: string }) {
+  const image = empty ? null : url ?? PLACEHOLDER_IMAGE;
   return (
-    <div className={cn("relative bg-[#f2f2f2]", className)}>
-      {url && (
+    <div className={cn("relative overflow-hidden bg-[#f2f2f2]", className)}>
+      {image && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={url} alt="" className="absolute inset-0 m-auto max-h-[70%] max-w-[85%] object-contain" />
+        <img src={image} alt="" className={cn("absolute", url ? "inset-0 m-auto max-h-[70%] max-w-[85%] object-contain" : "inset-0 size-full object-cover")} />
       )}
     </div>
   );
@@ -110,10 +112,10 @@ export default async function AlbumsPage({ searchParams }: { searchParams: Promi
                 return (
                   <Link key={c.id} href={`/account/albums/${c.id}`} className="group flex flex-col gap-7">
                     <div className="flex items-center gap-1">
-                      <Thumb url={c.items[0]?.product.images[0]?.url} className="h-[378px] flex-[270]" />
+                      <Thumb url={c.items[0]?.product.images[0]?.url} empty={!c.items[0]} className="h-[378px] flex-[270]" />
                       <div className="flex flex-[169] flex-col gap-1">
-                        <Thumb url={c.items[1]?.product.images[0]?.url} className="h-[187px]" />
-                        <Thumb url={c.items[2]?.product.images[0]?.url} className="h-[187px]" />
+                        <Thumb url={c.items[1]?.product.images[0]?.url} empty={!c.items[1]} className="h-[187px]" />
+                        <Thumb url={c.items[2]?.product.images[0]?.url} empty={!c.items[2]} className="h-[187px]" />
                       </div>
                     </div>
                     <div className="flex flex-col gap-6">

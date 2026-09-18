@@ -1,5 +1,8 @@
 # Site imagery
 
+> Currently every slot shows one temporary Unsplash photo (see `src/lib/placeholder.ts`).
+> Set `NEXT_PUBLIC_PLACEHOLDER_IMAGE=""` in Vercel to switch back to the files listed below.
+
 Photos from the Figma file could not be exported automatically (the design CDN is not reachable
 from the build environment). Drop the exports here using these names — the pages already
 reference them and fall back to a tonal gradient while a file is missing.

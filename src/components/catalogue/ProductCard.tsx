@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { SaveButton } from "@/components/catalogue/SaveButton";
+import { PLACEHOLDER_IMAGE } from "@/lib/placeholder";
 
 export type ProductCardData = {
   id: string;
@@ -18,15 +19,21 @@ type Props = { product: ProductCardData; className?: string; imageClassName?: st
 /** Figma "product card": light panel, name/category top-left, heart top-right, price bottom-left. */
 export function ProductCard({ product, className, imageClassName }: Props) {
   const onSale = Boolean(product.salePrice);
+  const image = product.image ?? PLACEHOLDER_IMAGE;
+  const isPlaceholder = !product.image;
   return (
     <div className={cn("group relative flex flex-col justify-between overflow-hidden bg-[#f2f2f2] p-4", className)}>
       <Link href={product.href} className="absolute inset-0" aria-label={product.name} />
-      {product.image && (
+      {image && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={product.image}
+          src={image}
           alt=""
-          className={cn("pointer-events-none absolute inset-0 m-auto max-h-[62%] max-w-[85%] object-contain transition-transform group-hover:scale-[1.03]", imageClassName)}
+          className={cn(
+            "pointer-events-none absolute transition-transform group-hover:scale-[1.03]",
+            isPlaceholder ? "inset-0 size-full object-cover opacity-90" : "inset-0 m-auto max-h-[62%] max-w-[85%] object-contain",
+            imageClassName
+          )}
         />
       )}
       <div className="pointer-events-none relative flex items-start justify-between">

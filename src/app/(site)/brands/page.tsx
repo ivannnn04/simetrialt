@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/site/Header";
 import { PageHero } from "@/components/site/Sections";
 import { BRANDS } from "@/data/brands";
 import { BrandMark } from "@/components/site/BrandMark";
+import { PLACEHOLDER_IMAGE } from "@/lib/placeholder";
 
 export const metadata: Metadata = {
   title: "Brands — Simetria LT",
@@ -34,7 +35,7 @@ export default function BrandsPage() {
                     aria-hidden
                     className="absolute inset-0 bg-cover bg-center opacity-0 transition-opacity group-hover:opacity-100"
                     style={{
-                      backgroundImage: `url(/images/brands/${brand.slug}.jpg), linear-gradient(165deg, #4b4641 0%, #2b2825 55%, #171615 100%)`,
+                      backgroundImage: `url(${PLACEHOLDER_IMAGE ?? `/images/brands/${brand.slug}.jpg`}), linear-gradient(165deg, #4b4641 0%, #2b2825 55%, #171615 100%)`,
                     }}
                   />
                   <span className="relative w-[235px]">
