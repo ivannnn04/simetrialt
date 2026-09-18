@@ -57,6 +57,8 @@ export async function addToCollection(
 ): Promise<{ ok: true; collectionId: string; name: string } | { error: string }> {
   const customer = await currentCustomer();
   if (!customer) return { error: "Please sign in to save products." };
+  const product = await db.product.findUnique({ where: { id: productId }, select: { id: true } });
+  if (!product) return { error: "This is a sample product — real catalogue items can be saved." };
 
   let target = collectionId === "new" ? null : await db.collection.findFirst({ where: { id: collectionId, customerId: customer.id } });
   if (!target) {

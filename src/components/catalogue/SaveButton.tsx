@@ -20,6 +20,7 @@ export function SaveButton({ productId, className, light }: Props) {
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [saved, setSaved] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
   const openPanel = () => {
@@ -37,7 +38,12 @@ export function SaveButton({ productId, className, light }: Props) {
   const save = (collectionId: string, name?: string) => {
     start(async () => {
       const res = await addToCollection(productId, collectionId, name);
-      if ("ok" in res) {
+      if ("error" in res) {
+        setError(res.error);
+        return;
+      }
+      setError(null);
+      {
         setSaved(res.name);
         setCreating(false);
         setNewName("");
@@ -137,6 +143,7 @@ export function SaveButton({ productId, className, light }: Props) {
             </button>
           )}
           {saved && <p className="w-full text-[13px] text-secondary">Saved to “{saved}”.</p>}
+          {error && <p className="w-full text-[13px] text-[#fb3b30]">{error}</p>}
         </div>
       )}
     </div>
