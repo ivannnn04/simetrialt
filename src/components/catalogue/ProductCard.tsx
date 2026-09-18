@@ -30,12 +30,13 @@ export function ProductCard({ product, className, imageClassName }: Props) {
           src={image}
           alt=""
           className={cn(
-            "pointer-events-none absolute transition-transform group-hover:scale-[1.03]",
+            "pointer-events-none absolute",
             isPlaceholder ? "inset-0 size-full object-cover opacity-90" : "inset-0 m-auto max-h-[62%] max-w-[85%] object-contain",
             imageClassName
           )}
         />
       )}
+      <span aria-hidden className="pointer-events-none absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/10" />
       <div className="pointer-events-none relative flex items-start justify-between">
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-[5px] leading-none">

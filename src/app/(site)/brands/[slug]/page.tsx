@@ -28,7 +28,7 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
   const brand = getBrand(slug);
   if (!brand) notFound();
 
-  const cards = await getFeaturedProducts();
+  const cards = await getFeaturedProducts(9);
 
   const projects = PROJECTS.slice(0, 4);
   const projectHeights = ["h-[458px] lg:w-[728px]", "h-[366px] lg:w-[360px]", "h-[366px] lg:w-[360px]", "h-[366px] lg:w-[360px]"];

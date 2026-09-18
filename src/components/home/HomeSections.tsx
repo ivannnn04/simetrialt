@@ -1,8 +1,8 @@
 import { cn } from "@/lib/cn";
 import { DotButton } from "@/components/ui/Button";
 import { Photo } from "@/components/ui/Photo";
-import { ArrowIcon } from "@/components/ui/Icons";
-import { ProductCard, type ProductCardData } from "@/components/catalogue/ProductCard";
+import type { ProductCardData } from "@/components/catalogue/ProductCard";
+import { ProductSlider } from "@/components/catalogue/ProductSlider";
 import { Badge } from "@/components/site/Sections";
 import { SiteHeader } from "@/components/site/Header";
 import { FeatureSlider, type FeatureSlide } from "@/components/home/FeatureSlider";
@@ -101,22 +101,10 @@ export function ProductLine({
   return (
     <section className={cn("w-full bg-cream px-4 md:px-10", className)}>
       <div className="mx-auto flex max-w-[1440px] flex-col items-center gap-10">
-        <div className="flex w-full items-center justify-between">
-          <h2 className="text-[36px] font-medium leading-[1.1] tracking-[-0.04em] text-ink md:text-[52px]">{title}</h2>
-          <div className="flex items-center gap-2" aria-hidden>
-            <span className="flex size-[46px] items-center justify-center border border-line text-ink">
-              <ArrowIcon className="rotate-180" />
-            </span>
-            <span className="flex size-[46px] items-center justify-center border border-line text-ink">
-              <ArrowIcon />
-            </span>
-          </div>
-        </div>
-        <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-3">
-          {products.map((p) => (
-            <ProductCard key={p.id} product={p} className="h-[449px]" />
-          ))}
-        </div>
+        <ProductSlider
+          products={products}
+          title={<h2 className="text-[36px] font-medium leading-[1.1] tracking-[-0.04em] text-ink md:text-[52px]">{title}</h2>}
+        />
         <DotButton href={cta.href}>{cta.label}</DotButton>
       </div>
     </section>

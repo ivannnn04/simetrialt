@@ -22,6 +22,15 @@ html {
   scroll-behavior: smooth;
 }
 
+a,
+button:not(:disabled),
+select,
+summary,
+[role="button"],
+[role="tab"] {
+  cursor: pointer;
+}
+
 body {
   background: var(--color-cream);
   color: var(--color-ink);

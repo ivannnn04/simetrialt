@@ -26,7 +26,7 @@ const SAMPLE_PRODUCTS: ProductCardData[] = [
   { id: "sample-3", name: "Okha Repose", category: "Tables", price: "$5,000", href: "/catalogue" },
 ];
 
-/** Latest published products as cards, padded with samples; never throws on DB outages. */
+/** Latest published products as cards, padded with samples up to three; never throws on DB outages. */
 export async function getFeaturedProducts(take = 3): Promise<ProductCardData[]> {
   let cards: ProductCardData[] = [];
   try {
@@ -40,7 +40,7 @@ export async function getFeaturedProducts(take = 3): Promise<ProductCardData[]> 
   } catch (e) {
     console.error("getFeaturedProducts: database unavailable", e);
   }
-  while (cards.length < take) cards.push(SAMPLE_PRODUCTS[cards.length % SAMPLE_PRODUCTS.length]);
+  while (cards.length < Math.min(take, 3)) cards.push(SAMPLE_PRODUCTS[cards.length % SAMPLE_PRODUCTS.length]);
   return cards;
 }
 
