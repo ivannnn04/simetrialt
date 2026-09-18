@@ -37,12 +37,33 @@ export const SERVICES = [
   },
 ];
 
-export function ServicesList({ className }: { className?: string }) {
+/** Height of the header strip (border + padding + tags + title) that stays visible when the next card slides over. */
+const STACK_OFFSET = 200;
+
+type ServicesListProps = {
+  className?: string;
+  /**
+   * Home page (Figma 4217:47687): cards are sticky and each next card slides over the
+   * previous one while scrolling, leaving only its header row visible.
+   */
+  stack?: boolean;
+};
+
+export function ServicesList({ className, stack = false }: ServicesListProps) {
   return (
-    <section id="services" className={cn("w-full bg-cream pb-[120px]", className)}>
-      {SERVICES.map((s) => (
-        <article key={s.number} className="border-t border-line py-[50px]">
-          <div className="mx-auto flex max-w-[1440px] flex-col gap-8 px-4 md:px-10 lg:flex-row lg:items-center">
+    <section id="services" className={cn("w-full bg-cream pb-[120px]", stack && "services-stack", className)}>
+      {SERVICES.map((s, i) => (
+        <article
+          key={s.number}
+          className={cn("border-t border-line bg-cream py-[50px]", stack && "services-card lg:min-h-[500px]")}
+          style={stack ? { top: i * STACK_OFFSET, zIndex: i + 1 } : undefined}
+        >
+          <div
+            className={cn(
+              "mx-auto flex max-w-[1440px] flex-col gap-8 px-4 md:px-10 lg:flex-row",
+              stack ? "lg:items-start" : "lg:items-center"
+            )}
+          >
             <div className="flex w-full items-start justify-between gap-6 lg:w-[738px] lg:shrink-0">
               <p className="text-[18px] leading-[1.3] tracking-[-0.04em] text-secondary">/ {s.number}</p>
               <div className="flex w-full flex-col gap-8 lg:w-[669px]">

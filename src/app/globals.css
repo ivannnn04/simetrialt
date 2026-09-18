@@ -63,17 +63,21 @@ body {
   animation: feature-slide 600ms ease-out both;
 }
 
-/* Brands marquee (home section 5): slow, seamless loop; pauses on hover */
+/* Brands marquee (home section 5): slow, seamless loop */
 @keyframes brands-marquee {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
 }
 .brands-track {
-  animation: brands-marquee 45s linear infinite;
-}
-.brands-marquee:hover .brands-track {
-  animation-play-state: paused;
+  animation: brands-marquee 70s linear infinite;
 }
 @media (prefers-reduced-motion: reduce) {
   .brands-track { animation: none; }
+}
+
+/* Services stack (home section 6): each card sticks and the next one slides over it */
+@media (min-width: 64rem) {
+  .services-card {
+    position: sticky;
+  }
 }

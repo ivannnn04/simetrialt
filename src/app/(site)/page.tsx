@@ -31,7 +31,7 @@ export default async function HomePage() {
       />
       <ProductLine products={cards} />
       <BrandsSection />
-      <ServicesList />
+      <ServicesList stack />
       <ProjectsSection />
       <AboutSection />
       <LetsTalk />
