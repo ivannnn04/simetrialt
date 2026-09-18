@@ -31,6 +31,14 @@ summary,
   cursor: pointer;
 }
 
+/* Elements with a custom pointer label (CursorLabel) hide the native cursor on mouse devices */
+@media (hover: hover) and (pointer: fine) {
+  [data-cursor],
+  [data-cursor] * {
+    cursor: none !important;
+  }
+}
+
 body {
   background: var(--color-cream);
   color: var(--color-ink);

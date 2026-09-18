@@ -109,7 +109,7 @@ export default async function ServicePage({ params }: { params: Promise<Params> 
         </div>
         <div className="flex w-full flex-col gap-4 px-4 md:px-10 lg:flex-row lg:justify-center">
           {recentWork.cards.map((card) => (
-            <Link key={card.title} href={card.href} className="group block w-full lg:w-[672px]">
+            <Link key={card.title} href={card.href} data-cursor="View project" className="group block w-full lg:w-[672px]">
               <Photo src={card.image} className="flex h-[480px] flex-col items-center justify-end gap-8 px-8 py-10 md:h-[700px] md:px-[100px]">
                 <div className="absolute inset-0 bg-black/20 transition-colors duration-500 group-hover:bg-black/35" />
                 <div className="relative flex flex-col items-center gap-2 text-center leading-none text-white">

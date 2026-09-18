@@ -76,7 +76,7 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
         <div className="mx-auto w-full max-w-[1440px] overflow-x-auto pl-4 md:pl-10">
           <div className="flex w-max gap-2">
             {projects.map((p, i) => (
-              <Link key={p.slug} href={`/projects/${p.slug}`} className={cn("flex w-[300px] flex-col gap-4", projectHeights[i].split(" ")[1])}>
+              <Link key={p.slug} href={`/projects/${p.slug}`} data-cursor="View project" className={cn("flex w-[300px] flex-col gap-4", projectHeights[i].split(" ")[1])}>
                 <Photo src={p.image} className={cn("w-full", projectHeights[i].split(" ")[0])} />
                 <div className="flex flex-col gap-2 font-medium leading-none">
                   <p className="text-[18px] tracking-[-0.04em] text-black">{p.name}</p>

@@ -48,16 +48,13 @@ function ProjectCard({ project, slot }: { project: Project; slot: Slot }) {
   return (
     <Link
       href={`/contact?product=${encodeURIComponent(project.name)}`}
+      data-cursor="View project"
       className={cn("group flex flex-col gap-4", slot.wide ? "w-full lg:flex-1" : "w-full lg:w-[360px] lg:shrink-0")}
     >
       <Photo
         src={project.image}
         className={cn("w-full overflow-hidden", slot.tall ? "h-[420px] lg:h-[752px]" : "h-[420px] lg:h-[458px]")}
-      >
-        <span className="absolute left-1/2 top-1/2 flex size-[100px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/20 text-center text-[14px] leading-[1.3] tracking-[-0.04em] text-white opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
-          View project
-        </span>
-      </Photo>
+      />
       <div className="flex flex-col gap-2 font-medium leading-none">
         <p className="text-[18px] tracking-[-0.04em] text-black">{project.name}</p>
         <p className="text-[13px] uppercase tracking-[-0.04em] text-body">{project.category}</p>
