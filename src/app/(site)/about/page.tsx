@@ -59,14 +59,15 @@ export default function AboutPage() {
             realized.
           </p>
         </div>
-        <div className="flex flex-col">
+        {/* Years (Figma 4217:46310): rows inside the 1360px container, no overlap between rows */}
+        <div className="flex flex-col px-4 md:px-10">
           {YEARS.map((row, i) => (
-            <div key={row.years} className="flex flex-col border-t border-line pt-6 md:flex-row md:items-start md:gap-[156px] md:pl-[320px]">
-              <div className="flex w-[250px] items-start px-4 md:px-0">
+            <div key={row.years} className="flex flex-col border-t border-line pt-6 md:flex-row md:items-start md:gap-[156px] md:pl-[280px]">
+              <div className="flex w-[250px] items-start">
                 <span className="text-[96px] font-medium leading-none tracking-[-0.04em] text-black md:text-[134px]">{row.years}</span>
                 <span className="py-8 text-[13px] leading-[1.3] tracking-[-0.04em] text-black">(years)</span>
               </div>
-              <div className="flex flex-1 items-center justify-between gap-8 px-4 py-8 text-[18px] leading-[1.3] tracking-[-0.04em] text-[#1f1f1f] md:pl-0 md:pr-10">
+              <div className="flex flex-1 items-center justify-between gap-8 py-8 text-[18px] leading-[1.3] tracking-[-0.04em] text-[#1f1f1f]">
                 <p className="max-w-[380px]">{row.text}</p>
                 <p className="whitespace-nowrap">({String(i + 1).padStart(2, "0")})</p>
               </div>
