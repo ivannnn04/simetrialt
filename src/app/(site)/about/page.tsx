@@ -49,9 +49,9 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* About + years */}
-      <section className="mx-auto flex w-full max-w-[1440px] flex-col gap-20 py-[120px]">
-        <div className="flex flex-col gap-6 px-4 md:px-10">
+      {/* About + years (Figma 4217:46310): full-width divider lines, content inside the container */}
+      <section className="flex w-full flex-col gap-20 py-[120px]">
+        <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-6 px-4 md:px-10">
           <p className="text-[18px] leading-[1.3] tracking-[-0.04em] text-secondary">About us</p>
           <p className="text-[32px] font-medium leading-none tracking-[-0.04em] text-black md:text-[46px]">
             We specialize in lighting project development, calculations, compliance, smart integration, and custom
@@ -59,17 +59,18 @@ export default function AboutPage() {
             realized.
           </p>
         </div>
-        {/* Years (Figma 4217:46310): rows inside the 1360px container, no overlap between rows */}
-        <div className="flex flex-col px-4 md:px-10">
+        <div className="flex w-full flex-col">
           {YEARS.map((row, i) => (
-            <div key={row.years} className="flex flex-col border-t border-line pt-6 md:flex-row md:items-start md:gap-[156px] md:pl-[280px]">
-              <div className="flex w-[250px] items-start">
-                <span className="text-[96px] font-medium leading-none tracking-[-0.04em] text-black md:text-[134px]">{row.years}</span>
-                <span className="py-8 text-[13px] leading-[1.3] tracking-[-0.04em] text-black">(years)</span>
-              </div>
-              <div className="flex flex-1 items-center justify-between gap-8 py-8 text-[18px] leading-[1.3] tracking-[-0.04em] text-[#1f1f1f]">
-                <p className="max-w-[380px]">{row.text}</p>
-                <p className="whitespace-nowrap">({String(i + 1).padStart(2, "0")})</p>
+            <div key={row.years} className="w-full border-t border-line">
+              <div className="mx-auto flex w-full max-w-[1440px] flex-col px-4 pt-6 md:flex-row md:items-start md:gap-[156px] md:pl-[320px] md:pr-10">
+                <div className="flex w-[250px] items-start">
+                  <span className="text-[96px] font-medium leading-none tracking-[-0.04em] text-black md:text-[134px]">{row.years}</span>
+                  <span className="py-8 text-[13px] leading-[1.3] tracking-[-0.04em] text-black">(years)</span>
+                </div>
+                <div className="flex flex-1 items-center justify-between gap-8 py-8 text-[18px] leading-[1.3] tracking-[-0.04em] text-[#1f1f1f]">
+                  <p className="max-w-[380px]">{row.text}</p>
+                  <p className="whitespace-nowrap">({String(i + 1).padStart(2, "0")})</p>
+                </div>
               </div>
             </div>
           ))}
