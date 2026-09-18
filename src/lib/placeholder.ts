@@ -9,6 +9,6 @@ const env = process.env.NEXT_PUBLIC_PLACEHOLDER_IMAGE;
 export const PLACEHOLDER_IMAGE: string | null = env === undefined ? DEFAULT : env || null;
 
 /** Temporary product photo for every catalogue item without its own images. */
-const PRODUCT_DEFAULT = "https://cdn.sklum.com/pl/wk/2702642/zelazna-lampa-sufitowa-baysal.jpg?cf-resize=gallery";
+const PRODUCT_DEFAULT = "https://lampandlight.com/cdn/shop/files/3601411_dicut_on1.png?v=1783151132";
 const productEnv = process.env.NEXT_PUBLIC_PRODUCT_PLACEHOLDER_IMAGE;
 export const PRODUCT_PLACEHOLDER_IMAGE: string | null = productEnv === undefined ? PRODUCT_DEFAULT : productEnv || null;
