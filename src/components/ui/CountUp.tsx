@@ -17,11 +17,11 @@ export function CountUp({ value, duration = 1600, className, suffix = "" }: Prop
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setShown(value);
-      return;
-    }
     let raf = 0;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      raf = requestAnimationFrame(() => setShown(value));
+      return () => cancelAnimationFrame(raf);
+    }
     const io = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting) return;
