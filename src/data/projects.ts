@@ -13,11 +13,19 @@ export type Project = {
   sectionTitle: string;
   sectionText: string;
   specs: [string, string][];
+  /** "5 section" (Figma 4217:47594): lighting story next to a 687×480 photo */
+  lightTitle: string;
+  light: string[];
 };
 
 const DEFAULT_ABOUT = [
   "The refurbishment focused on creating elegant, welcoming spaces that combine contemporary aesthetics with everyday comfort. Carefully selected furniture enhances the character of the interiors while meeting the durability and functionality required by the client. The result is a refined environment designed to elevate the everyday experience.",
   "Every furnishing element was chosen to achieve a balance between visual appeal and long-term performance. From private rooms to shared areas, the furniture contributes to a cohesive interior language while supporting the comfort, functionality, and flexibility expected in a modern space.",
+];
+
+const DEFAULT_LIGHT = [
+  "Custom lighting engineering required precise calculations to harmonize with the architectural lines. Every fixture was strategically positioned to define spatial zones, accent high-end finishes, and maintain a seamless visual flow across all public areas.",
+  "By blending ambient glow with targeted accent illumination, the design creates a layered atmosphere that shifts fluidly from day to night, ensuring guests experience both functional clarity and a warm, inviting ambiance throughout the entire space.",
 ];
 
 const DEFAULT_SECTION =
@@ -32,6 +40,8 @@ function project(
     about: DEFAULT_ABOUT,
     sectionTitle: "Crafted for Lasting Impressions",
     sectionText: DEFAULT_SECTION,
+    lightTitle: "Balance of Light and Form",
+    light: DEFAULT_LIGHT,
     specs: [
       ["Status", "Built"],
       ["Type", p.kind],
