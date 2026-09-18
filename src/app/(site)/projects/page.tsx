@@ -47,7 +47,7 @@ function buildRows(projects: Project[]): { project: Project; slot: Slot }[][] {
 function ProjectCard({ project, slot }: { project: Project; slot: Slot }) {
   return (
     <Link
-      href={`/contact?product=${encodeURIComponent(project.name)}`}
+      href={`/projects/${project.slug}`}
       data-cursor="View project"
       className={cn("group flex flex-col gap-4", slot.wide ? "w-full lg:flex-1" : "w-full lg:w-[360px] lg:shrink-0")}
     >
