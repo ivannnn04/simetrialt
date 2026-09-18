@@ -9,6 +9,7 @@ import { Breadcrumbs } from "@/components/site/Breadcrumbs";
 export const SERVICES = [
   {
     number: "01",
+    slug: "lighting",
     tags: ["Light calculation", "Custom fixtures", "Integration & support"],
     title: "Lighting design & solutions",
     text: "Lighting project development, calculations and compliance, smart lighting integration and custom fixtures, from concept through to handover. We ensure your design vision is fully realized by maintaining seamless coordination throughout every project phase.",
@@ -16,6 +17,7 @@ export const SERVICES = [
   },
   {
     number: "02",
+    slug: "smart-home",
     tags: ["Smart lighting", "Climate control", "AV & security"],
     title: "Smart home systems",
     text: "Smart lighting, automated window coverings, security, climate control, and audio/video systems — fully designed, integrated, and implemented from concept to final commissioning, tailored to ensure seamless operation, comfort, security, and intuitive control.",
@@ -23,6 +25,7 @@ export const SERVICES = [
   },
   {
     number: "03",
+    slug: "bespoke",
     tags: ["Custom furniture", "Bespoke finishes", "Material sourcing"],
     title: "Bespoke interior solutions",
     text: "Custom furniture design and manufacturing, bespoke doors, flooring design and manufacturing, and stone finishing solutions.",
@@ -30,6 +33,7 @@ export const SERVICES = [
   },
   {
     number: "04",
+    slug: "installation",
     tags: ["Installation", "Commissioning", "Ongoing support"],
     title: "Installation & after-sales support",
     text: "Full on-site implementation, including installation, configuration, testing, and final commissioning, with ongoing technical support, maintenance, and service long after the project has been handed over.",
@@ -104,7 +108,7 @@ export function ServicesList({ className, stack = false }: ServicesListProps) {
                 <div className="flex flex-col gap-8">
                   <p className="max-w-[562px] text-[16px] leading-[1.3] tracking-[-0.04em] text-label">{s.text}</p>
                   <div>
-                    <DotButton href="/services">Read more</DotButton>
+                    <DotButton href={`/services/${s.slug}`}>Read more</DotButton>
                   </div>
                 </div>
               </div>

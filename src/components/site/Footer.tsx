@@ -17,10 +17,10 @@ const COLUMNS: { heading: string; items: Item[] }[] = [
   {
     heading: "Services",
     items: [
-      { label: "Lighting design & solutions", href: "/services" },
-      { label: "Smart home systems", href: "/services" },
-      { label: "Bespoke interior solutions", href: "/services" },
-      { label: "Installation & after-sales support", href: "/services" },
+      { label: "Lighting design & solutions", href: "/services/lighting" },
+      { label: "Smart home systems", href: "/services/smart-home" },
+      { label: "Bespoke interior solutions", href: "/services/bespoke" },
+      { label: "Installation & after-sales support", href: "/services/installation" },
     ],
   },
   {
