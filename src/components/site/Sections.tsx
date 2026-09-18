@@ -37,8 +37,16 @@ export const SERVICES = [
   },
 ];
 
-/** Height of the header strip (border + padding + tags + title) that stays visible when the next card slides over. */
-const STACK_OFFSET = 200;
+/**
+ * Stacking geometry (home page, lg+). Cards pin STACK_START px below the viewport top; each next
+ * card slides over the previous one and pins STACK_STEP px lower, so only the header strip
+ * (number, tags, title, image edge) of covered cards stays visible. The last card is not sticky:
+ * pinned cards get a min-height chosen so they all release exactly when the last card reaches its
+ * slot, after which the assembled stack scrolls away as one block.
+ */
+const STACK_START = 250;
+const STACK_STEP = 200;
+const CARD_HEIGHT = 500;
 
 type ServicesListProps = {
   className?: string;
@@ -50,13 +58,24 @@ type ServicesListProps = {
 };
 
 export function ServicesList({ className, stack = false }: ServicesListProps) {
+  const last = SERVICES.length - 1;
+  const lastSlot = STACK_START + last * STACK_STEP;
   return (
-    <section id="services" className={cn("w-full bg-cream pb-[120px]", stack && "services-stack", className)}>
-      {SERVICES.map((s, i) => (
+    <section id="services" className={cn("w-full bg-cream pb-[120px]", className)}>
+      <div>
+        {SERVICES.map((s, i) => {
+          const pinned = stack && i < last;
+          const top = STACK_START + i * STACK_STEP;
+          const style = pinned
+            ? ({ "--stack-top": `${top}px`, "--stack-h": `${lastSlot + CARD_HEIGHT - top}px`, zIndex: i + 1 } as React.CSSProperties)
+            : stack
+              ? { zIndex: i + 1 }
+              : undefined;
+          return (
         <article
           key={s.number}
-          className={cn("border-t border-line bg-cream py-[50px]", stack && "services-card lg:min-h-[500px]")}
-          style={stack ? { top: i * STACK_OFFSET, zIndex: i + 1 } : undefined}
+          className={cn("border-t border-line bg-cream py-[50px]", stack && "relative lg:min-h-[500px]", pinned && "services-card")}
+          style={style}
         >
           <div
             className={cn(
@@ -93,7 +112,9 @@ export function ServicesList({ className, stack = false }: ServicesListProps) {
             <Photo src={s.image} tone="light" className="h-[280px] w-full lg:h-[400px] lg:flex-1" />
           </div>
         </article>
-      ))}
+          );
+        })}
+      </div>
     </section>
   );
 }

@@ -79,5 +79,7 @@ body {
 @media (min-width: 64rem) {
   .services-card {
     position: sticky;
+    top: var(--stack-top);
+    min-height: var(--stack-h);
   }
 }
