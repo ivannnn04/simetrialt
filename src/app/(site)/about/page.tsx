@@ -63,10 +63,10 @@ export default function AboutPage() {
           {YEARS.map((row, i) => (
             <div
               key={row.years}
-              // Figma: each row overlaps the next by 24px so the digits sit on the divider line;
-              // earlier rows stack above later ones.
-              className="relative w-full border-t border-line md:-mb-6"
-              style={{ zIndex: YEARS.length - i }}
+              // Figma: rows overlap by 24px; each row has the page background and sits above the
+              // previous one, so the bottom of the previous digits is cut off by the divider line.
+              className="relative w-full border-t border-line bg-cream md:-mb-6"
+              style={{ zIndex: i + 1 }}
             >
               <div className="mx-auto flex w-full max-w-[1440px] flex-col px-4 pt-6 md:flex-row md:items-start md:gap-[156px] md:pl-[320px] md:pr-10">
                 <div className="flex w-[250px] items-start">
