@@ -44,7 +44,7 @@ export const SERVICES = [
  * pinned cards get a min-height chosen so they all release exactly when the last card reaches its
  * slot, after which the assembled stack scrolls away as one block.
  */
-const STACK_START = 250;
+const STACK_START = 100;
 const STACK_STEP = 200;
 const CARD_HEIGHT = 500;
 
