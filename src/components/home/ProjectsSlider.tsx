@@ -19,8 +19,6 @@ type Props = {
   interval?: number;
 };
 
-const SLIDE_HEIGHT = 800;
-
 /**
  * Figma "projects" (node 4129:25960): full-bleed photo with a frosted panel on the left and a
  * vertical pagination column bottom-right. Slides move vertically (translateY), the active
@@ -28,6 +26,7 @@ const SLIDE_HEIGHT = 800;
  */
 export function ProjectsSlider({ slides, image, interval = 6000 }: Props) {
   const [index, setIndex] = useState(0);
+  const n = slides.length;
 
   useEffect(() => {
     if (slides.length < 2) return;
@@ -37,24 +36,20 @@ export function ProjectsSlider({ slides, image, interval = 6000 }: Props) {
 
   return (
     <section id="projects" className="relative w-full">
-      <Photo src={image} className="w-full">
+      <Photo src={image} className="h-[100svh] min-h-[700px] w-full">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0)_0%,rgba(0,0,0,0.5)_100%)]" />
-        <div className="relative mx-auto flex max-w-[1440px] items-end justify-between">
-          <div
-            className="w-full overflow-hidden bg-cream/10 backdrop-blur-[7.5px] lg:w-[576px]"
-            style={{ height: SLIDE_HEIGHT }}
-            aria-live="polite"
-          >
+        <div className="relative mx-auto flex h-full max-w-[1440px] items-end justify-between">
+          <div className="h-full w-full overflow-hidden bg-cream/10 backdrop-blur-[7.5px] lg:w-[576px]" aria-live="polite">
             <div
               className="flex flex-col transition-transform duration-700 ease-[cubic-bezier(0.65,0,0.35,1)]"
-              style={{ transform: `translateY(-${index * SLIDE_HEIGHT}px)` }}
+              style={{ height: `${n * 100}%`, transform: `translateY(-${(index * 100) / n}%)` }}
             >
               {slides.map((s, i) => (
                 <div
                   key={s.title}
                   aria-hidden={i !== index}
-                  className="flex shrink-0 flex-col justify-between px-4 pb-10 pt-[200px] md:px-10"
-                  style={{ height: SLIDE_HEIGHT }}
+                  className="flex shrink-0 flex-col justify-between px-4 pb-10 pt-[120px] md:px-10 lg:pt-[200px]"
+                  style={{ height: `${100 / n}%` }}
                 >
                   <div className="flex flex-col gap-6 text-white">
                     <div className="flex max-w-[478px] flex-col gap-4">

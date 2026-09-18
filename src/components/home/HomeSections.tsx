@@ -6,16 +6,17 @@ import { ProductSlider } from "@/components/catalogue/ProductSlider";
 import { Badge } from "@/components/site/Sections";
 import { SiteHeader } from "@/components/site/Header";
 import { FeatureSlider, type FeatureSlide } from "@/components/home/FeatureSlider";
+import { CountUp } from "@/components/ui/CountUp";
 
 // ---------- Hero (Figma node 4189:40696) ----------
 
 export function Hero() {
   return (
     <section className="relative w-full">
-      <Photo src="/images/home/hero.jpg" className="w-full">
+      <Photo src="/images/home/hero.jpg" className="flex min-h-[100svh] w-full flex-col">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0)_0%,rgba(0,0,0,0.5)_100%)]" />
         <SiteHeader variant="overlay" />
-        <div className="relative mx-auto flex max-w-[1440px] flex-col gap-24 px-4 pb-10 pt-[200px] md:px-10 lg:gap-[280px] lg:pt-[356px]">
+        <div className="relative mx-auto flex w-full max-w-[1440px] flex-1 flex-col justify-end gap-24 px-4 pb-10 pt-[120px] md:px-10 lg:gap-[280px]">
           <p className="max-w-[417px] text-[16px] leading-[1.3] tracking-[-0.04em] text-white">
             For long-term projects with real volume — hotels, offices, residential developments — Simetria sources,
             specifies and delivers from a single point of accountability.
@@ -142,10 +143,10 @@ export function BrandsSection() {
 
 // ---------- About (Figma node 4217:47660) ----------
 
-const NUMBERS = [
-  ["140", "Rooms"],
-  ["40", "Projects"],
-  ["15", "Brands"],
+const NUMBERS: [number, string][] = [
+  [140, "Rooms"],
+  [40, "Projects"],
+  [15, "Brands"],
 ];
 
 export function AboutSection() {
@@ -172,7 +173,9 @@ export function AboutSection() {
             <div className="flex items-center gap-6 border-t border-cream/40 px-4 py-6 text-white md:gap-[50px] lg:h-[137px] lg:w-1/2 lg:justify-center lg:border-l lg:border-t-0 lg:px-0 lg:py-0">
               {NUMBERS.map(([n, label]) => (
                 <div key={label} className="flex flex-col gap-1.5 border-l border-cream/40 px-4">
-                  <p className="text-[44px] font-medium leading-none tracking-[-0.04em] md:text-[64px]">{n}</p>
+                  <p className="text-[44px] font-medium leading-none tracking-[-0.04em] tabular-nums md:text-[64px]">
+                    <CountUp value={n} />
+                  </p>
                   <p className="text-[18px] leading-[1.3] tracking-[-0.04em]">{label}</p>
                 </div>
               ))}
