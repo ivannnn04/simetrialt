@@ -14,10 +14,20 @@ export default async function HomePage() {
       <Hero />
       <ScrollReveal
         image="/images/home/features.jpg"
-        feature={{
-          title: "Long-term partnerships",
-          text: "Trusted by architects and designers for reliable collaboration, thoughtful guidance, and consistent support across every stage of a project.",
-        }}
+        slides={[
+          {
+            title: "Long-term partnerships",
+            text: "Trusted by architects and designers for reliable collaboration, thoughtful guidance, and consistent support across every stage of a project.",
+          },
+          {
+            title: "Single point of accountability",
+            text: "One partner sources, specifies, delivers and installs — so schedules, budgets and quality stay under control from concept to handover.",
+          },
+          {
+            title: "Curated brands, honest advice",
+            text: "We represent manufacturers we trust and recommend only what fits the project — never what happens to be in stock.",
+          },
+        ]}
       />
       <ProductLine products={cards} />
       <BrandsSection />

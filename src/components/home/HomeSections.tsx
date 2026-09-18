@@ -5,6 +5,7 @@ import { ArrowIcon } from "@/components/ui/Icons";
 import { ProductCard, type ProductCardData } from "@/components/catalogue/ProductCard";
 import { Badge } from "@/components/site/Sections";
 import { SiteHeader } from "@/components/site/Header";
+import { FeatureSlider, type FeatureSlide } from "@/components/home/FeatureSlider";
 
 // ---------- Hero (Figma node 4189:40696) ----------
 
@@ -65,32 +66,17 @@ export function WhySection() {
 // ---------- Long-term partnerships (Figma "features", node 4048:30474) ----------
 
 type FeaturesProps = {
-  title?: string;
-  text?: string;
+  slides: FeatureSlide[];
   image?: string;
-  bars?: number;
 };
 
-export function FeaturesSection({
-  title = "Long-term partnerships",
-  text = "Trusted by architects and designers for reliable collaboration, thoughtful guidance, and consistent support across every stage of a project.",
-  image = "/images/home/features.jpg",
-  bars = 3,
-}: FeaturesProps) {
+export function FeaturesSection({ slides, image = "/images/home/features.jpg" }: FeaturesProps) {
   return (
     <section id="features" className="w-full">
       <Photo src={image} className="w-full">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black/70" />
-        <div className="relative flex flex-col items-center gap-14 pt-[320px] lg:pt-[526px]">
-          <div className="flex flex-col items-center gap-6 px-4 text-center text-white">
-            <h2 className="text-[44px] font-medium leading-none tracking-[-0.04em] md:text-[74px]">{title}</h2>
-            <p className="max-w-[598px] text-[16px] leading-[1.3] tracking-[-0.04em]">{text}</p>
-          </div>
-          <div className="flex w-full items-center gap-2" aria-hidden>
-            {Array.from({ length: bars }).map((_, i) => (
-              <span key={i} className={cn("h-2 flex-1", i === 0 ? "bg-cream" : "bg-cream/20")} />
-            ))}
-          </div>
+        <div className="relative pt-[320px] lg:pt-[526px]">
+          <FeatureSlider slides={slides} />
         </div>
       </Photo>
     </section>

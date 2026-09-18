@@ -70,10 +70,13 @@ export default function AboutPage() {
       </section>
 
       <FeaturesSection
-        title="Personalised approach"
-        text="Every project is treated as unique, tailoring our curation and support precisely to your specific requirements."
         image="/images/about/features.jpg"
-        bars={4}
+        slides={[
+          { title: "Personalised approach", text: "Every project is treated as unique, tailoring our curation and support precisely to your specific requirements." },
+          { title: "Technical precision", text: "Lighting calculations, compliance checks and specification sheets prepared by our own engineers." },
+          { title: "Reliable delivery", text: "Consolidated logistics and on-site coordination so every piece arrives on time and in place." },
+          { title: "Support after handover", text: "Maintenance, spare parts and adjustments long after the project is complete." },
+        ]}
       />
 
       <CtaSection

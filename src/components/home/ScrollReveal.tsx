@@ -5,6 +5,7 @@ import { cn } from "@/lib/cn";
 import { DotButton } from "@/components/ui/Button";
 import { Badge } from "@/components/site/Sections";
 import { PLACEHOLDER_IMAGE } from "@/lib/placeholder";
+import { FeatureSlider, type FeatureSlide } from "@/components/home/FeatureSlider";
 
 const CARD_W = 334; // Figma "2 section / with image" (node 4189:22881)
 const CARD_H = 434;
@@ -18,7 +19,7 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 type Props = {
   image: string;
-  feature: { title: string; text: string; bars?: number };
+  slides: FeatureSlide[];
 };
 
 /**
@@ -27,7 +28,7 @@ type Props = {
  * centre of the screen, grows into the full-bleed background of "Long-term
  * partnerships", and that section's content fades in once the image has landed.
  */
-export function ScrollReveal({ image, feature }: Props) {
+export function ScrollReveal({ image, slides }: Props) {
   const ref = useRef<HTMLElement>(null);
   const [p, setP] = useState(0);
   const [size, setSize] = useState({ w: 1440, h: 900 });
@@ -93,7 +94,7 @@ export function ScrollReveal({ image, feature }: Props) {
           style={{ backgroundImage: `url(${src})` }}
         >
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black/70" />
-          <FeatureCopy {...feature} />
+          <FeatureSlider slides={slides} className="relative" />
         </section>
       </>
     );
@@ -130,7 +131,7 @@ export function ScrollReveal({ image, feature }: Props) {
           className={cn("absolute inset-0 flex flex-col items-center justify-end gap-14", featureIn === 0 && "pointer-events-none")}
           style={{ opacity: featureIn, transform: `translateY(${(1 - featureIn) * 24}px)` }}
         >
-          <FeatureCopy {...feature} />
+          <FeatureSlider slides={slides} playing={featureIn > 0.5} />
         </div>
       </div>
     </section>
@@ -150,21 +151,5 @@ function WhyCopy({ onScroll }: { onScroll?: () => void }) {
         Scroll
       </DotButton>
     </div>
-  );
-}
-
-function FeatureCopy({ title, text, bars = 3 }: Props["feature"]) {
-  return (
-    <>
-      <div className="flex flex-col items-center gap-6 px-4 text-center text-white">
-        <h2 className="text-[44px] font-medium leading-none tracking-[-0.04em] md:text-[74px]">{title}</h2>
-        <p className="max-w-[598px] text-[16px] leading-[1.3] tracking-[-0.04em]">{text}</p>
-      </div>
-      <div className="flex w-full items-center gap-2" aria-hidden>
-        {Array.from({ length: bars }).map((_, i) => (
-          <span key={i} className={cn("h-2 flex-1", i === 0 ? "bg-cream" : "bg-cream/20")} />
-        ))}
-      </div>
-    </>
   );
 }

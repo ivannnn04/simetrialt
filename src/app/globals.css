@@ -37,3 +37,19 @@ body {
 .ticker {
   animation: ticker 40s linear infinite;
 }
+
+/* Feature slider (home / about): bar fill + slide fade */
+@keyframes feature-fill {
+  from { width: 0; }
+  to { width: 100%; }
+}
+.feature-fill {
+  animation: feature-fill linear forwards;
+}
+@keyframes feature-slide {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.feature-slide {
+  animation: feature-slide 600ms ease-out both;
+}
