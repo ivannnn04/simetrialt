@@ -7,8 +7,8 @@ import type { ServiceStage } from "@/data/services";
 /**
  * Figma "how we work" (node 4048:30522). Geometry per point (225 × 150 box):
  *   pill (38px) → 12px gap → dot (18px) with its centre at y = 59, the line runs through it.
- *   Odd points are mirrored (dot above, pill below). The active description sits 27px under
- *   the box for "pill above" points and above the box for "pill below" points.
+ *   Odd points are mirrored (dot above, pill below). The active description sits 27px from the
+ *   dot: below it for "pill above" points, above it for "pill below" points.
  * A progress line sweeps left → right; the point it last passed is active. Hovering a point
  * moves the line there and pauses; clicking a dot sends the line to it and playback continues.
  */
@@ -18,6 +18,7 @@ const PILL = 38;
 const GAP = 12;
 const DOT_TOP = 50; // dot centre at 59px
 const LINE_TOP = DOT_TOP + DOT / 2;
+const DESC_GAP = 27; // dot → description
 const SWEEP_MS = 16000; // full left → right pass
 const SEEK_PX_PER_MS = 2.4; // speed when jumping to a clicked dot
 
@@ -122,6 +123,7 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
           {stages.map((stage, i) => {
             const below = i % 2 === 1;
             const isActive = i === active;
+            const passed = i <= active; // dots the line has already reached stay dark
             return (
               <li
                 key={stage.label}
@@ -144,7 +146,7 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
                     }}
                     className={cn(
                       "block rounded-full border transition-colors duration-300",
-                      isActive ? "border-dark bg-dark" : "border-[#c6c6c6] bg-cream"
+                      passed ? "border-dark bg-dark" : "border-[#c6c6c6] bg-cream"
                     )}
                     style={{ width: DOT, height: DOT }}
                   />
@@ -167,7 +169,7 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
                     "absolute left-0 w-full text-[13px] leading-[1.3] tracking-[-0.04em] text-[#2e2e2e]/80 transition-opacity duration-300",
                     isActive ? "opacity-100" : "opacity-0"
                   )}
-                  style={below ? { bottom: BOX - (DOT_TOP - GAP) + 15 } : { top: BOX + 27 }}
+                  style={below ? { bottom: BOX - (DOT_TOP - DESC_GAP) } : { top: DOT_TOP + DOT + DESC_GAP }}
                   aria-hidden={!isActive}
                 >
                   {stage.text}
@@ -176,8 +178,8 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
             );
           })}
         </ol>
-        {/* room for the description under "pill above" points (27px gap + 3 lines) */}
-        <div style={{ height: 27 + 52 }} aria-hidden />
+        {/* room for a description under "pill above" points (dot bottom + 27px + 3 lines) */}
+        <div style={{ height: DOT_TOP + DOT + DESC_GAP + 52 - BOX }} aria-hidden />
       </div>
 
       {/* Mobile / tablet: vertical list */}
