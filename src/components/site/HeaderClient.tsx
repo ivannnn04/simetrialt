@@ -101,15 +101,14 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
 
   return (
     <header
-      className={cn("z-50 w-full", variant === "overlay" ? "absolute left-0 top-0" : "relative")}
+      className={cn(
+        "z-50 w-full transition-colors duration-300",
+        variant === "overlay" ? "absolute left-0 top-0" : "relative",
+        solid ? "bg-cream" : "bg-transparent"
+      )}
       onMouseLeave={() => setOpen(false)}
     >
-      <div
-        className={cn(
-          "mx-auto flex h-[76px] w-full max-w-[1440px] items-center justify-between px-4 py-6 md:px-10",
-          solid ? "bg-cream" : "bg-transparent"
-        )}
-      >
+      <div className="mx-auto flex h-[76px] w-full max-w-[1440px] items-center justify-between px-4 py-6 md:px-10">
         <nav className="hidden w-[450px] items-center gap-6 lg:flex">
           <button
             type="button"
