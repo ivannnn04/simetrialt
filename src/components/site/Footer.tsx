@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { DotButton } from "@/components/ui/Button";
 import { MailIcon, PhoneIcon, PinIcon } from "@/components/ui/Icons";
+import { FooterLogo } from "@/components/site/FooterLogo";
 
 type Item = { label: string; href: string };
 const COLUMNS: { heading: string; items: Item[] }[] = [
@@ -75,7 +76,7 @@ export function SiteFooter() {
                     <Link
                       key={item.label}
                       href={item.href}
-                      className="flex h-[30px] items-center py-2 text-[14px] leading-none tracking-[-0.04em] text-dark hover:text-accent"
+                      className="footer-link inline-flex h-[30px] items-center self-start py-2 text-[14px] leading-none tracking-[-0.04em] text-dark"
                     >
                       {item.label}
                     </Link>
@@ -87,13 +88,13 @@ export function SiteFooter() {
               <p className="text-[12px] leading-none tracking-[-0.04em] text-body">Contact us</p>
               <div className="flex flex-col gap-4 md:flex-row">
                 {CONTACTS.map(({ label, value, Icon, href }) => (
-                  <Link key={label} href={href} className="flex w-[218px] items-center gap-2 py-2">
-                    <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-line text-dark">
+                  <Link key={label} href={href} className="group flex w-[218px] items-center gap-2 py-2">
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-line text-dark transition-[background-color,border-color,color] duration-500 ease-out group-hover:border-dark group-hover:bg-dark group-hover:text-white">
                       <Icon />
                     </span>
                     <span className="flex flex-col gap-1.5 leading-none tracking-[-0.04em]">
                       <span className="text-[12px] text-body">{label}</span>
-                      <span className="text-[16px] font-semibold text-dark">{value}</span>
+                      <span className="text-[16px] font-semibold text-dark transition-colors duration-500 ease-out group-hover:text-accent">{value}</span>
                     </span>
                   </Link>
                 ))}
@@ -103,16 +104,14 @@ export function SiteFooter() {
         </div>
 
         <div className="flex w-full flex-col items-center gap-10">
-          <div className="w-full px-4 md:px-10" aria-hidden>
-            <p className="select-none text-center text-[clamp(72px,19vw,284px)] font-semibold lowercase leading-[0.85] tracking-[-0.06em] text-warm">
-              simetria
-            </p>
+          <div className="w-full px-4 md:px-10">
+            <FooterLogo className="block h-auto w-full text-warm" />
           </div>
           <div className="flex w-full items-center justify-between gap-8 border-t border-line px-4 py-6 text-[14px] leading-none text-secondary md:px-10">
             <p className="py-1">© Copyright {new Date().getFullYear()} Simetria</p>
             <div className="flex items-center gap-4">
-              <Link href="#" className="py-1 hover:text-dark">Privacy Policy</Link>
-              <Link href="#" className="py-1 hover:text-dark">Cookie</Link>
+              <Link href="#" className="footer-link py-1">Privacy Policy</Link>
+              <Link href="#" className="footer-link py-1">Cookie</Link>
             </div>
           </div>
         </div>
