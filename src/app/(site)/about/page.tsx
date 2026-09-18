@@ -49,7 +49,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* About + years (Figma 4217:46310): full-width divider lines, content inside the container */}
+      {/* About + years (Figma 4217:46310): full-width divider lines, content inside the container, rows overlap by 24px */}
       <section className="flex w-full flex-col gap-20 py-[120px]">
         <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-6 px-4 md:px-10">
           <p className="text-[18px] leading-[1.3] tracking-[-0.04em] text-secondary">About us</p>
@@ -61,7 +61,13 @@ export default function AboutPage() {
         </div>
         <div className="flex w-full flex-col">
           {YEARS.map((row, i) => (
-            <div key={row.years} className="w-full border-t border-line">
+            <div
+              key={row.years}
+              // Figma: each row overlaps the next by 24px so the digits sit on the divider line;
+              // earlier rows stack above later ones.
+              className="relative w-full border-t border-line md:-mb-6"
+              style={{ zIndex: YEARS.length - i }}
+            >
               <div className="mx-auto flex w-full max-w-[1440px] flex-col px-4 pt-6 md:flex-row md:items-start md:gap-[156px] md:pl-[320px] md:pr-10">
                 <div className="flex w-[250px] items-start">
                   <span className="text-[96px] font-medium leading-none tracking-[-0.04em] text-black md:text-[134px]">{row.years}</span>
