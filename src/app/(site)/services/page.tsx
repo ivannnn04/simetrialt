@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { SiteHeader } from "@/components/site/Header";
 import { DotButton } from "@/components/ui/Button";
 import { Photo } from "@/components/ui/Photo";
-import { CtaSection, LetsTalk, ProjectsSection, ServicesList } from "@/components/site/Sections";
+import { CtaSection, LetsTalk, ServicesList } from "@/components/site/Sections";
+import { ProjectsSlider } from "@/components/home/ProjectsSlider";
+import { PROJECT_SLIDES, PROJECT_SLIDES_IMAGE } from "@/data/project-slides";
+import { cn } from "@/lib/cn";
 
 export const metadata: Metadata = {
   title: "Services — Simetria LT",
@@ -11,10 +15,34 @@ export const metadata: Metadata = {
 
 // Figma "3 section" — process cards (node 4217:47508)
 const PROCESS = [
-  { number: "01", title: "Consultation & Project Discovery", image: "/images/services/process-1.jpg" },
-  { number: "02", title: "Selection & Proposal", image: "/images/services/process-2.jpg" },
-  { number: "03", title: "Order & Coordination", image: "/images/services/process-3.jpg" },
-  { number: "04", title: "Delivery & Project Completion", image: "/images/services/process-4.jpg" },
+  {
+    number: "01",
+    title: "Consultation & Project Discovery",
+    text: "We meet on site or in the showroom, study the brief and drawings, and agree on scope, budget and timeline before anything is specified.",
+    image: "/images/services/process-1.jpg",
+    href: "/contact",
+  },
+  {
+    number: "02",
+    title: "Selection & Proposal",
+    text: "Our team shortlists furniture and lighting from the brands we represent, prepares samples and a priced proposal with lead times.",
+    image: "/images/services/process-2.jpg",
+    href: "/catalogue",
+  },
+  {
+    number: "03",
+    title: "Order & Coordination",
+    text: "We place and track every order, align deliveries with the construction schedule and keep one point of contact for the whole project.",
+    image: "/images/services/process-3.jpg",
+    href: "/projects",
+  },
+  {
+    number: "04",
+    title: "Delivery & Project Completion",
+    text: "Installation, commissioning and a final walkthrough, followed by after-sales support for as long as the space is in use.",
+    image: "/images/services/process-4.jpg",
+    href: "/contact",
+  },
 ];
 
 export default function ServicesPage() {
@@ -44,18 +72,34 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      <ServicesList />
+      <ServicesList stack />
 
-      {/* Process cards */}
-      <section className="grid w-full grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
+      {/* Process cards: each is a link; hovering one reveals its description and dims the other three */}
+      <section className="group/process grid w-full grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
         {PROCESS.map((step) => (
-          <Photo key={step.number} src={step.image} className="flex h-[480px] flex-col items-center justify-center px-8 xl:h-[660px]">
-            <div className="absolute inset-0 bg-black/10" />
-            <h2 className="relative max-w-[287px] text-center text-[30px] font-medium leading-[1.3] tracking-[-0.04em] text-white">
-              {step.title}
-            </h2>
-            <p className="absolute bottom-8 text-[18px] leading-[1.3] tracking-[-0.04em] text-white">/ {step.number}</p>
-          </Photo>
+          <Link
+            key={step.number}
+            href={step.href}
+            className="group/card relative block"
+          >
+            <Photo src={step.image} className="flex h-[480px] flex-col items-center justify-center px-8 xl:h-[660px]">
+              <div className="absolute inset-0 bg-black/10 transition-colors duration-500 ease-out group-hover/process:bg-black/60 group-hover/card:!bg-black/25" />
+              <div className="relative flex max-w-[320px] flex-col items-center text-center text-white">
+                <h2 className="text-[30px] font-medium leading-[1.3] tracking-[-0.04em]">{step.title}</h2>
+                <div className="grid grid-rows-[0fr] transition-[grid-template-rows] duration-500 ease-out group-hover/card:grid-rows-[1fr]">
+                  <p
+                    className={cn(
+                      "overflow-hidden text-[16px] leading-[1.3] tracking-[-0.04em] text-white/90 opacity-0 transition-[opacity,transform] duration-500 ease-out",
+                      "translate-y-2 group-hover/card:translate-y-0 group-hover/card:opacity-100"
+                    )}
+                  >
+                    <span className="block pt-4">{step.text}</span>
+                  </p>
+                </div>
+              </div>
+              <p className="absolute bottom-8 text-[18px] leading-[1.3] tracking-[-0.04em] text-white">/ {step.number}</p>
+            </Photo>
+          </Link>
         ))}
       </section>
 
@@ -67,7 +111,7 @@ export default function ServicesPage() {
         button={{ label: "Scroll", href: "#projects" }}
       />
 
-      <ProjectsSection />
+      <ProjectsSlider image={PROJECT_SLIDES_IMAGE} slides={PROJECT_SLIDES} />
       <LetsTalk />
     </>
   );
