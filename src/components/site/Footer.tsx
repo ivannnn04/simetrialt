@@ -50,7 +50,7 @@ const CONTACTS = [
 /** Figma "Footer" (node 4263:30197). */
 export function SiteFooter() {
   return (
-    <footer className="w-full overflow-hidden bg-cream pt-20">
+    <footer className="w-full overflow-hidden bg-cream pt-[82px]">
       <div className="mx-auto flex max-w-[1440px] flex-col items-center gap-[76px]">
         <div className="flex w-full flex-col gap-12 px-4 md:px-10 lg:flex-row lg:items-stretch lg:justify-between lg:gap-8">
           <div className="flex flex-col gap-10 lg:w-[490px] lg:shrink-0">
