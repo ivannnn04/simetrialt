@@ -76,9 +76,9 @@ export function SiteFooter() {
                     <Link
                       key={item.label}
                       href={item.href}
-                      className="ul-link footer-link inline-flex h-[30px] items-center self-start py-2 text-[14px] leading-none tracking-[-0.04em] text-dark"
+                      className="block py-2 text-[14px] leading-[1.15] tracking-[-0.04em] text-dark"
                     >
-                      {item.label}
+                      <span className="ul-text">{item.label}</span>
                     </Link>
                   ))}
                 </div>

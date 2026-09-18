@@ -74,9 +74,20 @@ body {
   transform: scaleX(1);
   transform-origin: left;
 }
-/* footer items have 8px vertical padding: lift the line up to the text */
-.footer-link::after {
-  bottom: 6px;
+/* Inline variant for labels that may wrap onto two lines (footer columns):
+   the underline is a background gradient cloned per line fragment. */
+.ul-text {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0 1px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  transition: background-size 400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+a:hover > .ul-text,
+.ul-text:hover {
+  background-size: 100% 1px;
 }
 
 /* Feature slider (home / about): bar fill + slide fade */
