@@ -45,7 +45,7 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
   const projects = PROJECTS;
 
   return (
-    <div className="flex w-full flex-col gap-[120px] bg-cream">
+    <div className="flex w-full flex-col gap-[120px] bg-cream pb-[120px]">
       {/* Hero */}
       <section className="flex w-full flex-col gap-12">
         <div className="flex w-full flex-col gap-16 lg:gap-[100px]">
