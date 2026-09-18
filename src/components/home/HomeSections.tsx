@@ -21,8 +21,8 @@ export function Hero() {
           </p>
           <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex flex-wrap items-center gap-4">
-              <DotButton variant="light" href="/catalogue">Explore products</DotButton>
-              <DotButton variant="outline-light" href="/contact">Book a consultation</DotButton>
+              <DotButton variant="primary" href="/catalogue">Explore products</DotButton>
+              <DotButton variant="ghost-light" dots={false} href="/contact">Book a consultation</DotButton>
             </div>
             <div className="flex flex-col gap-[15px] lg:items-end lg:text-right">
               <Badge className="text-white">Design house, established for architects</Badge>
@@ -184,7 +184,7 @@ export function AboutSection() {
               Furniture Solutions Without Complexity
             </h2>
             <div>
-              <DotButton variant="light" href="/contact">About Us</DotButton>
+              <DotButton variant="primary" href="/contact">About Us</DotButton>
             </div>
           </div>
           <div className="flex flex-col border-t border-cream/40 lg:flex-row lg:items-stretch">

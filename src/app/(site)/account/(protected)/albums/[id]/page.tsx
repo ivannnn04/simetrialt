@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireCustomer } from "@/lib/customer-auth";
@@ -8,7 +7,7 @@ import { deleteCollection, removeFromCollection, renameCollection } from "@/acti
 import { SiteHeader } from "@/components/site/Header";
 import { Breadcrumbs } from "@/components/site/Breadcrumbs";
 import { ProductCard } from "@/components/catalogue/ProductCard";
-import { ArrowIcon } from "@/components/ui/Icons";
+import { StrokeLink } from "@/components/ui/Button";
 
 export const metadata: Metadata = { title: "Collection — Simetria LT" };
 
@@ -60,9 +59,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ id:
           {collection.items.length === 0 ? (
             <div className="flex flex-col items-start gap-6">
               <p className="text-[16px] tracking-[-0.04em] text-secondary">This collection is empty. Save products from the catalogue with the heart icon.</p>
-              <Link href="/catalogue" className="flex items-center gap-2 border-b border-black pb-1.5 text-[18px] font-medium tracking-[-0.04em]">
-                Browse products <ArrowIcon className="size-5" />
-              </Link>
+              <StrokeLink href="/catalogue">Browse products</StrokeLink>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">

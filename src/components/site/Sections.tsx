@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/cn";
-import { DotButton } from "@/components/ui/Button";
+import { DotButton, StrokeLink } from "@/components/ui/Button";
 import { Photo } from "@/components/ui/Photo";
-import { ArrowIcon } from "@/components/ui/Icons";
 import { Breadcrumbs } from "@/components/site/Breadcrumbs";
 
 // ---------- Services list (Figma "services", node 4188:22369) ----------
@@ -106,7 +105,7 @@ export function ProjectsSection() {
                 </p>
               </div>
               <div>
-                <DotButton variant="light" href="/catalogue">Explore products</DotButton>
+                <DotButton variant="primary" href="/catalogue">Explore products</DotButton>
               </div>
             </div>
             <dl className="mt-16 flex w-full max-w-[330px] flex-col gap-1.5 text-[14px] leading-none tracking-[-0.04em] text-tertiary">
@@ -189,17 +188,7 @@ export function CtaSection({ eyebrow, image, title, text, button }: CtaProps) {
 
 // ---------- Underlined arrow link (Figma "button stroke") ----------
 
-export function SectionLink({ href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <Link
-      href={href}
-      className="flex h-[27px] items-center gap-2 border-b border-black pb-1.5 text-[18px] font-medium leading-none tracking-[-0.04em] text-black hover:border-accent hover:text-accent"
-    >
-      {children}
-      <ArrowIcon className="size-5" />
-    </Link>
-  );
-}
+export const SectionLink = StrokeLink;
 
 // ---------- Page hero: breadcrumbs + display title + side copy (Figma "hero section") ----------
 

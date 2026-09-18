@@ -3,7 +3,7 @@ import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { SiteHeader } from "@/components/site/Header";
 import { Photo } from "@/components/ui/Photo";
-import { ArrowIcon } from "@/components/ui/Icons";
+import { StrokeLink } from "@/components/ui/Button";
 import { PROJECTS, type Project, type ProjectType } from "@/data/projects";
 
 export const metadata: Metadata = {
@@ -100,23 +100,17 @@ export default async function ProjectsPage({
                     key={tab.value}
                     href={tab.value === "all" ? "/projects" : `/projects?type=${tab.value}`}
                     className={cn(
-                      "flex h-[34px] items-center gap-3 rounded-[2px] px-[18px] text-[14px] font-semibold leading-none tracking-[-0.03em] transition-colors",
-                      isActive ? "bg-dark text-white" : "border border-line text-tertiary hover:text-ink"
+                      "group/btn inline-flex items-center gap-3 rounded-[2px] px-[18px] py-[10px] text-[14px] font-semibold leading-none tracking-[-0.03em] transition-colors",
+                      isActive ? "bg-dark text-white" : "border border-line text-tertiary hover:border-dark hover:bg-dark hover:text-white"
                     )}
                   >
-                    <span className={cn("size-[5px]", isActive ? "bg-white" : "bg-tertiary")} />
+                    <span className={cn("size-[5px] transition-colors", isActive ? "bg-white" : "bg-tertiary group-hover/btn:bg-white")} />
                     {tab.label}
                   </Link>
                 );
               })}
             </div>
-            <Link
-              href="/catalogue"
-              className="flex h-[27px] items-center gap-2 border-b border-black pb-1.5 text-[18px] font-medium leading-none tracking-[-0.04em] text-black hover:text-accent hover:border-accent"
-            >
-              View products
-              <ArrowIcon className="size-5" />
-            </Link>
+            <StrokeLink href="/catalogue">View products</StrokeLink>
           </div>
 
           {/* Grid (Figma node 4217:46237) */}

@@ -108,7 +108,7 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2">
               <DotButton href="/catalogue">View products from this brand</DotButton>
-              <DotButton variant="outline-dark" href={`/contact?product=${encodeURIComponent(brand.name)}`}>Send enquiry</DotButton>
+              <DotButton variant="ghost" dots={false} href={`/contact?product=${encodeURIComponent(brand.name)}`}>Send enquiry</DotButton>
             </div>
           </div>
         </div>

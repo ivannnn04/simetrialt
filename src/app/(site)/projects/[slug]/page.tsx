@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/site/Header";
 import { Photo } from "@/components/ui/Photo";
-import { ArrowIcon } from "@/components/ui/Icons";
+import { BackLink } from "@/components/ui/Button";
 import { LetsTalk } from "@/components/site/Sections";
 import { PROJECTS, getProject } from "@/data/projects";
 
@@ -43,10 +42,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           <SiteHeader variant="overlay" />
           <div className="relative mx-auto flex min-h-[640px] max-w-[1440px] flex-col gap-[78px] pt-[116px] lg:min-h-[800px]">
             <div className="px-4 md:px-10">
-              <Link href="/projects" className="inline-flex items-center gap-2 text-[14px] leading-[1.3] tracking-[-0.04em] text-white hover:text-white/70">
-                <ArrowIcon className="size-[18px] rotate-180" />
-                Back to Projects
-              </Link>
+              <BackLink href="/projects">Back to Projects</BackLink>
             </div>
             <div className="flex flex-col items-center gap-8 px-4 text-center text-white">
               <h1 className="max-w-[450px] text-[44px] font-medium leading-none tracking-[-0.04em] md:text-[64px]">{project.name}</h1>

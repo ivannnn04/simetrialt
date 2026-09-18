@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { loginCustomerAction, registerAction } from "@/actions/account";
 import { DotButton } from "@/components/ui/Button";
-import { cn } from "@/lib/cn";
 
 const inputCls =
   "w-full border-b border-line bg-transparent pb-2 text-[18px] font-medium leading-none tracking-[-0.04em] text-ink placeholder:text-secondary focus:border-black focus:outline-none";
@@ -33,7 +32,7 @@ export function AuthForm({ mode, next }: { mode: "login" | "register"; next: str
         {state?.error && <p className="text-[14px] text-[#fb3b30]">{state.error}</p>}
       </div>
       <div className="flex flex-col gap-6">
-        <DotButton type="submit" className={cn("w-full", pending && "opacity-50")}>
+        <DotButton type="submit" className="w-full" disabled={pending}>
           {pending ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}
         </DotButton>
         <p className="text-[14px] tracking-[-0.04em] text-secondary">

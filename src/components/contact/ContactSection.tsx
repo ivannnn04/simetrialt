@@ -93,7 +93,8 @@ function BookingWidget({ onBook }: { onBook: (text: string) => void }) {
       </div>
       <div className="flex flex-col rounded-b-[8px] border-x border-b border-line px-6 py-4">
         <DotButton
-          className={cn("w-full", !summary && "opacity-50")}
+          className="w-full"
+          disabled={!summary}
           onClick={() => summary && onBook(`Consultation request: ${summary}`)}
         >
           Book a consultation
@@ -137,7 +138,7 @@ export function ContactSection({ initialMessage = "" }: { initialMessage?: strin
           )}
         </div>
         {!state?.message && (
-          <DotButton type="submit" className={cn("w-full", pending && "opacity-50")}>
+          <DotButton type="submit" className="w-full" disabled={pending}>
             {pending ? "Sending…" : "Submit"}
           </DotButton>
         )}
