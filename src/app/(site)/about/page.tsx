@@ -35,7 +35,13 @@ export default function AboutPage() {
         <div className="flex w-full flex-col gap-8">
           <PageHero
             crumbs={[{ label: "Home", href: "/" }, { label: "About" }]}
-            title="Discover the Simetria system"
+            title={
+              <>
+                Discover the
+                <br />
+                Simetria system
+              </>
+            }
             text="Curated product sourcing, precise calculations, and dedicated technical support for professional architects and interior designers"
             button={{ label: "Book a consultation", href: "/contact" }}
           />
