@@ -21,6 +21,18 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 const COLLECTION_HEIGHT = { 458: "h-[458px]", 366: "h-[366px]", 275: "h-[275px]" } as const;
 
+/**
+ * Horizontal card strip (Figma "cards section"): starts at the container's left edge, runs to
+ * the viewport's right edge, scrolls horizontally with the scrollbar hidden.
+ */
+function CardStrip({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex w-max gap-2 pl-4 pr-4 md:pl-[max(40px,calc((100vw-1440px)/2+40px))] md:pr-10">{children}</div>
+    </div>
+  );
+}
+
 
 // Figma "Brand's internal page UPD" (node 4217:47603)
 export default async function BrandPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -30,8 +42,7 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
 
   const cards = await getFeaturedProducts(9);
 
-  const projects = PROJECTS.slice(0, 4);
-  const projectHeights = ["h-[458px] lg:w-[728px]", "h-[366px] lg:w-[360px]", "h-[366px] lg:w-[360px]", "h-[366px] lg:w-[360px]"];
+  const projects = PROJECTS;
 
   return (
     <div className="flex w-full flex-col gap-[120px] bg-cream">
@@ -55,16 +66,14 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
           <h2 className="text-[36px] font-medium leading-[1.1] tracking-[-0.04em] text-black md:text-[52px]">Signature collections</h2>
           <SectionLink href="/catalogue">See more</SectionLink>
         </div>
-        <div className="mx-auto w-full max-w-[1440px] overflow-x-auto pl-4 md:pl-10">
-          <div className="flex w-max gap-2">
-            {brand.collections.map((c, i) => (
-              <Link key={c.title} href="/catalogue" className="flex w-[300px] flex-col gap-4 lg:w-[360px]">
-                <Photo src={`/images/brands/${brand.slug}-collection-${i + 1}.jpg`} tone="light" className={cn("w-full", COLLECTION_HEIGHT[c.height])} />
-                <p className="text-[18px] font-medium leading-none tracking-[-0.04em] text-black">{c.title}</p>
-              </Link>
-            ))}
-          </div>
-        </div>
+        <CardStrip>
+          {brand.collections.map((c, i) => (
+            <Link key={c.title} href="/catalogue" className="flex w-[300px] flex-col gap-4 lg:w-[360px]">
+              <Photo src={`/images/brands/${brand.slug}-collection-${i + 1}.jpg`} tone="light" className={cn("w-full", COLLECTION_HEIGHT[c.height])} />
+              <p className="text-[18px] font-medium leading-none tracking-[-0.04em] text-black">{c.title}</p>
+            </Link>
+          ))}
+        </CardStrip>
       </section>
 
       {/* Projects */}
@@ -73,19 +82,22 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
           <h2 className="text-[36px] font-medium leading-[1.1] tracking-[-0.04em] text-black md:text-[52px]">Projects</h2>
           <SectionLink href="/projects">See more</SectionLink>
         </div>
-        <div className="mx-auto w-full max-w-[1440px] overflow-x-auto pl-4 md:pl-10">
-          <div className="flex w-max gap-2">
-            {projects.map((p, i) => (
-              <Link key={p.slug} href={`/projects/${p.slug}`} data-cursor="View project" className={cn("flex w-[300px] flex-col gap-4", projectHeights[i].split(" ")[1])}>
-                <Photo src={p.image} className={cn("w-full", projectHeights[i].split(" ")[0])} />
-                <div className="flex flex-col gap-2 font-medium leading-none">
-                  <p className="text-[18px] tracking-[-0.04em] text-black">{p.name}</p>
-                  {i < 3 && <p className="text-[13px] uppercase tracking-[-0.04em] text-body">{p.category}</p>}
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
+        <CardStrip>
+          {projects.map((p, i) => (
+            <Link
+              key={p.slug}
+              href={`/projects/${p.slug}`}
+              data-cursor="View project"
+              className={cn("flex flex-col gap-4", i === 0 ? "w-[300px] lg:w-[728px]" : "w-[300px] lg:w-[360px]")}
+            >
+              <Photo src={p.image} className={cn("w-full", i === 0 ? "h-[458px]" : "h-[366px]")} />
+              <div className="flex flex-col gap-2 font-medium leading-none">
+                <p className="text-[18px] tracking-[-0.04em] text-black">{p.name}</p>
+                <p className="text-[13px] uppercase tracking-[-0.04em] text-body">{p.category}</p>
+              </div>
+            </Link>
+          ))}
+        </CardStrip>
       </section>
 
       <ProductLine products={cards} title="Product line" cta={{ label: "See more", href: "/catalogue" }} className="" />

@@ -8,8 +8,11 @@ export type Brand = {
   collections: { title: string; height: 458 | 366 | 275 }[];
 };
 
+// Extra placeholder collections so the horizontal strip has something to scroll through.
+const EXTRA_COLLECTIONS = ["New arrivals", "Outdoor", "Storage", "Accessories"];
+
 const collections = (titles: string[]): Brand["collections"] =>
-  titles.map((title, i) => ({ title, height: ([458, 366, 275, 366] as const)[i % 4] }));
+  [...titles, ...EXTRA_COLLECTIONS].map((title, i) => ({ title, height: ([458, 366, 275, 366] as const)[i % 4] }));
 
 // Brands from the Figma "Brands page". Placeholder details until the CMS holds them.
 export const BRANDS: Brand[] = [
