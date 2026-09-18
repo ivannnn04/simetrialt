@@ -31,7 +31,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         <Photo src={img("hero")} className="flex min-h-[100svh] w-full flex-col">
           <div className="absolute inset-0 bg-black/30" />
           <SiteHeader variant="overlay" />
-          <div className="relative mx-auto flex w-full max-w-[1440px] flex-1 flex-col gap-[78px] pb-10 pt-10">
+          <div className="relative mx-auto flex w-full max-w-[1440px] flex-1 flex-col gap-[78px] pb-10 pt-[116px]">
             <div className="px-4 md:px-10">
               <BackLink href="/projects">Back to Projects</BackLink>
             </div>
