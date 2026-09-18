@@ -85,16 +85,16 @@ export default async function ServicePage({ params }: { params: Promise<Params> 
         </div>
       </section>
 
-      {/* 3 section: how we work (Figma node 4048:30522) */}
+      {/* 3 section: how we work (Figma node 4048:30522): pt-120, title → 60 → timeline → 60 → image */}
       <section className="flex w-full flex-col gap-[60px] bg-cream pt-[120px]">
         <div className="flex w-full flex-col gap-[60px]">
           <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-[29px] px-4 md:px-10">
             <p className="text-[18px] leading-[1.3] tracking-[-0.04em] text-secondary">HOW WE WORK</p>
-            <h2 className="max-w-[610px] text-[36px] font-medium leading-[1.1] tracking-[-0.04em] text-black md:text-[52px]">
+            <h2 className="max-w-[570px] text-[36px] font-medium leading-[1.1] tracking-[-0.04em] text-black md:text-[52px]">
               From brief to installation in the stages
             </h2>
           </div>
-          <div className="w-full overflow-hidden px-4 md:px-10 xl:px-0">
+          <div className="w-full px-4 md:px-10 xl:px-0">
             <StagesTimeline stages={service.stages} />
           </div>
         </div>
