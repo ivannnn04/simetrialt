@@ -37,6 +37,11 @@ summary,
   [data-cursor] * {
     cursor: none !important;
   }
+  /* links / buttons inside a labelled area keep the normal pointer */
+  [data-cursor] :is(a, button):not([data-cursor]),
+  [data-cursor] :is(a, button):not([data-cursor]) * {
+    cursor: pointer !important;
+  }
 }
 
 body {

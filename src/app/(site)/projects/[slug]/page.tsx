@@ -17,16 +17,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return { title: project ? `${project.name} — Simetria LT` : "Project — Simetria LT" };
 }
 
-function ScrollCircle({ className }: { className?: string }) {
-  return (
-    <span
-      className={`flex size-[150px] items-center justify-center rounded-full bg-white/20 text-center text-[18px] leading-[1.3] tracking-[-0.04em] text-white backdrop-blur-sm ${className ?? ""}`}
-    >
-      Scroll to view
-    </span>
-  );
-}
-
 // Figma "Case page / ver 2 / upd 06.08" (node 4217:47559)
 export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -37,11 +27,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
   return (
     <>
       {/* Hero */}
-      <section className="relative w-full">
-        <Photo src={img("hero")} className="w-full">
+      <section className="relative w-full" data-cursor="Scroll to view" data-cursor-size="lg">
+        <Photo src={img("hero")} className="flex min-h-[100svh] w-full flex-col">
           <div className="absolute inset-0 bg-black/30" />
           <SiteHeader variant="overlay" />
-          <div className="relative mx-auto flex min-h-[640px] max-w-[1440px] flex-col gap-[78px] pt-[116px] lg:min-h-[800px]">
+          <div className="relative mx-auto flex w-full max-w-[1440px] flex-1 flex-col gap-[78px] pb-10 pt-10">
             <div className="px-4 md:px-10">
               <BackLink href="/projects">Back to Projects</BackLink>
             </div>
@@ -49,7 +39,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
               <h1 className="max-w-[450px] text-[44px] font-medium leading-none tracking-[-0.04em] md:text-[64px]">{project.name}</h1>
               <p className="text-[15px] leading-[1.4] tracking-[-0.04em]">{project.kind}</p>
             </div>
-            <ScrollCircle className="absolute right-[265px] top-[538px] hidden xl:flex" />
           </div>
         </Photo>
       </section>
@@ -70,7 +59,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
       </section>
 
       {/* Horizontal image strip (Figma "images") */}
-      <ImageStrip images={["1", "2", "3"].map(img)} />
+      <ImageStrip images={["1", "2", "3", "4", "5", "6", "7"].map(img)} />
 
       {/* Details + specifications */}
       <section className="w-full bg-cream px-4 py-[120px] md:px-10">
