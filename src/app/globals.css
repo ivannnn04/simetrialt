@@ -52,29 +52,31 @@ body {
   .ticker { animation: none; }
 }
 
-/* Footer links: colour fade + sliding underline */
-.footer-link {
+/* Link design system (Figma "Link header" 4114:21378, "Link footer" 4114:24176):
+   hover = 1px underline in the current colour that slides in from the left. */
+.ul-link {
   position: relative;
-  transition: color 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: color 300ms cubic-bezier(0.22, 1, 0.36, 1);
 }
-.footer-link::after {
+.ul-link::after {
   content: "";
   position: absolute;
   left: 0;
-  bottom: 4px;
+  bottom: 0;
   height: 1px;
   width: 100%;
   background: currentColor;
   transform: scaleX(0);
   transform-origin: right;
-  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1);
 }
-.footer-link:hover {
-  color: var(--color-accent);
-}
-.footer-link:hover::after {
+.ul-link:hover::after {
   transform: scaleX(1);
   transform-origin: left;
+}
+/* footer items have 8px vertical padding: lift the line up to the text */
+.footer-link::after {
+  bottom: 6px;
 }
 
 /* Feature slider (home / about): bar fill + slide fade */

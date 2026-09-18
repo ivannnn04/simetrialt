@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { CaretIcon, Wordmark } from "@/components/ui/Icons";
 import { Photo } from "@/components/ui/Photo";
@@ -85,11 +86,18 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
   const [mobileOpen, setMobileOpen] = useState(false);
   const [active, setActive] = useState(0);
 
+  const pathname = usePathname();
   const solid = variant === "solid" || open;
-  const linkCls = cn(
-    "flex h-4 items-center gap-1 text-[14px] leading-none tracking-[-0.04em] whitespace-nowrap transition-colors",
-    solid ? "text-black hover:text-accent" : "text-white hover:text-white/70"
-  );
+  // Figma "Link header": default black/white, hover = underline, active page = accent.
+  const isActive = (href: string) => {
+    const path = href.split("?")[0];
+    return path !== "/" && (pathname === path || pathname.startsWith(`${path}/`));
+  };
+  const link = (active: boolean) =>
+    cn(
+      "ul-link flex h-4 items-center gap-1 text-[14px] leading-none tracking-[-0.04em] whitespace-nowrap",
+      active ? "text-accent" : solid ? "text-black" : "text-white"
+    );
 
   return (
     <header
@@ -108,13 +116,13 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
             onMouseEnter={() => setOpen(true)}
             onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
-            className={cn(linkCls, open && "text-accent hover:text-accent")}
+            className={link(open || isActive("/catalogue"))}
           >
             Products
             <CaretIcon className={cn("transition-transform", open && "rotate-180")} />
           </button>
           {LEFT_LINKS.map((l) => (
-            <Link key={l.label} href={l.href} className={linkCls} onMouseEnter={() => setOpen(false)}>
+            <Link key={l.label} href={l.href} className={link(isActive(l.href))} onMouseEnter={() => setOpen(false)}>
               {l.label}
             </Link>
           ))}
@@ -126,7 +134,7 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
 
         <nav className="hidden w-[450px] items-center justify-end gap-6 lg:flex">
           {accountLinks.map((l) => (
-            <Link key={l.label} href={l.href} className={linkCls} onMouseEnter={() => setOpen(false)}>
+            <Link key={l.label} href={l.href} className={link(isActive(l.href))} onMouseEnter={() => setOpen(false)}>
               {l.label}
             </Link>
           ))}
@@ -157,8 +165,8 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
                         onMouseEnter={() => setActive(i)}
                         onClick={() => setActive(i)}
                         className={cn(
-                          "w-full py-2 text-left text-[18px] leading-none tracking-[-0.04em]",
-                          i === active ? "font-semibold text-black" : "font-medium text-secondary hover:text-black"
+                          "w-full py-2 text-left text-[18px] leading-none tracking-[-0.04em] transition-colors duration-300",
+                          i === active ? "font-semibold text-black" : "font-medium text-secondary hover:text-accent"
                         )}
                       >
                         {cat.label}
@@ -176,7 +184,7 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
                         <Link
                           href={categoryHref(CATEGORIES[active].label)}
                           onClick={() => setOpen(false)}
-                          className="block py-2 text-[18px] font-medium leading-none tracking-[-0.04em] text-black hover:text-accent"
+                          className="block py-2 text-[18px] font-medium leading-none tracking-[-0.04em] text-black transition-colors duration-300 hover:text-accent"
                         >
                           {item}
                         </Link>

@@ -76,7 +76,7 @@ export function SiteFooter() {
                     <Link
                       key={item.label}
                       href={item.href}
-                      className="footer-link inline-flex h-[30px] items-center self-start py-2 text-[14px] leading-none tracking-[-0.04em] text-dark"
+                      className="ul-link footer-link inline-flex h-[30px] items-center self-start py-2 text-[14px] leading-none tracking-[-0.04em] text-dark"
                     >
                       {item.label}
                     </Link>
@@ -110,8 +110,8 @@ export function SiteFooter() {
           <div className="flex w-full items-center justify-between gap-8 border-t border-line px-4 py-6 text-[14px] leading-none text-secondary md:px-10">
             <p className="py-1">© Copyright {new Date().getFullYear()} Simetria</p>
             <div className="flex items-center gap-4">
-              <Link href="#" className="footer-link py-1">Privacy Policy</Link>
-              <Link href="#" className="footer-link py-1">Cookie</Link>
+              <Link href="#" className="ul-link py-1 transition-colors hover:text-dark">Privacy Policy</Link>
+              <Link href="#" className="ul-link py-1 transition-colors hover:text-dark">Cookie</Link>
             </div>
           </div>
         </div>
