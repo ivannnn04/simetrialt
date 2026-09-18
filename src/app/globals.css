@@ -62,3 +62,18 @@ body {
 .feature-slide {
   animation: feature-slide 600ms ease-out both;
 }
+
+/* Brands marquee (home section 5): slow, seamless loop; pauses on hover */
+@keyframes brands-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.brands-track {
+  animation: brands-marquee 45s linear infinite;
+}
+.brands-marquee:hover .brands-track {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .brands-track { animation: none; }
+}

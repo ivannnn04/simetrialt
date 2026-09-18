@@ -113,27 +113,28 @@ export function ProductLine({
 
 // ---------- Brands (Figma "logo section", node 4048:30689) ----------
 
-const BRANDS = ["Dorelan", "Flos", "Vibia", "Moooi", "Dorelan", "Flos", "Vibia"];
+const BRANDS = ["Kartell", "Moooi", "Luceplan", "Dorelan", "Marset", "Tom Dixon", "Flos", "Vibia"];
 
 export function BrandsSection() {
+  // The strip is duplicated so the marquee can loop seamlessly (translateX -50%).
+  const strip = [...BRANDS, ...BRANDS];
   return (
     <section id="brands" className="w-full overflow-hidden bg-cream py-[120px]">
       <div className="flex flex-col items-center gap-6">
         <p className="text-center text-[18px] leading-[1.3] tracking-[-0.04em] text-secondary">BRANDS WE REPRESENT</p>
-        <ul className="flex w-full items-center justify-center gap-[15px]">
-          {BRANDS.map((brand, i) => (
-            <li
-              key={`${brand}-${i}`}
-              className={cn(
-                "flex h-24 w-[233px] shrink-0 items-center justify-center border border-line",
-                i > 4 && "hidden xl:flex",
-                i > 2 && i <= 4 && "hidden md:flex"
-              )}
-            >
-              <span className="text-[22px] font-semibold lowercase tracking-[-0.04em] text-ink">{brand}</span>
-            </li>
-          ))}
-        </ul>
+        <div className="brands-marquee w-full overflow-hidden" aria-label="Brands we represent">
+          <ul className="brands-track flex w-max items-center gap-[15px] pr-[15px]">
+            {strip.map((brand, i) => (
+              <li
+                key={`${brand}-${i}`}
+                aria-hidden={i >= BRANDS.length}
+                className="flex h-24 w-[233px] shrink-0 items-center justify-center border border-line"
+              >
+                <span className="text-[22px] font-semibold lowercase tracking-[-0.04em] text-ink">{brand}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </section>
   );
