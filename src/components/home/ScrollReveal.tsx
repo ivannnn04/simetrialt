@@ -140,7 +140,7 @@ export function ScrollReveal({ image, slides }: Props) {
 
 function WhyCopy({ onScroll }: { onScroll?: () => void }) {
   return (
-    <div className="mx-auto flex max-w-[1440px] flex-col items-center gap-8">
+    <div className="mx-auto flex w-full max-w-[1360px] flex-col items-center gap-8">
       <div className="flex flex-col items-center gap-4 text-center">
         <Badge className="text-ink">Why architects work with us</Badge>
         <h2 className="max-w-[725px] text-[40px] font-medium leading-none tracking-[-0.04em] text-ink md:text-[64px]">

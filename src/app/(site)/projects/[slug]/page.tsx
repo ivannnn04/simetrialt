@@ -45,7 +45,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
       {/* About the project */}
       <section className="w-full bg-cream px-4 py-[120px] md:px-10">
-        <div className="mx-auto flex max-w-[1440px] flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+        <div className="mx-auto flex w-full max-w-[1360px] flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
           <p className="text-[18px] leading-[1.3] tracking-[-0.04em] text-secondary">About the Project</p>
           <div className="flex flex-col gap-8 lg:w-[640px]">
             <h2 className="text-[36px] font-medium leading-none tracking-[-0.04em] text-[#1f1f1f] md:text-[46px]">{project.aboutTitle}</h2>
@@ -63,7 +63,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
       {/* Details + specifications */}
       <section className="w-full bg-cream px-4 py-[120px] md:px-10">
-        <div className="mx-auto flex max-w-[1440px] flex-col gap-12 lg:flex-row lg:items-end lg:justify-between">
+        <div className="mx-auto flex w-full max-w-[1360px] flex-col gap-12 lg:flex-row lg:items-end lg:justify-between">
           <Photo src={img("4")} className="h-[293px] w-full max-w-[432px]" />
           <div className="flex flex-col gap-12 lg:w-[640px]">
             <div className="flex max-w-[606px] flex-col gap-6">
@@ -87,7 +87,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
       {/* 5 section (Figma 4217:47594): text + photo */}
       <section className="w-full bg-cream px-4 py-[120px] md:px-10">
-        <div className="mx-auto flex max-w-[1440px] flex-col gap-12 lg:flex-row lg:items-center lg:justify-between">
+        <div className="mx-auto flex w-full max-w-[1360px] flex-col gap-12 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-col gap-6 lg:w-[606px]">
             <h2 className="text-[36px] font-medium leading-none tracking-[-0.04em] text-ink md:text-[46px]">{project.lightTitle}</h2>
             <div className="flex flex-col gap-6 text-[18px] leading-[1.3] tracking-[-0.04em] text-label">

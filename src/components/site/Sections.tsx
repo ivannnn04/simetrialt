@@ -213,7 +213,7 @@ type CtaProps = {
 export function CtaSection({ eyebrow, image, title, text, button }: CtaProps) {
   return (
     <section className="w-full bg-cream px-4 py-[120px] md:px-10">
-      <div className="mx-auto flex max-w-[1440px] flex-col items-center gap-8">
+      <div className="mx-auto flex w-full max-w-[1360px] flex-col items-center gap-8">
         <div className="flex flex-col items-center gap-10">
           <p className="text-center text-[18px] font-medium leading-none tracking-[-0.04em] text-dark">{eyebrow}</p>
           <Photo src={image} className="h-[134px] w-[169px] rounded-[2px]" />

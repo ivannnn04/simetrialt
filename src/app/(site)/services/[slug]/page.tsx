@@ -56,7 +56,7 @@ export default async function ServicePage({ params }: { params: Promise<Params> 
 
       {/* 2 section: overview (Figma node 4217:46068) */}
       <section className="w-full bg-cream px-4 md:px-10">
-        <div className="mx-auto flex max-w-[1440px] flex-col items-center gap-10">
+        <div className="mx-auto flex w-full max-w-[1360px] flex-col items-center gap-10">
           <h2 className="max-w-[654px] text-center text-[40px] font-medium leading-none tracking-[-0.04em] text-black md:text-[64px]">
             {overview.heading}
           </h2>

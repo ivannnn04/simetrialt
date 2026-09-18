@@ -101,7 +101,7 @@ export function ProductLine({
 }: ProductLineProps) {
   return (
     <section className={cn("w-full bg-cream px-4 md:px-10", className)}>
-      <div className="mx-auto flex max-w-[1440px] flex-col items-center gap-10">
+      <div className="mx-auto flex w-full max-w-[1360px] flex-col items-center gap-10">
         <ProductSlider
           products={products}
           title={<h2 className="text-[36px] font-medium leading-[1.1] tracking-[-0.04em] text-ink md:text-[52px]">{title}</h2>}
