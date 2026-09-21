@@ -6,6 +6,7 @@ import { relativeTime } from "@/lib/products";
 import { logoutCustomerAction } from "@/actions/account";
 import { SiteHeader } from "@/components/site/Header";
 import { NewCollectionButton } from "@/components/account/NewCollectionForm";
+import { SortSelect } from "@/components/catalogue/Filters";
 import { cn } from "@/lib/cn";
 import { PRODUCT_PLACEHOLDER_IMAGE } from "@/lib/placeholder";
 
@@ -48,7 +49,7 @@ export default async function AlbumsPage({ searchParams }: { searchParams: Promi
   const saved = collections.reduce((n, c) => n + c.items.length, 0);
 
   return (
-    <div className="flex w-full flex-col gap-[120px] bg-cream">
+    <div className="flex w-full flex-col bg-cream pb-[120px]">
       <div className="flex w-full flex-col gap-[45px]">
         <section className="flex w-full flex-col border-b border-line">
           <SiteHeader variant="solid" />
@@ -81,20 +82,17 @@ export default async function AlbumsPage({ searchParams }: { searchParams: Promi
 
         <section className="mx-auto flex w-full max-w-[1440px] flex-col gap-[45px] px-4 md:px-10">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center gap-2 text-[15px]">
-              <span className="text-[#1a1c18]/60">Sort by</span>
-              {(["relevance", "newest", "name"] as const).map((s) => (
-                <Link
-                  key={s}
-                  href={s === "relevance" ? "/account/albums" : `/account/albums?sort=${s}`}
-                  className={cn("capitalize", s === sort ? "text-[#1a1c18]" : "text-[#1a1c18]/40 hover:text-[#1a1c18]")}
-                >
-                  {s}
-                </Link>
-              ))}
-            </div>
+            <SortSelect
+              value={sort}
+              basePath="/account/albums"
+              options={[
+                { value: "relevance", label: "Relevance" },
+                { value: "newest", label: "Newest" },
+                { value: "name", label: "Name" },
+              ]}
+            />
             <div className="flex items-center gap-5 md:w-[367px]">
-              <Link href="/catalogue" className="w-[168px] shrink-0 border border-dark px-8 py-[11px] text-center text-[13px] font-medium text-black hover:bg-white">
+              <Link href="/catalogue" className="flex h-[39px] w-[168px] shrink-0 items-center justify-center whitespace-nowrap border border-dark text-center text-[13px] font-medium text-black transition-colors duration-300 hover:bg-dark hover:text-white">
                 Browse products
               </Link>
               <NewCollectionButton className="flex-1" />
@@ -120,7 +118,7 @@ export default async function AlbumsPage({ searchParams }: { searchParams: Promi
                     </div>
                     <div className="flex flex-col gap-6">
                       <div className="flex flex-col gap-[10px] font-medium leading-[1.3]">
-                        <p className="text-[20px] tracking-[-0.04em] text-[#1b2a41] group-hover:text-accent">{c.name}</p>
+                        <p className="text-[20px] tracking-[-0.04em] text-[#1b2a41] transition-colors duration-300 group-hover:text-accent">{c.name}</p>
                         <p className="flex gap-3 text-[14px] tracking-[-0.04em]">
                           <span className="text-[#1f1f1f]">{c.items.length} Products</span>
                           <span className="text-secondary">Upt. {relativeTime(c.updatedAt)}</span>

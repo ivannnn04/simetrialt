@@ -132,7 +132,23 @@ export function Filters({ groups, basePath = "/catalogue" }: { groups: FilterGro
   );
 }
 
-export function SortSelect({ value, basePath = "/catalogue" }: { value: string; basePath?: string }) {
+const DEFAULT_SORTS = [
+  { value: "relevance", label: "Relevance" },
+  { value: "newest", label: "Newest" },
+  { value: "price-asc", label: "Price: low to high" },
+  { value: "price-desc", label: "Price: high to low" },
+  { value: "name", label: "Name" },
+];
+
+export function SortSelect({
+  value,
+  basePath = "/catalogue",
+  options = DEFAULT_SORTS,
+}: {
+  value: string;
+  basePath?: string;
+  options?: { value: string; label: string }[];
+}) {
   const router = useRouter();
   const params = useSearchParams();
   return (
@@ -149,11 +165,11 @@ export function SortSelect({ value, basePath = "/catalogue" }: { value: string; 
         }}
         className="bg-transparent text-[#1a1c18] focus:outline-none"
       >
-        <option value="relevance">Relevance</option>
-        <option value="newest">Newest</option>
-        <option value="price-asc">Price: low to high</option>
-        <option value="price-desc">Price: high to low</option>
-        <option value="name">Name</option>
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
       </select>
     </label>
   );

@@ -9,7 +9,7 @@ export function NewCollectionButton({ className }: { className?: string }) {
   const [state, action, pending] = useActionState(createCollection, undefined);
   if (!open) {
     return (
-      <button type="button" onClick={() => setOpen(true)} className={cn("bg-dark px-8 py-[11px] text-center text-[13px] font-medium text-white hover:bg-ink", className)}>
+      <button type="button" onClick={() => setOpen(true)} className={cn("bg-dark px-8 py-[11px] text-center text-[13px] font-medium text-white transition-colors duration-300 hover:bg-accent", className)}>
         New collection
       </button>
     );
