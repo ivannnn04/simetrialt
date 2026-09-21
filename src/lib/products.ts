@@ -50,6 +50,13 @@ export async function getFeaturedProducts(take = 3): Promise<ProductCardData[]> 
   return cards;
 }
 
+/** Placeholder search over the sample catalogue (used until real products exist). */
+export function searchSampleProducts(query: string): ProductCardData[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  return SAMPLE_PRODUCTS.filter((p) => `${p.name} ${p.category}`.toLowerCase().includes(q));
+}
+
 export function relativeTime(date: Date): string {
   const diff = Date.now() - date.getTime();
   const min = Math.round(diff / 60000);

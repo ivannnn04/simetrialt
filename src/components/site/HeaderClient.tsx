@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { CaretIcon, Wordmark } from "@/components/ui/Icons";
 import { Photo } from "@/components/ui/Photo";
+import { SearchPanel } from "@/components/site/SearchPanel";
 
 type MenuGroup = { heading: string; items: string[] };
 type Category = { label: string; groups: MenuGroup[] };
@@ -61,7 +62,6 @@ const LEFT_LINKS = [
 const RIGHT_LINKS = [
   { label: "About", href: "/about" },
   { label: "Contacts", href: "/contact" },
-  { label: "Search", href: "/catalogue" },
 ];
 
 export type HeaderAccount = { signedIn: boolean; albums: number; name?: string };
@@ -84,21 +84,30 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
   ];
   const [open, setOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [active, setActive] = useState(0);
   // The mega-menu stays mounted; its height follows the measured content so both
   // opening and switching categories animate smoothly.
   const panelRef = useRef<HTMLDivElement>(null);
   const [panelHeight, setPanelHeight] = useState(0);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const [searchHeight, setSearchHeight] = useState(0);
   useEffect(() => {
     const el = panelRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(() => setPanelHeight(el.offsetHeight));
+    const se = searchRef.current;
+    if (!el || !se) return;
+    const ro = new ResizeObserver(() => {
+      setPanelHeight(el.offsetHeight);
+      setSearchHeight(se.offsetHeight);
+    });
     ro.observe(el);
+    ro.observe(se);
     return () => ro.disconnect();
   }, []);
+  const closeSearch = useCallback(() => setSearchOpen(false), []);
 
   const pathname = usePathname();
-  const solid = variant === "solid" || open;
+  const solid = variant === "solid" || open || searchOpen;
   // Figma "Link header": default black/white, hover = underline, active page = accent.
   const isActive = (href: string) => {
     const path = href.split("?")[0];
@@ -119,11 +128,14 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
       )}
       onMouseLeave={() => setOpen(false)}
     >
-      <div className="mx-auto flex h-[76px] w-full max-w-[1440px] items-center justify-between px-4 py-6 md:px-10">
+      <div className="relative z-30 mx-auto flex h-[76px] w-full max-w-[1440px] items-center justify-between px-4 py-6 md:px-10">
         <nav className="hidden w-[450px] items-center gap-6 lg:flex">
           <button
             type="button"
-            onMouseEnter={() => setOpen(true)}
+            onMouseEnter={() => {
+              setOpen(true);
+              setSearchOpen(false);
+            }}
             onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
             className={link(open || isActive("/catalogue"))}
@@ -143,7 +155,24 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
         </Link>
 
         <nav className="hidden w-[450px] items-center justify-end gap-6 lg:flex">
-          {accountLinks.map((l) => (
+          {RIGHT_LINKS.map((l) => (
+            <Link key={l.label} href={l.href} className={link(isActive(l.href))} onMouseEnter={() => setOpen(false)}>
+              {l.label}
+            </Link>
+          ))}
+          <button
+            type="button"
+            onMouseEnter={() => setOpen(false)}
+            onClick={() => {
+              setOpen(false);
+              setSearchOpen((v) => !v);
+            }}
+            aria-expanded={searchOpen}
+            className={link(searchOpen)}
+          >
+            Search
+          </button>
+          {accountLinks.slice(RIGHT_LINKS.length).map((l) => (
             <Link key={l.label} href={l.href} className={link(isActive(l.href))} onMouseEnter={() => setOpen(false)}>
               {l.label}
             </Link>
@@ -163,7 +192,7 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
       {/* Products mega-menu — Figma node 4217:46020 */}
       <div
         className={cn(
-          "absolute left-0 right-0 top-[76px] hidden overflow-hidden bg-cream transition-[height,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:block",
+          "absolute left-0 right-0 top-[76px] z-20 hidden overflow-hidden bg-cream transition-[height,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:block",
           !open && "pointer-events-none"
         )}
         style={{ height: open ? panelHeight : 0, opacity: open ? 1 : 0 }}
@@ -226,10 +255,34 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
         </div>
       </div>
 
+      {/* Search panel (Figma 4217:47301): slides down under the nav bar; the page behind is dimmed */}
+      <div
+        className={cn(
+          "absolute left-0 right-0 top-[76px] z-20 overflow-hidden bg-cream transition-[height,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+          !searchOpen && "pointer-events-none"
+        )}
+        style={{ height: searchOpen ? searchHeight : 0, opacity: searchOpen ? 1 : 0 }}
+        aria-hidden={!searchOpen}
+        inert={!searchOpen}
+      >
+        <div ref={searchRef} className="border-t border-line">
+          <SearchPanel open={searchOpen} onClose={closeSearch} />
+        </div>
+      </div>
+      <div
+        className={cn(
+          "fixed inset-0 z-10 bg-black/30 transition-opacity duration-500",
+          searchOpen ? "opacity-100" : "pointer-events-none opacity-0"
+        )}
+        onClick={closeSearch}
+        aria-hidden
+      />
+
       {mobileOpen && (
         <div className="absolute left-0 right-0 top-[76px] border-t border-line bg-cream px-4 py-6 lg:hidden">
           <ul className="flex flex-col gap-4 text-[18px] font-medium tracking-[-0.04em] text-black">
             <li><Link href="/catalogue" onClick={() => setMobileOpen(false)}>Products</Link></li>
+            <li><Link href="/catalogue" onClick={() => setMobileOpen(false)}>Search</Link></li>
             {[...LEFT_LINKS, ...accountLinks].map((l) => (
               <li key={l.label}>
                 <Link href={l.href} onClick={() => setMobileOpen(false)}>{l.label}</Link>

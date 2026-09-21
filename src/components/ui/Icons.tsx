@@ -59,6 +59,15 @@ export function PinIcon({ className }: IconProps) {
 }
 
 /** Simetria wordmark (the Figma logo is a masked bitmap; rendered here as type). */
+export function SearchIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={cn("size-6", className)} aria-hidden>
+      <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="1.25" />
+      <path d="M15.8 15.8 20 20" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function Wordmark({ className }: IconProps) {
   return (
     <span className={cn("font-semibold lowercase leading-none tracking-[-0.05em] text-[26px]", className)}>
