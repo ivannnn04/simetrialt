@@ -21,7 +21,7 @@ export async function searchProducts(query: string): Promise<ProductCardData[]> 
       },
       orderBy: { updatedAt: "desc" },
       take: 12,
-      include: { category: true, images: { orderBy: { sort: "asc" }, take: 1 } },
+      include: { category: true, images: { orderBy: { sort: "asc" }, take: 2 } },
     });
     if (products.length > 0) return products.map(toCard);
   } catch (e) {

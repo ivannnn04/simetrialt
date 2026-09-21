@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { SaveButton } from "@/components/catalogue/SaveButton";
-import { PRODUCT_PLACEHOLDER_IMAGE } from "@/lib/placeholder";
+import { PLACEHOLDER_IMAGE, PRODUCT_PLACEHOLDER_IMAGE } from "@/lib/placeholder";
 
 export type ProductCardData = {
   id: string;
@@ -12,6 +12,8 @@ export type ProductCardData = {
   discount?: number | null;
   href: string;
   image?: string | null;
+  /** Lifestyle photo shown over the card on hover (Figma card state with the photo background). */
+  hoverImage?: string | null;
 };
 
 type Props = {
@@ -26,6 +28,7 @@ type Props = {
 export function ProductCard({ product, className, imageClassName, compact = false }: Props) {
   const onSale = Boolean(product.salePrice);
   const image = product.image ?? PRODUCT_PLACEHOLDER_IMAGE;
+  const hoverImage = product.hoverImage ?? PLACEHOLDER_IMAGE;
   return (
     <div
       className={cn(
@@ -43,11 +46,20 @@ export function ProductCard({ product, className, imageClassName, compact = fals
           className={cn("pointer-events-none absolute inset-0 m-auto max-h-[62%] max-w-[85%] object-contain", imageClassName)}
         />
       )}
-      <span aria-hidden className="pointer-events-none absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/10" />
+      {/* Hover: the second (lifestyle) photo fades in over the card and the copy turns white */}
+      {hoverImage && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100"
+          style={{ backgroundImage: `url(${hoverImage})` }}
+        >
+          <span className="absolute inset-0 bg-black/20" />
+        </span>
+      )}
       <div className="pointer-events-none relative flex items-start justify-between">
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-[5px] leading-none">
-            <p className="text-[14px] tracking-[-0.04em] text-black">{product.name}</p>
+            <p className={cn("text-[14px] tracking-[-0.04em] text-black transition-colors duration-300", hoverImage && "group-hover:text-white")}>{product.name}</p>
             <p className="text-[13px] tracking-[-0.04em] text-tertiary">{product.category}</p>
           </div>
           {!compact && onSale && product.discount ? (
@@ -61,13 +73,13 @@ export function ProductCard({ product, className, imageClassName, compact = fals
       <div className="pointer-events-none relative flex items-center gap-1.5">
         {onSale ? (
           <>
-            <span className={cn("text-[13px] font-light leading-none line-through", compact ? "text-black" : "text-secondary")}>{product.price}</span>
+            <span className={cn("text-[13px] font-light leading-none line-through transition-colors duration-300", compact ? "text-black" : "text-secondary", hoverImage && "group-hover:text-white/80")}>{product.price}</span>
             <span className={cn("text-[#fb3b30]", compact ? "text-[13px] font-light leading-none" : "text-[16px] leading-[1.3] tracking-[-0.04em]")}>
               {product.salePrice}
             </span>
           </>
         ) : (
-          <span className={cn("text-black", compact ? "text-[13px] font-light leading-none" : "text-[16px] leading-[1.3] tracking-[-0.04em]")}>
+          <span className={cn("text-black transition-colors duration-300", compact ? "text-[13px] font-light leading-none" : "text-[16px] leading-[1.3] tracking-[-0.04em]", hoverImage && "group-hover:text-white")}>
             {product.price}
           </span>
         )}

@@ -16,6 +16,7 @@ export function toCard(p: ProductWithRelations): ProductCardData {
     discount: onSale && p.priceCents > 0 ? Math.round((1 - p.salePriceCents! / p.priceCents) * 100) : null,
     href: `/catalogue/${p.slug}`,
     image: p.images[0]?.url ?? null,
+    hoverImage: p.images[1]?.url ?? null,
   };
 }
 
@@ -47,7 +48,7 @@ export async function getFeaturedProducts(take = 3): Promise<ProductCardData[]> 
       where: { published: true },
       orderBy: { updatedAt: "desc" },
       take,
-      include: { category: true, images: { orderBy: { sort: "asc" }, take: 1 } },
+      include: { category: true, images: { orderBy: { sort: "asc" }, take: 2 } },
     });
     cards = products.map(toCard);
   } catch (e) {

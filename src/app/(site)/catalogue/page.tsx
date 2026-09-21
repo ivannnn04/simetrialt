@@ -65,7 +65,7 @@ export default async function CataloguePage({ searchParams }: { searchParams: Pr
 
   if (hasProducts) {
     const [products, categories, typologies, brands, materials] = await Promise.all([
-      db.product.findMany({ where, orderBy: SORTS[sort], include: { category: true, images: { orderBy: { sort: "asc" }, take: 1 } } }),
+      db.product.findMany({ where, orderBy: SORTS[sort], include: { category: true, images: { orderBy: { sort: "asc" }, take: 2 } } }),
       db.category.findMany({ orderBy: { sort: "asc" }, where: { products: { some: { published: true } } } }),
       db.product.findMany({ where: { ...scope, typology: { not: null } }, distinct: ["typology"], select: { typology: true } }),
       db.product.findMany({ where: { ...scope, brand: { not: null } }, distinct: ["brand"], select: { brand: true } }),

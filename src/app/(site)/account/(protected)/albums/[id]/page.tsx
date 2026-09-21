@@ -19,7 +19,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ id:
     include: {
       items: {
         orderBy: { createdAt: "desc" },
-        include: { product: { include: { category: true, images: { orderBy: { sort: "asc" }, take: 1 } } } },
+        include: { product: { include: { category: true, images: { orderBy: { sort: "asc" }, take: 2 } } } },
       },
     },
   });

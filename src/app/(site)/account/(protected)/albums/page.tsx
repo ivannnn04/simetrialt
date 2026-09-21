@@ -41,7 +41,7 @@ export default async function AlbumsPage({ searchParams }: { searchParams: Promi
     include: {
       items: {
         orderBy: { createdAt: "desc" },
-        include: { product: { include: { category: true, images: { orderBy: { sort: "asc" }, take: 1 } } } },
+        include: { product: { include: { category: true, images: { orderBy: { sort: "asc" }, take: 2 } } } },
       },
     },
   });

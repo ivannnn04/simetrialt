@@ -8,7 +8,7 @@ export default async function ProductsList() {
   const [products, categories] = await Promise.all([
     db.product.findMany({
       orderBy: { updatedAt: "desc" },
-      include: { category: true, images: { orderBy: { sort: "asc" }, take: 1 } },
+      include: { category: true, images: { orderBy: { sort: "asc" }, take: 2 } },
     }),
     db.category.findMany({ orderBy: { sort: "asc" }, include: { _count: { select: { products: true } } } }),
   ]);

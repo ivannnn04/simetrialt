@@ -74,7 +74,11 @@ export function SaveButton({ productId, className, light }: Props) {
           if (open) setOpen(false);
           else openPanel();
         }}
-        className={cn("flex size-6 items-center justify-center transition-colors", light ? "text-white" : "text-black", isSaved && "text-accent")}
+        className={cn(
+          "flex size-6 items-center justify-center transition-colors duration-300",
+          light ? "text-white" : "text-black group-hover:text-white", // white over the card's hover photo
+          isSaved && "text-accent"
+        )}
       >
         <HeartIcon className={cn(isSaved && "fill-current")} />
       </button>
