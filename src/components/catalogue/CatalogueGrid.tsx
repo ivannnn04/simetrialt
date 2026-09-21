@@ -24,10 +24,11 @@ type Props = {
 export function CatalogueGrid({ groups, cards, sort, defaultOpen = false, basePath = "/catalogue" }: Props) {
   const [open, setOpen] = useState(defaultOpen);
 
-  const rows: ProductCardData[][] = [];
+  // Rows follow the 3 / 2 / 3 pattern by position, even when the last row is not full.
+  const rows: { items: ProductCardData[]; wide: boolean }[] = [];
   for (let i = 0, wide = false; i < cards.length; wide = !wide) {
     const n = wide ? 2 : 3;
-    rows.push(cards.slice(i, i + n));
+    rows.push({ items: cards.slice(i, i + n), wide });
     i += n;
   }
 
@@ -74,10 +75,10 @@ export function CatalogueGrid({ groups, cards, sort, defaultOpen = false, basePa
               className={cn(
                 "grid transition-[gap] duration-500",
                 open ? "gap-3" : "gap-4",
-                row.length === 2 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1 md:grid-cols-3"
+                row.wide ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1 md:grid-cols-3"
               )}
             >
-              {row.map((p) => (
+              {row.items.map((p) => (
                 <ProductCard
                   key={p.id}
                   product={p}
@@ -85,10 +86,10 @@ export function CatalogueGrid({ groups, cards, sort, defaultOpen = false, basePa
                   className={cn(
                     "transition-[height] duration-500",
                     open
-                      ? row.length === 2
+                      ? row.wide
                         ? "h-[420px]"
                         : "h-[348px]"
-                      : row.length === 2
+                      : row.wide
                         ? "h-[420px] lg:h-[655px]"
                         : "h-[420px] lg:h-[500px]"
                   )}
