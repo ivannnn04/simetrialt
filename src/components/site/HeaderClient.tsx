@@ -128,7 +128,9 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
       )}
       onMouseLeave={() => setOpen(false)}
     >
-      <div className="relative z-30 mx-auto flex h-[76px] w-full max-w-[1440px] items-center justify-between px-4 py-6 md:px-10">
+      {/* The bar keeps its own background so the search backdrop never dims it */}
+      <div className={cn("relative z-30 w-full transition-colors duration-300", solid ? "bg-cream" : "bg-transparent")}>
+        <div className="mx-auto flex h-[76px] w-full max-w-[1440px] items-center justify-between px-4 py-6 md:px-10">
         <nav className="hidden w-[450px] items-center gap-6 lg:flex">
           <button
             type="button"
@@ -187,6 +189,7 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
         >
           {mobileOpen ? "Close" : "Menu"}
         </button>
+      </div>
       </div>
 
       {/* Products mega-menu — Figma node 4217:46020 */}
