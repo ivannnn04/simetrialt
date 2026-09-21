@@ -65,7 +65,7 @@ export default async function ProductPage({ params }: Params) {
         </div>
 
         {/* Info column (node 4217:46881) */}
-        <div>
+        <div className="lg:sticky lg:top-0 lg:self-start">
           <ProductInfo product={product} />
         </div>
       </section>
