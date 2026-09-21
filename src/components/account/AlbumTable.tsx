@@ -89,7 +89,7 @@ export function AlbumTable({ collectionId, collectionName, customer, rows: initi
     setExporting(true);
     try {
       const { downloadAlbumPdf } = await import("@/lib/album-pdf");
-      downloadAlbumPdf({
+      await downloadAlbumPdf({
         collectionName,
         reference: `SIM-${new Date().toISOString().slice(2, 10).replace(/-/g, "")}-${collectionId.replace(/[^a-z0-9]/gi, "").slice(-4).toUpperCase()}`,
         customer,

@@ -1,5 +1,6 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import { LOGO_PATHS, LOGO_VIEWBOX } from "@/data/logo-paths";
 
 export type AlbumPdfRow = {
   name: string;
@@ -27,11 +28,33 @@ const CREAM = "#f9f8f4";
 const eur = (cents: number) =>
   `EUR ${(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
+/** Rasterises the footer wordmark (SVG paths) to a PNG data URL so jsPDF can place it. */
+async function logoPng(color: string, widthPx = 1600): Promise<string> {
+  const { width, height } = LOGO_VIEWBOX;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${widthPx}" height="${Math.round((widthPx * height) / width)}">${LOGO_PATHS.map((d) => `<path d="${d}" fill="${color}"/>`).join("")}</svg>`;
+  const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+  try {
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = reject;
+      el.src = url;
+    });
+    const canvas = document.createElement("canvas");
+    canvas.width = img.width;
+    canvas.height = img.height;
+    canvas.getContext("2d")?.drawImage(img, 0, 0);
+    return canvas.toDataURL("image/png");
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 /**
  * Builds the album as an invoice-style A4 "indicative quotation" and triggers the download:
  * letterhead, client / document details, a line-item table and a totals block.
  */
-export function downloadAlbumPdf(input: AlbumPdfInput) {
+export async function downloadAlbumPdf(input: AlbumPdfInput) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const W = doc.internal.pageSize.getWidth();
   const M = 20;
@@ -41,10 +64,17 @@ export function downloadAlbumPdf(input: AlbumPdfInput) {
   // Letterhead
   doc.setFillColor(CREAM);
   doc.rect(0, 0, W, 42, "F");
-  doc.setTextColor(INK);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(22);
-  doc.text("simetria", M, 22);
+  // wordmark from the footer, 48mm wide, vertically centred in the band
+  const logoW = 48;
+  const logoH = (logoW * LOGO_VIEWBOX.height) / LOGO_VIEWBOX.width;
+  try {
+    doc.addImage(await logoPng(INK), "PNG", M, 21 - logoH / 2, logoW, logoH);
+  } catch {
+    doc.setTextColor(INK);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(22);
+    doc.text("simetria", M, 22);
+  }
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(BODY);
