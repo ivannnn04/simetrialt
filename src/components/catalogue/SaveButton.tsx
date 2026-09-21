@@ -1,5 +1,7 @@
 "use client";
 
+import { Field } from "@/components/ui/Field";
+
 import { useState, useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { addToCollection, getMyCollections, type CollectionSummary } from "@/actions/collections";
@@ -127,12 +129,12 @@ export function SaveButton({ productId, className, light }: Props) {
                 save("new", newName);
               }}
             >
-              <input
+              <Field
                 autoFocus
+                name="collection-name"
+                label="Collection name"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                placeholder="Collection name"
-                className="w-full border-b border-line bg-transparent pb-2 text-[16px] tracking-[-0.04em] focus:border-black focus:outline-none"
               />
               <button type="submit" disabled={pending || !newName.trim()} className="w-full bg-dark px-8 py-[11px] text-[13px] font-medium text-white disabled:opacity-50">
                 Save to new collection

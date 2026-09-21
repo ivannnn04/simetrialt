@@ -4,9 +4,7 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { loginCustomerAction, registerAction } from "@/actions/account";
 import { DotButton } from "@/components/ui/Button";
-
-const inputCls =
-  "w-full border-b border-line bg-transparent pb-2 text-[18px] font-medium leading-none tracking-[-0.04em] text-ink placeholder:text-secondary focus:border-black focus:outline-none";
+import { Field } from "@/components/ui/Field";
 
 export function AuthForm({ mode, next }: { mode: "login" | "register"; next: string }) {
   const [state, action, pending] = useActionState(mode === "login" ? loginCustomerAction : registerAction, undefined);
@@ -16,18 +14,17 @@ export function AuthForm({ mode, next }: { mode: "login" | "register"; next: str
       <div className="flex flex-col gap-10">
         {mode === "register" && (
           <>
-            <input name="name" placeholder="Full name" required className={inputCls} />
-            <input name="company" placeholder="Company / studio (optional)" className={inputCls} />
+            <Field name="name" label="Full name" required autoComplete="name" />
+            <Field name="company" label="Company / studio (optional)" autoComplete="organization" />
           </>
         )}
-        <input name="email" type="email" placeholder="Email" required autoComplete="email" className={inputCls} />
-        <input
+        <Field name="email" type="email" label="Email" required autoComplete="email" />
+        <Field
           name="password"
           type="password"
-          placeholder={mode === "register" ? "Password (min. 8 characters)" : "Password"}
+          label={mode === "register" ? "Password (min. 8 characters)" : "Password"}
           required
           autoComplete={mode === "register" ? "new-password" : "current-password"}
-          className={inputCls}
         />
         {state?.error && <p className="text-[14px] text-[#fb3b30]">{state.error}</p>}
       </div>

@@ -3,10 +3,8 @@
 import { useActionState, useState } from "react";
 import { submitContact } from "@/actions/leads";
 import { DotButton } from "@/components/ui/Button";
+import { Field } from "@/components/ui/Field";
 import { cn } from "@/lib/cn";
-
-const inputCls =
-  "w-full border-b border-line bg-transparent pb-2 text-[18px] font-medium leading-none tracking-[-0.04em] text-ink placeholder:text-secondary focus:border-black focus:outline-none";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -116,24 +114,23 @@ export function ContactSection({ initialMessage = "" }: { initialMessage?: strin
           {state?.message ? (
             <p className="text-[18px] leading-[1.3] tracking-[-0.04em] text-ink">{state.message}</p>
           ) : (
-            <div className="flex flex-col gap-14">
+            <div className="flex flex-col gap-10">
               <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden="true" />
-              <div className="flex flex-col gap-14 sm:flex-row sm:gap-4">
-                <input name="firstName" placeholder="First name" required className={inputCls} />
-                <input name="lastName" placeholder="Last name" className={inputCls} />
+              <div className="flex flex-col gap-10 sm:flex-row sm:gap-4">
+                <Field name="firstName" label="First name" required autoComplete="given-name" className="flex-1" />
+                <Field name="lastName" label="Last name" autoComplete="family-name" className="flex-1" />
               </div>
-              <input name="email" type="email" placeholder="Your email" className={inputCls} />
-              <input name="phone" placeholder="Phone" className={inputCls} />
-              <textarea
+              <Field name="email" type="email" label="Your email" autoComplete="email" />
+              <Field name="phone" type="tel" label="Phone" autoComplete="tel" />
+              <Field
+                multiline
                 name="message"
-                placeholder="Project Details"
-                rows={1}
+                label="Project Details"
                 required
                 value={details}
                 onChange={(e) => setDetails(e.target.value)}
-                className={cn(inputCls, "min-h-[28px] resize-none")}
               />
-              {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
+              {state?.error && <p className="text-[14px] leading-none tracking-[-0.04em] text-[#fb3b30]">{state.error}</p>}
             </div>
           )}
         </div>
