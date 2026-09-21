@@ -84,7 +84,8 @@ type Props = {
 export function HeaderClient({ variant = "solid", account = { signedIn: false, albums: 0 } }: Props) {
   const accountLinks = [
     ...RIGHT_LINKS,
-    { label: `My albums (${account.albums})`, href: account.signedIn ? "/account/albums" : "/account/login?next=%2Faccount%2Falbums" },
+    // The albums overview is public for now; anonymous visitors see the sample albums.
+    { label: `My albums (${account.albums})`, href: "/account/albums" },
     { label: account.signedIn ? "Account" : "Sign in", href: account.signedIn ? "/account" : "/account/login" },
   ];
   const [open, setOpen] = useState(false);

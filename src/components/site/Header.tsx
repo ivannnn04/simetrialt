@@ -6,7 +6,8 @@ type Props = { variant?: "overlay" | "solid" };
 
 /** Server wrapper: resolves the signed-in customer and album count, then renders the client header. */
 export async function SiteHeader({ variant = "solid" }: Props) {
-  let account: HeaderAccount = { signedIn: false, albums: 0 };
+  // Anonymous visitors get the mock count from the albums page (3 sample collections).
+  let account: HeaderAccount = { signedIn: false, albums: 3 };
   try {
     const customer = await currentCustomer();
     if (customer) {
