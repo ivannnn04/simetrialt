@@ -85,6 +85,7 @@ export function SearchPanel({ open, onClose }: Props) {
         <div className={cn("transition-opacity duration-300", pending && "opacity-60")}>
           <ProductSlider
             products={results}
+            bleed
             title={<p className="text-[14px] leading-[1.3] tracking-[-0.04em] text-label">Search Results</p>}
           />
         </div>

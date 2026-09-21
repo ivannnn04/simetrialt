@@ -7,10 +7,16 @@ import { ProductCard, type ProductCardData } from "@/components/catalogue/Produc
 
 const GAP = 16;
 
-type Props = { products: ProductCardData[]; cardClassName?: string; title: React.ReactNode };
+type Props = {
+  products: ProductCardData[];
+  cardClassName?: string;
+  title: React.ReactNode;
+  /** Let the track run past the right edge of the container (clipped by an ancestor, e.g. the viewport). */
+  bleed?: boolean;
+};
 
 /** Figma "products best" (node 4217:47656): 3 cards per view, arrow buttons step through the list and loop. */
-export function ProductSlider({ products, cardClassName, title }: Props) {
+export function ProductSlider({ products, cardClassName, title, bleed = false }: Props) {
   const viewport = useRef<HTMLDivElement>(null);
   const [perView, setPerView] = useState(3);
   const [width, setWidth] = useState(0);
@@ -60,7 +66,7 @@ export function ProductSlider({ products, cardClassName, title }: Props) {
           </button>
         </div>
       </div>
-      <div ref={viewport} className="w-full overflow-hidden">
+      <div ref={viewport} className={cn("w-full", bleed ? "overflow-visible" : "overflow-hidden")}>
         <div
           className="flex transition-transform duration-500 ease-out"
           style={{ gap: GAP, transform: `translateX(-${Math.min(index, maxIndex) * (cardW + GAP)}px)` }}
