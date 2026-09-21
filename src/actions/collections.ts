@@ -84,3 +84,20 @@ export async function removeFromCollection(collectionId: string, productId: stri
   revalidatePath(`/account/albums/${collectionId}`);
   revalidatePath("/account/albums");
 }
+
+/** Album table (Figma 4217:46938): planned quantity and note per saved product. */
+export async function updateCollectionItem(
+  collectionId: string,
+  productId: string,
+  patch: { quantity?: number; note?: string }
+) {
+  const customer = await requireCustomer();
+  const owned = await db.collection.findFirst({ where: { id: collectionId, customerId: customer.id } });
+  if (!owned) return;
+  const data: { quantity?: number; note?: string } = {};
+  if (patch.quantity != null) data.quantity = Math.max(1, Math.min(999, Math.round(patch.quantity)));
+  if (patch.note != null) data.note = patch.note.slice(0, 500);
+  await db.collectionItem.updateMany({ where: { collectionId, productId }, data });
+  await db.collection.update({ where: { id: collectionId }, data: { updatedAt: new Date() } });
+  revalidatePath(`/account/albums/${collectionId}`);
+}

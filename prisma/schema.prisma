@@ -133,6 +133,10 @@ model CollectionItem {
   collectionId String
   product      Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId    String
+  /** planned units of this product in the project */
+  quantity     Int        @default(1)
+  /** free-text note shown in the album table */
+  note         String     @default("")
   createdAt    DateTime   @default(now())
 
   @@unique([collectionId, productId])

@@ -31,7 +31,7 @@ type AlbumCard = {
 
 const SAMPLE_ALBUMS: AlbumCard[] = [1, 2, 3].map((n) => ({
   id: `sample-${n}`,
-  href: "/catalogue",
+  href: `/account/albums/sample-${n}`,
   name: "Hotel Vilnia refurbishment",
   count: 18,
   updated: "2 days ago",
