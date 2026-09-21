@@ -66,8 +66,13 @@ const RIGHT_LINKS = [
 
 export type HeaderAccount = { signedIn: boolean; albums: number; name?: string };
 
-function categoryHref(label: string) {
-  return `/catalogue?category=${encodeURIComponent(label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""))}`;
+const CATEGORY_SLUGS: Record<string, string> = { Lighting: "lighting", Furniture: "furniture", "Decor (Accessories)": "decor" };
+
+/** "All …" items open the category; every other item also preselects its typology filter. */
+function catalogueHref(category: string, item?: string) {
+  const params = new URLSearchParams({ category: CATEGORY_SLUGS[category] ?? category.toLowerCase() });
+  if (item && !/^all\b/i.test(item)) params.set("typology", item);
+  return `/catalogue?${params.toString()}`;
 }
 
 type Props = {
@@ -233,7 +238,7 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
                       {group.items.map((item) => (
                         <li key={item}>
                           <Link
-                            href={categoryHref(CATEGORIES[active].label)}
+                            href={catalogueHref(CATEGORIES[active].label, item)}
                             onClick={() => setOpen(false)}
                             className="block py-2 text-[18px] font-medium leading-none tracking-[-0.04em] text-black transition-colors duration-300 hover:text-accent"
                           >

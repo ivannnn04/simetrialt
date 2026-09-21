@@ -57,16 +57,21 @@ export default async function CataloguePage({ searchParams }: { searchParams: Pr
     console.error("catalogue: database unavailable", e);
   }
 
+  // Filter options are scoped to the selected category (the menu links land on one).
+  const scope: Prisma.ProductWhereInput = {
+    published: true,
+    ...(category.length ? { category: { slug: { in: category } } } : {}),
+  };
+
   if (hasProducts) {
     const [products, categories, typologies, brands, materials] = await Promise.all([
       db.product.findMany({ where, orderBy: SORTS[sort], include: { category: true, images: { orderBy: { sort: "asc" }, take: 1 } } }),
       db.category.findMany({ orderBy: { sort: "asc" }, where: { products: { some: { published: true } } } }),
-      db.product.findMany({ where: { published: true, typology: { not: null } }, distinct: ["typology"], select: { typology: true } }),
-      db.product.findMany({ where: { published: true, brand: { not: null } }, distinct: ["brand"], select: { brand: true } }),
-      db.product.findMany({ where: { published: true, material: { not: null } }, distinct: ["material"], select: { material: true } }),
+      db.product.findMany({ where: { ...scope, typology: { not: null } }, distinct: ["typology"], select: { typology: true } }),
+      db.product.findMany({ where: { ...scope, brand: { not: null } }, distinct: ["brand"], select: { brand: true } }),
+      db.product.findMany({ where: { ...scope, material: { not: null } }, distinct: ["material"], select: { material: true } }),
     ]);
     groups = [
-      { key: "category", label: "Category", options: categories.map((c) => ({ value: c.slug, label: c.name })) },
       { key: "typology", label: "Typology", options: typologies.map((t) => t.typology!).filter(Boolean) },
       { key: "brand", label: "Brands", options: brands.map((b) => b.brand!).filter(Boolean) },
       { key: "display", label: "On display", options: ["In showroom", "Online only"] },
@@ -77,10 +82,22 @@ export default async function CataloguePage({ searchParams }: { searchParams: Pr
     cards = products.map(toCard);
   } else {
     // No published products yet: static catalogue so the filters and grid can be exercised.
-    groups = sampleGroups();
+    groups = sampleGroups(category);
     activeCategory = category.length === 1 ? sampleCategoryName(category[0]) : undefined;
     cards = filterSamples({ category, typology, brand, material, display, features, min, max, sort }).map(sampleToCard);
   }
+
+  // A single typology from the Products menu becomes the page title (Figma: "Sofas" under Products › Furniture).
+  const activeTypology = typology.length === 1 ? typology[0] : undefined;
+  const title = activeTypology ?? activeCategory ?? "All products";
+  const crumbs = [
+    { label: "Home", href: "/" },
+    { label: "Products", href: "/catalogue" },
+    ...(activeCategory
+      ? [{ label: activeCategory, href: activeTypology ? `/catalogue?category=${encodeURIComponent(category[0])}` : undefined }]
+      : []),
+    ...(activeTypology ? [{ label: activeTypology }] : []),
+  ];
 
   return (
     <div className="flex w-full flex-col bg-cream pb-[120px]">
@@ -88,15 +105,9 @@ export default async function CataloguePage({ searchParams }: { searchParams: Pr
         <section className="flex w-full flex-col">
           <SiteHeader variant="solid" />
           <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-[35px] px-4 py-[50px] md:px-10">
-            <Breadcrumbs
-              items={[
-                { label: "Home", href: "/" },
-                { label: "Products", href: "/catalogue" },
-                ...(activeCategory ? [{ label: activeCategory }] : []),
-              ]}
-            />
+            <Breadcrumbs items={crumbs} />
             <h1 className="text-[56px] font-medium leading-[0.92] tracking-[-0.04em] text-black md:text-[80px] xl:text-[106px]">
-              {activeCategory ?? "All products"}
+              {title}
             </h1>
           </div>
         </section>

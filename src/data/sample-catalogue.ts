@@ -48,16 +48,16 @@ export const SAMPLE_CATALOGUE: SampleProduct[] = [
   P("s-01", "Okha Repose sofa", ["furniture", "Furniture"], "Sofas", "Sancal", "Fabric", 500000, { sale: 425000, added: 14, features: ["With chaise", "Modular"] }),
   P("s-02", "Modular sofa", ["furniture", "Furniture"], "Sofas", "Pedrali", "Fabric", 740000, { added: 13 , features: ["Modular", "Low-profile"] }),
   P("s-03", "Lounge armchair", ["furniture", "Furniture"], "Armchairs", "Sancal", "Leather", 215000, { sale: 189000, added: 12, showroom: false , features: ["High-back"] }),
-  P("s-04", "Clay dining table", ["furniture", "Furniture"], "Tables", "Kartell", "Oak", 390000, { added: 11 }),
-  P("s-05", "Okha Repose", ["furniture", "Furniture"], "Tables", "Pedrali", "Marble", 500000, { added: 10, showroom: false , features: ["Low-profile"] }),
-  P("s-06", "Console 02", ["furniture", "Furniture"], "Storage", "Kartell", "Oak", 270000, { added: 9 }),
-  P("s-07", "n35", ["lighting", "Lighting"], "Pendant", "Marset", "Metal", 500000, { added: 8 , features: ["Dimmable"] }),
-  P("s-08", "Halo pendant", ["lighting", "Lighting"], "Pendant", "Luceplan", "Glass", 128000, { added: 7 , features: ["Dimmable"] }),
-  P("s-09", "Arc floor lamp", ["lighting", "Lighting"], "Floor lamps", "Marset", "Metal", 96000, { added: 6, showroom: false , features: ["Dimmable", "Rechargeable"] }),
-  P("s-10", "Bell table lamp", ["lighting", "Lighting"], "Table lamps", "Luceplan", "Glass", 54000, { added: 5 }),
-  P("s-11", "Tripod floor lamp", ["lighting", "Lighting"], "Floor lamps", "Tom Dixon", "Metal", 115000, { sale: 98000, added: 4, features: ["Dimmable"] }),
-  P("s-12", "Ginger wall lamp", ["lighting", "Lighting"], "Wall lamps", "Marset", "Oak", 69000, { added: 3 }),
-  P("s-13", "Paper pendant lamp", ["lighting", "Lighting"], "Pendant", "Tom Dixon", "Paper", 86000, { added: 2, showroom: false , features: ["Rechargeable"] }),
+  P("s-04", "Clay dining table", ["furniture", "Furniture"], "Dining tables", "Kartell", "Oak", 390000, { added: 11 }),
+  P("s-05", "Okha Repose", ["furniture", "Furniture"], "Coffee tables", "Pedrali", "Marble", 500000, { added: 10, showroom: false , features: ["Low-profile"] }),
+  P("s-06", "Console 02", ["furniture", "Furniture"], "Sideboards", "Kartell", "Oak", 270000, { added: 9 }),
+  P("s-07", "n35", ["lighting", "Lighting"], "Pendant Lights", "Marset", "Metal", 500000, { added: 8 , features: ["Dimmable"] }),
+  P("s-08", "Halo pendant", ["lighting", "Lighting"], "Pendant Lights", "Luceplan", "Glass", 128000, { added: 7 , features: ["Dimmable"] }),
+  P("s-09", "Arc floor lamp", ["lighting", "Lighting"], "Floor Lamps", "Marset", "Metal", 96000, { added: 6, showroom: false , features: ["Dimmable", "Rechargeable"] }),
+  P("s-10", "Bell table lamp", ["lighting", "Lighting"], "Table Lights", "Luceplan", "Glass", 54000, { added: 5 }),
+  P("s-11", "Tripod floor lamp", ["lighting", "Lighting"], "Floor Lamps", "Tom Dixon", "Metal", 115000, { sale: 98000, added: 4, features: ["Dimmable"] }),
+  P("s-12", "Ginger wall lamp", ["lighting", "Lighting"], "Wall Lights", "Marset", "Oak", 69000, { added: 3 }),
+  P("s-13", "Paper pendant lamp", ["lighting", "Lighting"], "Pendant Lights", "Tom Dixon", "Paper", 86000, { added: 2, showroom: false , features: ["Rechargeable"] }),
   P("s-14", "Linen cushion set", ["decor", "Decor (Accessories)"], "Textiles", "Sancal", "Fabric", 18000, { added: 1 , features: ["Sleeper sofa"] }),
   P("s-15", "Round wall mirror", ["decor", "Decor (Accessories)"], "Mirrors", "Kartell", "Glass", 42000, { sale: 36000, added: 0 }),
 ];
@@ -116,17 +116,16 @@ export function filterSamples(q: CatalogueQuery): SampleProduct[] {
   }
 }
 
-const uniq = (xs: string[]) => Array.from(new Set(xs));
+const uniq = (xs: string[]) => Array.from(new Set(xs)).filter(Boolean);
 
-export function sampleGroups(): FilterGroup[] {
-  const cats = new Map(SAMPLE_CATALOGUE.map((p) => [p.category.slug, p.category.name]));
+export function sampleGroups(category: string[] = []): FilterGroup[] {
+  const pool = category.length ? SAMPLE_CATALOGUE.filter((p) => category.includes(p.category.slug)) : SAMPLE_CATALOGUE;
   return [
-    { key: "category", label: "Category", options: Array.from(cats, ([value, label]) => ({ value, label })) },
-    { key: "typology", label: "Typology", options: uniq(SAMPLE_CATALOGUE.map((p) => p.typology)) },
-    { key: "brand", label: "Brands", options: uniq(SAMPLE_CATALOGUE.map((p) => p.brand)) },
+    { key: "typology", label: "Typology", options: uniq(pool.map((p) => p.typology)) },
+    { key: "brand", label: "Brands", options: uniq(pool.map((p) => p.brand)) },
     { key: "display", label: "On display", options: ["In showroom", "Online only"] },
-    { key: "material", label: "Material", options: uniq(SAMPLE_CATALOGUE.map((p) => p.material)) },
-    { key: "features", label: "Construction / Features", options: uniq(SAMPLE_CATALOGUE.flatMap((p) => p.features)) },
+    { key: "material", label: "Material", options: uniq(pool.map((p) => p.material)) },
+    { key: "features", label: "Construction / Features", options: uniq(pool.flatMap((p) => p.features)) },
   ];
 }
 
