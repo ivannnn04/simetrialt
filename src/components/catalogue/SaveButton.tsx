@@ -2,7 +2,7 @@
 
 import { Field } from "@/components/ui/Field";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -13,12 +13,18 @@ import { PRODUCT_PLACEHOLDER_IMAGE } from "@/lib/placeholder";
 
 type Props = { productId: string; className?: string; light?: boolean };
 
+const PANEL_WIDTH = 417;
+
 /**
- * Heart button on product cards. Opens the Figma "Save to" modal (node 4217:47501) listing the
- * customer's collections; anonymous visitors see a sign-in prompt in the same modal.
+ * Heart button on product cards. Opens the Figma "Save to" panel (node 4217:47501) anchored to
+ * the heart: its top-right corner sits on the heart's top-right (Figma "Add to collection",
+ * 4217:47427). Anonymous visitors see a sign-in prompt in the same panel.
  */
 export function SaveButton({ productId, className, light }: Props) {
   const pathname = usePathname();
+  const anchor = useRef<HTMLButtonElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
   const [open, setOpen] = useState(false);
   const [anonymous, setAnonymous] = useState(false);
   const [collections, setCollections] = useState<CollectionSummary[] | null>(null);
@@ -37,14 +43,37 @@ export function SaveButton({ productId, className, light }: Props) {
     });
   };
 
-  // Close on Escape while the modal is open.
+  // Position the panel on the heart and keep it there on scroll / resize; close on Escape or
+  // a click outside.
   useEffect(() => {
     if (!open) return;
+    const place = () => {
+      const r = anchor.current?.getBoundingClientRect();
+      if (!r) return;
+      const vw = window.innerWidth;
+      // right edge on the heart's right edge, kept inside the viewport with a 16px margin
+      const right = Math.max(16, Math.min(vw - r.right, vw - PANEL_WIDTH - 16));
+      setPos({ top: Math.max(16, r.top), right });
+    };
+    place();
+    window.addEventListener("scroll", place, true);
+    window.addEventListener("resize", place);
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
     };
+    const onDown = (e: PointerEvent) => {
+      const t = e.target as Node;
+      if (panel.current?.contains(t) || anchor.current?.contains(t)) return;
+      setOpen(false);
+    };
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onDown);
+    return () => {
+      window.removeEventListener("scroll", place, true);
+      window.removeEventListener("resize", place);
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onDown);
+    };
   }, [open]);
 
   const next = encodeURIComponent(pathname);
@@ -77,6 +106,7 @@ export function SaveButton({ productId, className, light }: Props) {
   return (
     <div className={cn("relative", className)}>
       <button
+        ref={anchor}
         type="button"
         aria-label="Save to collection"
         onClick={(e) => {
@@ -95,22 +125,18 @@ export function SaveButton({ productId, className, light }: Props) {
       </button>
 
       {open &&
+        pos &&
         createPortal(
           <div
-            className="fixed inset-0 z-[90] flex items-center justify-center bg-black/30 p-4"
-            onClick={(e) => {
-              e.stopPropagation();
-              setOpen(false);
-            }}
-            role="presentation"
+            ref={panel}
+            role="dialog"
+            aria-modal="false"
+            aria-label="Save to"
+            className="fixed z-[90] flex w-[calc(100vw-32px)] max-w-[417px] flex-col items-end gap-8 bg-white p-6 text-left shadow-[0_12px_40px_rgba(0,0,0,0.12)] sm:gap-11 sm:p-10"
+            style={{ top: pos.top, right: pos.right }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <div
-              role="dialog"
-              aria-modal="true"
-              aria-label="Save to"
-              className="flex w-full max-w-[420px] flex-col items-end gap-8 bg-white p-6 text-left shadow-[0_12px_40px_rgba(0,0,0,0.12)] sm:gap-11 sm:p-10"
-              onClick={(e) => e.stopPropagation()}
-            >
+            <>
               <div className="flex w-full items-center justify-between">
                 <p className="text-[24px] font-semibold leading-[1.3] tracking-[-0.04em] text-[#1a1c18]">Save to</p>
                 <button type="button" aria-label="Close" onClick={() => setOpen(false)} className="text-[#1a1c18]">
@@ -205,7 +231,7 @@ export function SaveButton({ productId, className, light }: Props) {
                   {error && <p className="w-full text-[13px] text-[#fb3b30]">{error}</p>}
                 </>
               )}
-            </div>
+            </>
           </div>,
           document.body
         )}
