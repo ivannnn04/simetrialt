@@ -49,14 +49,14 @@ const CATEGORIES: Category[] = [
 
 const MENU_CARDS = [
   { title: "Design Icons & Best-Selling Items", image: "/images/menu/icons.jpg", href: "/catalogue" },
-  { title: "Special Outlet Pricing & Archives", image: "/images/menu/outlet.jpg", href: "/catalogue" },
+  { title: "Special Outlet Pricing & Archives", image: "/images/menu/outlet.jpg", href: "/outlet" },
 ];
 
 const LEFT_LINKS = [
   { label: "Services", href: "/services" },
   { label: "Projects", href: "/projects" },
   { label: "Brands", href: "/brands" },
-  { label: "Outlet", href: "/catalogue" },
+  { label: "Outlet", href: "/outlet" },
 ];
 
 const RIGHT_LINKS = [

@@ -11,7 +11,7 @@ const COLUMNS: { heading: string; items: Item[] }[] = [
       { label: "Furniture", href: "/catalogue?category=furniture" },
       { label: "Lighting", href: "/catalogue?category=lighting" },
       { label: "Decor (Accessories)", href: "/catalogue?category=decor" },
-      { label: "Outlet", href: "/catalogue" },
+      { label: "Outlet", href: "/outlet" },
     ],
   },
   {

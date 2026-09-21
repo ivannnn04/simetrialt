@@ -12,6 +12,8 @@ type Props = {
   sort: string;
   /** Sidebar visible on first render (Figma "filter-v2" opens with the filters closed). */
   defaultOpen?: boolean;
+  /** Route the filters and sort write their params to (catalogue or outlet). */
+  basePath?: string;
 };
 
 /**
@@ -19,7 +21,7 @@ type Props = {
  * FILTERS toggle + sort on one line, a collapsible 302px sidebar and a grid that alternates rows
  * of three square and two wide cards (348 / 528×420 next to the sidebar, 500 / 655 without it).
  */
-export function CatalogueGrid({ groups, cards, sort, defaultOpen = false }: Props) {
+export function CatalogueGrid({ groups, cards, sort, defaultOpen = false, basePath = "/catalogue" }: Props) {
   const [open, setOpen] = useState(defaultOpen);
 
   const rows: ProductCardData[][] = [];
@@ -44,7 +46,7 @@ export function CatalogueGrid({ groups, cards, sort, defaultOpen = false }: Prop
             <CaretIcon className={cn("size-4 transition-transform duration-300", open && "rotate-180")} />
           </button>
           <Suspense>
-            <SortSelect value={sort} />
+            <SortSelect value={sort} basePath={basePath} />
           </Suspense>
         </div>
         <hr className="border-line" />
@@ -61,7 +63,7 @@ export function CatalogueGrid({ groups, cards, sort, defaultOpen = false }: Prop
         >
           <div className="lg:w-[302px]">
             <Suspense>
-              <Filters groups={groups} />
+              <Filters groups={groups} basePath={basePath} />
             </Suspense>
           </div>
         </div>

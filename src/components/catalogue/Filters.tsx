@@ -45,7 +45,7 @@ function FilterSection({ group, selected, onToggle }: { group: FilterGroup; sele
 }
 
 /** Figma catalogue sidebar (node 4217:47888): grouped option boxes, price range, reset. */
-export function Filters({ groups }: { groups: FilterGroup[] }) {
+export function Filters({ groups, basePath = "/catalogue" }: { groups: FilterGroup[]; basePath?: string }) {
   const router = useRouter();
   const params = useSearchParams();
   const [min, setMin] = useState(params.get("min") ?? "");
@@ -54,7 +54,8 @@ export function Filters({ groups }: { groups: FilterGroup[] }) {
   const update = (mutate: (p: URLSearchParams) => void) => {
     const next = new URLSearchParams(params.toString());
     mutate(next);
-    router.push(`/catalogue?${next.toString()}`, { scroll: false });
+    next.delete("page"); // any filter change starts from the first page
+    router.push(`${basePath}?${next.toString()}`, { scroll: false });
   };
 
   const toggle = (key: string, value: string) =>
@@ -121,7 +122,7 @@ export function Filters({ groups }: { groups: FilterGroup[] }) {
         {sections}
         <button
           type="button"
-          onClick={() => router.push("/catalogue")}
+          onClick={() => router.push(basePath)}
           className="w-full bg-[#e2e2e2]/50 px-8 py-[11px] text-center text-[13px] font-medium text-black transition-colors hover:bg-[#e2e2e2]"
         >
           Reset all filters
@@ -131,7 +132,7 @@ export function Filters({ groups }: { groups: FilterGroup[] }) {
   );
 }
 
-export function SortSelect({ value }: { value: string }) {
+export function SortSelect({ value, basePath = "/catalogue" }: { value: string; basePath?: string }) {
   const router = useRouter();
   const params = useSearchParams();
   return (
@@ -143,7 +144,8 @@ export function SortSelect({ value }: { value: string }) {
           const next = new URLSearchParams(params.toString());
           if (e.target.value === "relevance") next.delete("sort");
           else next.set("sort", e.target.value);
-          router.push(`/catalogue?${next.toString()}`, { scroll: false });
+          next.delete("page");
+          router.push(`${basePath}?${next.toString()}`, { scroll: false });
         }}
         className="bg-transparent text-[#1a1c18] focus:outline-none"
       >
