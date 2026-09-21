@@ -57,7 +57,7 @@ export function CatalogueGrid({ groups, cards, sort, defaultOpen = false, basePa
           id="catalogue-filters"
           className={cn(
             "overflow-hidden transition-[width,opacity,margin] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:shrink-0",
-            open ? "mb-12 w-full opacity-100 lg:mb-0 lg:w-[302px]" : "h-0 w-full opacity-0 lg:h-auto lg:w-0"
+            open ? "mb-12 w-full opacity-100 lg:mb-0 lg:w-[302px]" : "h-0 w-full opacity-0 lg:w-0"
           )}
           inert={!open}
         >
