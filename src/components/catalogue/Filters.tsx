@@ -104,8 +104,9 @@ export function Filters({ groups }: { groups: FilterGroup[] }) {
   );
 
   // Figma order: Typology, Brands, Price, On display, Material (Category first when the page lists several).
-  const ORDER = ["category", "typology", "brand", "display", "material", "features"];
-  const sorted = [...groups].sort((a, b) => ORDER.indexOf(a.key) - ORDER.indexOf(b.key));
+  // Category is never a sidebar group: it comes from the Products menu / footer links.
+  const ORDER = ["typology", "brand", "display", "material", "features"];
+  const sorted = groups.filter((g) => g.key !== "category").sort((a, b) => ORDER.indexOf(a.key) - ORDER.indexOf(b.key));
   const sections: React.ReactNode[] = [];
   sorted.forEach((g) => {
     sections.push(<FilterSection key={g.key} group={g} selected={params.getAll(g.key)} onToggle={(v) => toggle(g.key, v)} />);
