@@ -30,6 +30,13 @@ const SAMPLE_PRODUCTS: ProductCardData[] = [
   { id: "sample-7", name: "Console 02", category: "Storage", price: "€2,700", href: "/catalogue" },
   { id: "sample-8", name: "Arc floor lamp", category: "Lighting", price: "€960", href: "/catalogue" },
   { id: "sample-9", name: "Modular sofa", category: "Sofas", price: "€7,400", href: "/catalogue" },
+  { id: "sample-10", name: "Bell table lamp", category: "Lighting", price: "€540", href: "/catalogue" },
+  { id: "sample-11", name: "Tripod floor lamp", category: "Lighting", price: "€1,150", salePrice: "€980", discount: 15, href: "/catalogue" },
+  { id: "sample-12", name: "Dome desk lamp", category: "Lighting", price: "€420", href: "/catalogue" },
+  { id: "sample-13", name: "Ginger wall lamp", category: "Lighting", price: "€690", href: "/catalogue" },
+  { id: "sample-14", name: "Paper pendant lamp", category: "Lighting", price: "€860", href: "/catalogue" },
+  { id: "sample-15", name: "Brass reading lamp", category: "Lighting", price: "€1,320", href: "/catalogue" },
+  { id: "sample-16", name: "Rechargeable lamp", category: "Lighting", price: "€310", href: "/catalogue" },
 ];
 
 /** Latest published products as cards, padded with samples up to `take`; never throws on DB outages. */
