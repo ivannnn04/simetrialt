@@ -15,8 +15,9 @@ type Props = {
 };
 
 /**
- * Figma "Furniture Products-filter-v2" (node 4217:46770): a FILTERS toggle + sort on one line,
- * a collapsible sidebar and a grid that alternates rows of three square and two wide cards.
+ * Figma "Furniture Products" (4217:47838, filters open) / "filter-v2" (4217:46770, closed):
+ * FILTERS toggle + sort on one line, a collapsible 302px sidebar and a grid that alternates rows
+ * of three square and two wide cards (348 / 528×420 next to the sidebar, 500 / 655 without it).
  */
 export function CatalogueGrid({ groups, cards, sort, defaultOpen = false }: Props) {
   const [open, setOpen] = useState(defaultOpen);
@@ -54,7 +55,7 @@ export function CatalogueGrid({ groups, cards, sort, defaultOpen = false }: Prop
           id="catalogue-filters"
           className={cn(
             "overflow-hidden transition-[width,opacity,margin] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:shrink-0",
-            open ? "mb-12 w-full opacity-100 lg:mb-0 lg:mr-12 lg:w-[302px]" : "h-0 w-full opacity-0 lg:h-auto lg:w-0"
+            open ? "mb-12 w-full opacity-100 lg:mb-0 lg:w-[302px]" : "h-0 w-full opacity-0 lg:h-auto lg:w-0"
           )}
           inert={!open}
         >
@@ -66,9 +67,30 @@ export function CatalogueGrid({ groups, cards, sort, defaultOpen = false }: Prop
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-4 lg:gap-[60px]">
           {rows.map((row, i) => (
-            <div key={i} className={cn("grid gap-4", row.length === 2 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1 md:grid-cols-3")}>
+            <div
+              key={i}
+              className={cn(
+                "grid transition-[gap] duration-500",
+                open ? "gap-3" : "gap-4",
+                row.length === 2 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1 md:grid-cols-3"
+              )}
+            >
               {row.map((p) => (
-                <ProductCard key={p.id} product={p} className={row.length === 2 ? "h-[420px] lg:h-[655px]" : "h-[420px] lg:h-[500px]"} />
+                <ProductCard
+                  key={p.id}
+                  product={p}
+                  compact={open}
+                  className={cn(
+                    "transition-[height] duration-500",
+                    open
+                      ? row.length === 2
+                        ? "h-[420px]"
+                        : "h-[348px]"
+                      : row.length === 2
+                        ? "h-[420px] lg:h-[655px]"
+                        : "h-[420px] lg:h-[500px]"
+                  )}
+                />
               ))}
             </div>
           ))}

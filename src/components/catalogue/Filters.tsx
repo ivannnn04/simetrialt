@@ -73,38 +73,49 @@ export function Filters({ groups }: { groups: FilterGroup[] }) {
       else p.delete("max");
     });
 
+  const price = (
+    <div key="price" className="flex w-full flex-col gap-[15px]">
+      <span className="flex items-center gap-3 text-[15px] font-semibold uppercase text-[#0a0a0a]">
+        <span className="size-1.5 rounded-full bg-[#0a0a0a]" />
+        Price
+      </span>
+      <div className="flex items-center gap-[9px]">
+        <input
+          value={min}
+          onChange={(e) => setMin(e.target.value)}
+          onBlur={applyPrice}
+          onKeyDown={(e) => e.key === "Enter" && applyPrice()}
+          placeholder="€ Min"
+          inputMode="numeric"
+          className="min-w-0 flex-1 border border-[#ddd] bg-transparent px-[10px] py-2 text-[14px] leading-none tracking-[-0.04em] placeholder:text-black focus:outline-none"
+        />
+        <span className="text-[12px] text-[#8a8473]">—</span>
+        <input
+          value={max}
+          onChange={(e) => setMax(e.target.value)}
+          onBlur={applyPrice}
+          onKeyDown={(e) => e.key === "Enter" && applyPrice()}
+          placeholder="€ Max"
+          inputMode="numeric"
+          className="min-w-0 flex-1 border border-[#ddd] bg-transparent px-[10px] py-2 text-[14px] leading-none tracking-[-0.04em] placeholder:text-black focus:outline-none"
+        />
+      </div>
+    </div>
+  );
+
+  // Figma order: Typology, Brands, Price, On display, Material (Category first when the page lists several).
+  const ORDER = ["category", "typology", "brand", "display", "material"];
+  const sorted = [...groups].sort((a, b) => ORDER.indexOf(a.key) - ORDER.indexOf(b.key));
+  const sections: React.ReactNode[] = [];
+  sorted.forEach((g) => {
+    sections.push(<FilterSection key={g.key} group={g} selected={params.getAll(g.key)} onToggle={(v) => toggle(g.key, v)} />);
+    if (g.key === "brand") sections.push(price);
+  });
+  if (!sorted.some((g) => g.key === "brand")) sections.push(price);
+
   return (
     <aside className="flex w-full flex-col gap-10 lg:w-[302px] lg:shrink-0 lg:pr-10">
-      {groups.map((g) => (
-        <FilterSection key={g.key} group={g} selected={params.getAll(g.key)} onToggle={(v) => toggle(g.key, v)} />
-      ))}
-      <div className="flex w-full flex-col gap-[15px]">
-        <span className="flex items-center gap-3 text-[15px] font-semibold uppercase text-[#0a0a0a]">
-          <span className="size-1.5 rounded-full bg-[#0a0a0a]" />
-          Price
-        </span>
-        <div className="flex items-center gap-[9px]">
-          <input
-            value={min}
-            onChange={(e) => setMin(e.target.value)}
-            onBlur={applyPrice}
-            onKeyDown={(e) => e.key === "Enter" && applyPrice()}
-            placeholder="€ Min"
-            inputMode="numeric"
-            className="min-w-0 flex-1 border border-[#ddd] bg-transparent px-[10px] py-2 text-[14px] leading-none tracking-[-0.04em] placeholder:text-black focus:outline-none"
-          />
-          <span className="text-[12px] text-[#8a8473]">—</span>
-          <input
-            value={max}
-            onChange={(e) => setMax(e.target.value)}
-            onBlur={applyPrice}
-            onKeyDown={(e) => e.key === "Enter" && applyPrice()}
-            placeholder="€ Max"
-            inputMode="numeric"
-            className="min-w-0 flex-1 border border-[#ddd] bg-transparent px-[10px] py-2 text-[14px] leading-none tracking-[-0.04em] placeholder:text-black focus:outline-none"
-          />
-        </div>
-      </div>
+      {sections}
       <button
         type="button"
         onClick={() => router.push("/catalogue")}
