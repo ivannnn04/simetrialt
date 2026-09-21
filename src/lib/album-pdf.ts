@@ -1,6 +1,6 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import { LOGO_PATHS, LOGO_VIEWBOX } from "@/data/logo-paths";
+import { LOGO_PNG_DATA_URL, LOGO_PNG_SIZE } from "@/data/logo-png";
 
 export type AlbumPdfRow = {
   name: string;
@@ -28,26 +28,24 @@ const CREAM = "#f9f8f4";
 const eur = (cents: number) =>
   `EUR ${(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-/** Rasterises the footer wordmark (SVG paths) to a PNG data URL so jsPDF can place it. */
-async function logoPng(color: string, widthPx = 1600): Promise<string> {
-  const { width, height } = LOGO_VIEWBOX;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${widthPx}" height="${Math.round((widthPx * height) / width)}">${LOGO_PATHS.map((d) => `<path d="${d}" fill="${color}"/>`).join("")}</svg>`;
-  const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
-  try {
-    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-      const el = new Image();
-      el.onload = () => resolve(el);
-      el.onerror = reject;
-      el.src = url;
-    });
-    const canvas = document.createElement("canvas");
-    canvas.width = img.width;
-    canvas.height = img.height;
-    canvas.getContext("2d")?.drawImage(img, 0, 0);
-    return canvas.toDataURL("image/png");
-  } finally {
-    URL.revokeObjectURL(url);
-  }
+/** Tints the header wordmark PNG (logo = alpha channel) with the wanted colour and returns a PNG data URL. */
+async function logoPng(color: string): Promise<string> {
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const el = new Image();
+    el.onload = () => resolve(el);
+    el.onerror = reject;
+    el.src = LOGO_PNG_DATA_URL;
+  });
+  const canvas = document.createElement("canvas");
+  canvas.width = img.width;
+  canvas.height = img.height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("canvas unavailable");
+  ctx.drawImage(img, 0, 0);
+  ctx.globalCompositeOperation = "source-in";
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL("image/png");
 }
 
 /**
@@ -64,9 +62,9 @@ export async function downloadAlbumPdf(input: AlbumPdfInput) {
   // Letterhead
   doc.setFillColor(CREAM);
   doc.rect(0, 0, W, 42, "F");
-  // wordmark from the footer, 48mm wide, vertically centred in the band
-  const logoW = 48;
-  const logoH = (logoW * LOGO_VIEWBOX.height) / LOGO_VIEWBOX.width;
+  // header wordmark, 40mm wide, vertically centred in the band
+  const logoW = 40;
+  const logoH = (logoW * LOGO_PNG_SIZE.height) / LOGO_PNG_SIZE.width;
   try {
     doc.addImage(await logoPng(INK), "PNG", M, 21 - logoH / 2, logoW, logoH);
   } catch {
