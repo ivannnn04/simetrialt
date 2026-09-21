@@ -102,13 +102,50 @@ function BookingWidget({ onBook }: { onBook: (text: string) => void }) {
   );
 }
 
+type FieldErrors = Partial<Record<"firstName" | "email" | "phone" | "message", string>>;
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** Client-side checks so errors render in the Figma "error" input state instead of browser bubbles. */
+function validate(form: HTMLFormElement): FieldErrors {
+  const data = new FormData(form);
+  const get = (k: string) => String(data.get(k) ?? "").trim();
+  const errors: FieldErrors = {};
+  if (!get("firstName")) errors.firstName = "Please enter your first name";
+  const email = get("email");
+  if (email && !EMAIL_RE.test(email)) errors.email = "Please enter a valid email address";
+  const phone = get("phone");
+  if (phone && !/^[+\d][\d\s()-]{5,}$/.test(phone)) errors.phone = "Please enter a valid phone number";
+  if (!get("message")) errors.message = "Please tell us about your project";
+  return errors;
+}
+
 export function ContactSection({ initialMessage = "" }: { initialMessage?: string }) {
   const [state, formAction, pending] = useActionState(submitContact, undefined);
   const [details, setDetails] = useState(initialMessage);
+  const [errors, setErrors] = useState<FieldErrors>({});
 
   return (
     <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-16 px-4 pb-[120px] pt-20 md:px-10 lg:flex-row lg:gap-[180px]">
-      <form action={formAction} id="contact-form" className="flex flex-1 flex-col justify-between gap-12">
+      <form
+        action={formAction}
+        id="contact-form"
+        noValidate
+        onSubmit={(e) => {
+          const next = validate(e.currentTarget);
+          setErrors(next);
+          if (Object.keys(next).length > 0) {
+            e.preventDefault();
+            const first = Object.keys(next)[0];
+            e.currentTarget.querySelector<HTMLElement>(`[name="${first}"]`)?.focus();
+          }
+        }}
+        onInput={(e) => {
+          const name = (e.target as HTMLElement).getAttribute("name") as keyof FieldErrors | null;
+          if (name && errors[name]) setErrors((prev) => ({ ...prev, [name]: undefined }));
+        }}
+        className="flex flex-1 flex-col justify-between gap-12"
+      >
         <div className="flex flex-col gap-12">
           <p className="text-[18px] leading-[1.3] tracking-[-0.04em] text-secondary">Contact form</p>
           {state?.message ? (
@@ -117,16 +154,17 @@ export function ContactSection({ initialMessage = "" }: { initialMessage?: strin
             <div className="flex flex-col gap-10">
               <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden="true" />
               <div className="flex flex-col gap-10 sm:flex-row sm:gap-4">
-                <Field name="firstName" label="First name" required autoComplete="given-name" className="flex-1" />
+                <Field name="firstName" label="First name" required autoComplete="given-name" className="flex-1" error={errors.firstName} />
                 <Field name="lastName" label="Last name" autoComplete="family-name" className="flex-1" />
               </div>
-              <Field name="email" type="email" label="Your email" autoComplete="email" />
-              <Field name="phone" type="tel" label="Phone" autoComplete="tel" />
+              <Field name="email" type="email" label="Your email" autoComplete="email" error={errors.email} />
+              <Field name="phone" type="tel" label="Phone" autoComplete="tel" error={errors.phone} />
               <Field
                 multiline
                 name="message"
                 label="Project Details"
                 required
+                error={errors.message}
                 value={details}
                 onChange={(e) => setDetails(e.target.value)}
               />
