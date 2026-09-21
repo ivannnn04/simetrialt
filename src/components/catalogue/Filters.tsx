@@ -13,12 +13,12 @@ function FilterSection({ group, selected, onToggle }: { group: FilterGroup; sele
   const [open, setOpen] = useState(true);
   return (
     <div className="flex w-full flex-col gap-[15px]">
-      <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full items-center justify-between">
-        <span className="flex items-center gap-3 text-[15px] font-semibold uppercase text-[#0a0a0a]">
-          <span className="size-1.5 rounded-full bg-[#0a0a0a]" />
-          {group.label}
+      <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full items-center justify-between gap-2">
+        <span className="flex min-w-0 items-center gap-2 text-[15px] font-semibold uppercase leading-none tracking-[-0.02em] text-[#0a0a0a]">
+          <span className="size-1.5 shrink-0 rounded-full bg-[#0a0a0a]" />
+          <span className="truncate whitespace-nowrap">{group.label}</span>
         </span>
-        <CaretIcon className={cn("size-6 transition-transform", open && "rotate-180")} />
+        <CaretIcon className={cn("size-6 shrink-0 transition-transform", open && "rotate-180")} />
       </button>
       {open && (
         <div className="flex w-full flex-col gap-[5px]">
@@ -75,8 +75,8 @@ export function Filters({ groups }: { groups: FilterGroup[] }) {
 
   const price = (
     <div key="price" className="flex w-full flex-col gap-[15px]">
-      <span className="flex items-center gap-3 text-[15px] font-semibold uppercase text-[#0a0a0a]">
-        <span className="size-1.5 rounded-full bg-[#0a0a0a]" />
+      <span className="flex items-center gap-2 text-[15px] font-semibold uppercase leading-none tracking-[-0.02em] text-[#0a0a0a]">
+        <span className="size-1.5 shrink-0 rounded-full bg-[#0a0a0a]" />
         Price
       </span>
       <div className="flex items-center gap-[9px]">
