@@ -13,6 +13,8 @@ export type SampleProduct = {
   brand: string;
   material: string;
   inShowroom: boolean;
+  /** "Construction / Features" filter values */
+  features: string[];
   priceCents: number;
   salePriceCents?: number;
   /** newest-first order for the "Newest" sort */
@@ -27,7 +29,7 @@ const P = (
   brand: string,
   material: string,
   priceCents: number,
-  opts: { sale?: number; showroom?: boolean; added?: number } = {}
+  opts: { sale?: number; showroom?: boolean; added?: number; features?: string[] } = {}
 ): SampleProduct => ({
   id,
   name,
@@ -38,24 +40,25 @@ const P = (
   priceCents,
   salePriceCents: opts.sale,
   inShowroom: opts.showroom ?? true,
+  features: opts.features ?? [],
   added: opts.added ?? 0,
 });
 
 export const SAMPLE_CATALOGUE: SampleProduct[] = [
-  P("s-01", "Okha Repose sofa", ["furniture", "Furniture"], "Sofas", "Sancal", "Fabric", 500000, { sale: 425000, added: 14 }),
-  P("s-02", "Modular sofa", ["furniture", "Furniture"], "Sofas", "Pedrali", "Fabric", 740000, { added: 13 }),
-  P("s-03", "Lounge armchair", ["furniture", "Furniture"], "Armchairs", "Sancal", "Leather", 215000, { sale: 189000, added: 12, showroom: false }),
+  P("s-01", "Okha Repose sofa", ["furniture", "Furniture"], "Sofas", "Sancal", "Fabric", 500000, { sale: 425000, added: 14, features: ["With chaise", "Modular"] }),
+  P("s-02", "Modular sofa", ["furniture", "Furniture"], "Sofas", "Pedrali", "Fabric", 740000, { added: 13 , features: ["Modular", "Low-profile"] }),
+  P("s-03", "Lounge armchair", ["furniture", "Furniture"], "Armchairs", "Sancal", "Leather", 215000, { sale: 189000, added: 12, showroom: false , features: ["High-back"] }),
   P("s-04", "Clay dining table", ["furniture", "Furniture"], "Tables", "Kartell", "Oak", 390000, { added: 11 }),
-  P("s-05", "Okha Repose", ["furniture", "Furniture"], "Tables", "Pedrali", "Marble", 500000, { added: 10, showroom: false }),
+  P("s-05", "Okha Repose", ["furniture", "Furniture"], "Tables", "Pedrali", "Marble", 500000, { added: 10, showroom: false , features: ["Low-profile"] }),
   P("s-06", "Console 02", ["furniture", "Furniture"], "Storage", "Kartell", "Oak", 270000, { added: 9 }),
-  P("s-07", "n35", ["lighting", "Lighting"], "Pendant", "Marset", "Metal", 500000, { added: 8 }),
-  P("s-08", "Halo pendant", ["lighting", "Lighting"], "Pendant", "Luceplan", "Glass", 128000, { added: 7 }),
-  P("s-09", "Arc floor lamp", ["lighting", "Lighting"], "Floor lamps", "Marset", "Metal", 96000, { added: 6, showroom: false }),
+  P("s-07", "n35", ["lighting", "Lighting"], "Pendant", "Marset", "Metal", 500000, { added: 8 , features: ["Dimmable"] }),
+  P("s-08", "Halo pendant", ["lighting", "Lighting"], "Pendant", "Luceplan", "Glass", 128000, { added: 7 , features: ["Dimmable"] }),
+  P("s-09", "Arc floor lamp", ["lighting", "Lighting"], "Floor lamps", "Marset", "Metal", 96000, { added: 6, showroom: false , features: ["Dimmable", "Rechargeable"] }),
   P("s-10", "Bell table lamp", ["lighting", "Lighting"], "Table lamps", "Luceplan", "Glass", 54000, { added: 5 }),
-  P("s-11", "Tripod floor lamp", ["lighting", "Lighting"], "Floor lamps", "Tom Dixon", "Metal", 115000, { sale: 98000, added: 4 }),
+  P("s-11", "Tripod floor lamp", ["lighting", "Lighting"], "Floor lamps", "Tom Dixon", "Metal", 115000, { sale: 98000, added: 4, features: ["Dimmable"] }),
   P("s-12", "Ginger wall lamp", ["lighting", "Lighting"], "Wall lamps", "Marset", "Oak", 69000, { added: 3 }),
-  P("s-13", "Paper pendant lamp", ["lighting", "Lighting"], "Pendant", "Tom Dixon", "Paper", 86000, { added: 2, showroom: false }),
-  P("s-14", "Linen cushion set", ["decor", "Decor (Accessories)"], "Textiles", "Sancal", "Fabric", 18000, { added: 1 }),
+  P("s-13", "Paper pendant lamp", ["lighting", "Lighting"], "Pendant", "Tom Dixon", "Paper", 86000, { added: 2, showroom: false , features: ["Rechargeable"] }),
+  P("s-14", "Linen cushion set", ["decor", "Decor (Accessories)"], "Textiles", "Sancal", "Fabric", 18000, { added: 1 , features: ["Sleeper sofa"] }),
   P("s-15", "Round wall mirror", ["decor", "Decor (Accessories)"], "Mirrors", "Kartell", "Glass", 42000, { sale: 36000, added: 0 }),
 ];
 
@@ -80,6 +83,7 @@ export type CatalogueQuery = {
   brand: string[];
   material: string[];
   display: string[];
+  features: string[];
   min?: number;
   max?: number;
   sort: string;
@@ -93,6 +97,7 @@ export function filterSamples(q: CatalogueQuery): SampleProduct[] {
       (!q.brand.length || q.brand.includes(p.brand)) &&
       (!q.material.length || q.material.includes(p.material)) &&
       (q.display.length !== 1 || p.inShowroom === (q.display[0] === "In showroom")) &&
+      (!q.features.length || q.features.some((f) => p.features.includes(f))) &&
       (!q.min || p.priceCents >= q.min * 100) &&
       (!q.max || p.priceCents <= q.max * 100)
   );
@@ -121,6 +126,7 @@ export function sampleGroups(): FilterGroup[] {
     { key: "brand", label: "Brands", options: uniq(SAMPLE_CATALOGUE.map((p) => p.brand)) },
     { key: "display", label: "On display", options: ["In showroom", "Online only"] },
     { key: "material", label: "Material", options: uniq(SAMPLE_CATALOGUE.map((p) => p.material)) },
+    { key: "features", label: "Construction / Features", options: uniq(SAMPLE_CATALOGUE.flatMap((p) => p.features)) },
   ];
 }
 

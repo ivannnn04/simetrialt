@@ -30,8 +30,8 @@ function FilterSection({ group, selected, onToggle }: { group: FilterGroup; sele
                 type="button"
                 onClick={() => onToggle(opt.value)}
                 className={cn(
-                  "w-full p-[10px] text-left text-[14px] leading-none tracking-[-0.04em]",
-                  active ? "bg-[#1f1f1f] text-white" : "border border-[#e2e2e2] text-black hover:border-black"
+                  "w-full border p-[10px] text-left text-[14px] leading-none tracking-[-0.04em] transition-colors duration-200",
+                  active ? "border-[#1f1f1f] bg-[#1f1f1f] text-white" : "border-[#e2e2e2] text-black hover:border-[#1f1f1f]"
                 )}
               >
                 {opt.label}
@@ -104,7 +104,7 @@ export function Filters({ groups }: { groups: FilterGroup[] }) {
   );
 
   // Figma order: Typology, Brands, Price, On display, Material (Category first when the page lists several).
-  const ORDER = ["category", "typology", "brand", "display", "material"];
+  const ORDER = ["category", "typology", "brand", "display", "material", "features"];
   const sorted = [...groups].sort((a, b) => ORDER.indexOf(a.key) - ORDER.indexOf(b.key));
   const sections: React.ReactNode[] = [];
   sorted.forEach((g) => {
@@ -114,15 +114,18 @@ export function Filters({ groups }: { groups: FilterGroup[] }) {
   if (!sorted.some((g) => g.key === "brand")) sections.push(price);
 
   return (
-    <aside className="flex w-full flex-col gap-10 lg:w-[302px] lg:shrink-0 lg:pr-10">
-      {sections}
-      <button
-        type="button"
-        onClick={() => router.push("/catalogue")}
-        className="w-full bg-[#e2e2e2]/50 px-8 py-[11px] text-center text-[13px] font-medium text-black hover:bg-[#e2e2e2]"
-      >
-        Reset all filters
-      </button>
+    <aside className="w-full lg:w-[302px] lg:shrink-0 lg:pr-10">
+      {/* Figma "filters" panel (node 4217:46608): white card, 20/30px padding, 40px between groups */}
+      <div className="flex w-full flex-col gap-10 bg-white px-5 py-[30px]">
+        {sections}
+        <button
+          type="button"
+          onClick={() => router.push("/catalogue")}
+          className="w-full bg-[#e2e2e2]/50 px-8 py-[11px] text-center text-[13px] font-medium text-black transition-colors hover:bg-[#e2e2e2]"
+        >
+          Reset all filters
+        </button>
+      </div>
     </aside>
   );
 }

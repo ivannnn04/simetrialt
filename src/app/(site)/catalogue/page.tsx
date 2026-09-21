@@ -31,6 +31,7 @@ export default async function CataloguePage({ searchParams }: { searchParams: Pr
   const brand = list(sp.brand);
   const material = list(sp.material);
   const display = list(sp.display);
+  const features = list(sp.features);
   const min = Number(sp.min) || undefined;
   const max = Number(sp.max) || undefined;
   const sort = typeof sp.sort === "string" && sp.sort in SORTS ? sp.sort : "relevance";
@@ -78,7 +79,7 @@ export default async function CataloguePage({ searchParams }: { searchParams: Pr
     // No published products yet: static catalogue so the filters and grid can be exercised.
     groups = sampleGroups();
     activeCategory = category.length === 1 ? sampleCategoryName(category[0]) : undefined;
-    cards = filterSamples({ category, typology, brand, material, display, min, max, sort }).map(sampleToCard);
+    cards = filterSamples({ category, typology, brand, material, display, features, min, max, sort }).map(sampleToCard);
   }
 
   return (
