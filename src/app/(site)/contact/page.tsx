@@ -40,13 +40,13 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
             </div>
             <div className="flex flex-col gap-4 md:flex-row md:items-center">
               {CONTACTS.map(({ label, value, Icon, href }) => (
-                <Link key={label} href={href} className="flex items-center gap-[10px] py-2 md:w-[216px]">
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-line text-ink">
+                <Link key={label} href={href} className="group flex items-center gap-[10px] py-2 md:w-[216px]">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-line text-ink transition-[background-color,border-color,color] duration-500 ease-out group-hover:border-dark group-hover:bg-dark group-hover:text-white">
                     <Icon />
                   </span>
                   <span className="flex flex-col gap-1 leading-none">
                     <span className="text-[12px] tracking-[-0.04em] text-secondary">{label}</span>
-                    <span className="text-[16px] font-semibold tracking-[-0.04em] text-ink">{value}</span>
+                    <span className="text-[16px] font-semibold tracking-[-0.04em] text-ink transition-colors duration-500 ease-out group-hover:text-accent">{value}</span>
                   </span>
                 </Link>
               ))}
