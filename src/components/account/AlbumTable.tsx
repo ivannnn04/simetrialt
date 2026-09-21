@@ -23,6 +23,8 @@ export type AlbumRow = {
 
 type Props = {
   collectionId: string;
+  collectionName: string;
+  customer?: { name: string; email: string } | null;
   rows: AlbumRow[];
   /** sample albums are read-only: quantity / note changes stay local */
   readOnly?: boolean;
@@ -53,7 +55,7 @@ const LIST = "M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01";
 const GRID = "M4 4h16v16H4zM9.5 4v16M14.5 4v16";
 
 /** Album page body: toolbar, product table (or card grid) and the collection summary. */
-export function AlbumTable({ collectionId, rows: initial, readOnly = false }: Props) {
+export function AlbumTable({ collectionId, collectionName, customer, rows: initial, readOnly = false }: Props) {
   const [rows, setRows] = useState(initial);
   const [sort, setSort] = useState<Sort>("category");
   const [view, setView] = useState<"list" | "grid">("list");
@@ -80,6 +82,22 @@ export function AlbumTable({ collectionId, rows: initial, readOnly = false }: Pr
   const remove = (productId: string) => {
     setRows((rs) => rs.filter((r) => r.productId !== productId));
     if (!readOnly) start(() => removeFromCollection(collectionId, productId));
+  };
+
+  const [exporting, setExporting] = useState(false);
+  const exportPdf = async () => {
+    setExporting(true);
+    try {
+      const { downloadAlbumPdf } = await import("@/lib/album-pdf");
+      downloadAlbumPdf({
+        collectionName,
+        reference: `SIM-${new Date().toISOString().slice(2, 10).replace(/-/g, "")}-${collectionId.replace(/[^a-z0-9]/gi, "").slice(-4).toUpperCase()}`,
+        customer,
+        rows: rows.map((r) => ({ name: r.name, category: r.category, brand: r.brand, quantity: r.quantity, unitCents: r.priceCents, note: r.note })),
+      });
+    } finally {
+      setExporting(false);
+    }
   };
 
   const units = rows.reduce((n, r) => n + r.quantity, 0);
@@ -265,10 +283,11 @@ export function AlbumTable({ collectionId, rows: initial, readOnly = false }: Pr
             </Link>
             <button
               type="button"
-              onClick={() => window.print()}
-              className="flex h-[39px] items-center justify-center border border-dark px-8 text-[13px] font-medium text-black transition-colors duration-300 hover:bg-dark hover:text-white"
+              onClick={exportPdf}
+              disabled={exporting}
+              className="flex h-[39px] items-center justify-center border border-dark px-8 text-[13px] font-medium text-black transition-colors duration-300 hover:bg-dark hover:text-white disabled:opacity-50"
             >
-              Download PDF
+              {exporting ? "Preparing PDF…" : "Download PDF"}
             </button>
           </div>
         </aside>
