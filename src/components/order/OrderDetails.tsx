@@ -10,17 +10,24 @@ export type OrderItem = {
   name: string;
   qty: number;
   color: string;
-  price: string;
+  /** unit price in cents */
+  priceCents: number;
   image?: string | null;
 };
+
+const eur = (cents: number) => `€${(cents / 100).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+
+/** Sum of every line (unit price × quantity), whether or not all lines are shown. */
+export const orderTotalCents = (items: OrderItem[]) => items.reduce((sum, i) => sum + i.priceCents * i.qty, 0);
 
 const PREVIEW = 3;
 
 /** Figma "Order Details" card (node 4217:46505): three items, "Show all N items" reveals the rest, total line. */
-export function OrderDetails({ items, total }: { items: OrderItem[]; total: string }) {
+export function OrderDetails({ items }: { items: OrderItem[] }) {
   const [expanded, setExpanded] = useState(false);
   const visible = expanded ? items : items.slice(0, PREVIEW);
   const hidden = items.length > PREVIEW;
+  const total = eur(orderTotalCents(items));
 
   return (
     <div className="flex w-full max-w-[706px] flex-col bg-white">
@@ -43,7 +50,7 @@ export function OrderDetails({ items, total }: { items: OrderItem[]; total: stri
                 <p className="text-[14px] tracking-[-0.04em] text-tertiary">Color: {item.color}</p>
               </div>
             </div>
-            <p className="ml-auto pr-6 text-[18px] leading-[1.3] tracking-[-0.04em] text-[#1b2a41]">{item.price}</p>
+            <p className="ml-auto pr-6 text-[18px] leading-[1.3] tracking-[-0.04em] text-[#1b2a41]">{eur(item.priceCents * item.qty)}</p>
           </li>
         ))}
       </ul>
@@ -68,12 +75,12 @@ export function OrderDetails({ items, total }: { items: OrderItem[]; total: stri
   );
 }
 
-/** Placeholder order shown until checkout exists (Figma mock: six "Okha Repose sofa" lines at €420). */
+/** Placeholder order shown until checkout exists (Figma mock: six "Okha Repose sofa" lines, 2 × €210 = €420 each). */
 export const SAMPLE_ORDER: OrderItem[] = Array.from({ length: 6 }, (_, i) => ({
   id: `line-${i + 1}`,
   name: "Okha Repose sofa",
   qty: 2,
   color: "White",
-  price: "€420",
+  priceCents: 21000,
   image: PRODUCT_PLACEHOLDER_IMAGE,
 }));

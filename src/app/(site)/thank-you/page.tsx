@@ -25,7 +25,7 @@ export default async function ThankYouPage() {
           </p>
         </div>
         <DotButton href="/catalogue">Back to the catalog</DotButton>
-        <OrderDetails items={SAMPLE_ORDER} total="€840" />
+        <OrderDetails items={SAMPLE_ORDER} />
       </section>
 
       <ProductLine products={products} title="You might also like" cta={null} className="pt-[120px]" />
