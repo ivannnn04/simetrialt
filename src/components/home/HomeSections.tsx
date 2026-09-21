@@ -89,7 +89,7 @@ export function FeaturesSection({ slides, image = "/images/home/features.jpg" }:
 type ProductLineProps = {
   products: ProductCardData[];
   title?: string;
-  cta?: { label: string; href: string };
+  cta?: { label: string; href: string } | null;
   className?: string;
 };
 
@@ -106,7 +106,7 @@ export function ProductLine({
           products={products}
           title={<h2 className="text-[36px] font-medium leading-[1.1] tracking-[-0.04em] text-ink md:text-[52px]">{title}</h2>}
         />
-        <DotButton href={cta.href}>{cta.label}</DotButton>
+        {cta && <DotButton href={cta.href}>{cta.label}</DotButton>}
       </div>
     </section>
   );

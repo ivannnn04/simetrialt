@@ -73,7 +73,7 @@ export function sampleToCard(p: SampleProduct): ProductCardData {
     price: eur(p.priceCents),
     salePrice: onSale ? eur(p.salePriceCents!) : null,
     discount: onSale ? Math.round((1 - p.salePriceCents! / p.priceCents) * 100) : null,
-    href: "/catalogue",
+    href: `/catalogue/${p.id}`,
   };
 }
 
