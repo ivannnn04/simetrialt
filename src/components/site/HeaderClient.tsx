@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
-import { CaretIcon, Wordmark } from "@/components/ui/Icons";
+import { BurgerIcon, CaretIcon, CloseIcon, SearchIcon, UserIcon, Wordmark } from "@/components/ui/Icons";
 import { useAlbums } from "@/lib/albums-store";
 import { Photo } from "@/components/ui/Photo";
 import { SearchPanel } from "@/components/site/SearchPanel";
@@ -112,7 +112,18 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
     ro.observe(se);
     return () => ro.disconnect();
   }, []);
-  const closeSearch = useCallback(() => setSearchOpen(false), []);
+  const closeSearch = () => setSearchOpen(false);
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMobileOpen(false);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [mobileOpen]);
 
   const pathname = usePathname();
   const solid = variant === "solid" || open || searchOpen;
@@ -189,14 +200,36 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
           ))}
         </nav>
 
-        <button
-          type="button"
-          className={cn("text-[14px] tracking-[-0.04em] lg:hidden", solid ? "text-black" : "text-white")}
-          onClick={() => setMobileOpen((v) => !v)}
-          aria-expanded={mobileOpen}
-        >
-          {mobileOpen ? "Close" : "Menu"}
-        </button>
+        {/* Mobile: search and account as icons, everything else behind the burger */}
+        <div className={cn("flex items-center gap-4 lg:hidden", solid ? "text-black" : "text-white")}>
+          <button
+            type="button"
+            aria-label="Search"
+            aria-expanded={searchOpen}
+            onClick={() => {
+              setMobileOpen(false);
+              setSearchOpen((v) => !v);
+            }}
+            className="transition-colors hover:text-accent"
+          >
+            <SearchIcon />
+          </button>
+          <Link href={account.signedIn ? "/account" : "/account/login"} aria-label="Account" className="transition-colors hover:text-accent">
+            <UserIcon />
+          </Link>
+          <button
+            type="button"
+            aria-label="Menu"
+            aria-expanded={mobileOpen}
+            onClick={() => {
+              setSearchOpen(false);
+              setMobileOpen(true);
+            }}
+            className="transition-colors hover:text-accent"
+          >
+            <BurgerIcon />
+          </button>
+        </div>
       </div>
       </div>
 
@@ -289,17 +322,32 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
         aria-hidden
       />
 
+      {/* Mobile menu: full-screen white sheet */}
       {mobileOpen && (
-        <div className="absolute left-0 right-0 top-[76px] border-t border-line bg-cream px-4 py-6 lg:hidden">
-          <ul className="flex flex-col gap-4 text-[18px] font-medium tracking-[-0.04em] text-black">
-            <li><Link href="/catalogue" onClick={() => setMobileOpen(false)}>Products</Link></li>
-            <li><Link href="/catalogue" onClick={() => setMobileOpen(false)}>Search</Link></li>
-            {[...LEFT_LINKS, ...accountLinks].map((l) => (
-              <li key={l.label}>
-                <Link href={l.href} onClick={() => setMobileOpen(false)}>{l.label}</Link>
-              </li>
-            ))}
-          </ul>
+        <div className="fixed inset-0 z-[80] flex flex-col bg-white text-black menu-fade lg:hidden" role="dialog" aria-modal="true" aria-label="Menu">
+          <div className="flex h-[76px] items-center justify-between px-4 md:px-10">
+            <Link href="/" aria-label="Simetria home" onClick={() => setMobileOpen(false)}>
+              <Wordmark />
+            </Link>
+            <button type="button" aria-label="Close menu" onClick={() => setMobileOpen(false)} className="transition-colors hover:text-accent">
+              <CloseIcon />
+            </button>
+          </div>
+          <nav className="flex flex-1 flex-col overflow-y-auto px-4 pb-10 pt-6 md:px-10">
+            <ul className="flex flex-col">
+              {[{ label: "Products", href: "/catalogue" }, ...LEFT_LINKS, ...RIGHT_LINKS, { label: `My albums (${albums.length || account.albums || 3})`, href: "/account/albums" }].map((l) => (
+                <li key={l.label} className="border-b border-line">
+                  <Link
+                    href={l.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn("flex items-center justify-between py-5 text-[24px] font-medium leading-none tracking-[-0.04em]", isActive(l.href) ? "text-accent" : "text-black")}
+                  >
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
         </div>
       )}
     </header>

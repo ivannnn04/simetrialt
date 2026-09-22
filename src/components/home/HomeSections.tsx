@@ -13,22 +13,22 @@ import { CountUp } from "@/components/ui/CountUp";
 export function Hero() {
   return (
     <section className="relative w-full">
-      <Photo src="/images/home/hero.jpg" className="flex min-h-[100svh] w-full flex-col">
+      <Photo src="/images/home/hero.jpg" className="flex h-[100svh] min-h-[560px] w-full flex-col lg:h-auto lg:min-h-[100svh]">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0)_0%,rgba(0,0,0,0.5)_100%)]" />
         <SiteHeader variant="overlay" />
-        <div className="relative mx-auto flex w-full max-w-[1440px] flex-1 flex-col justify-end gap-24 px-4 pb-10 pt-[120px] md:px-10 lg:gap-[280px]">
+        <div className="relative mx-auto flex w-full max-w-[1440px] flex-1 flex-col justify-end gap-10 px-4 pb-8 pt-[100px] md:gap-24 md:px-10 md:pb-10 md:pt-[120px] lg:gap-[280px]">
           <p className="max-w-[417px] text-[16px] leading-[1.3] tracking-[-0.04em] text-white">
             For long-term projects with real volume — hotels, offices, residential developments — Simetria sources,
             specifies and delivers from a single point of accountability.
           </p>
-          <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex flex-wrap items-center gap-4">
               <DotButton variant="primary" href="/catalogue">Explore products</DotButton>
               <DotButton variant="ghost-light" dots={false} href="/contact">Book a consultation</DotButton>
             </div>
             <div className="flex flex-col gap-[15px] lg:items-end lg:text-right">
               <Badge className="text-white">Design house, established for architects</Badge>
-              <h1 className="max-w-[824px] text-[40px] font-medium leading-none tracking-[-0.04em] text-white md:text-[64px]">
+              <h1 className="max-w-[824px] text-[34px] font-medium leading-none tracking-[-0.04em] text-white sm:text-[40px] md:text-[64px]">
                 Furniture and lighting
                 <br />
                 solutions for architects
