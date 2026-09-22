@@ -92,6 +92,8 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
   ];
   const [open, setOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileProducts, setMobileProducts] = useState(false);
+  const [mobileCategory, setMobileCategory] = useState<number | null>(0);
   const [searchOpen, setSearchOpen] = useState(false);
   const [active, setActive] = useState(0);
   // The mega-menu stays mounted; its height follows the measured content so both
@@ -335,7 +337,65 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
           </div>
           <nav className="flex flex-1 flex-col overflow-y-auto px-4 pb-10 pt-6 md:px-10">
             <ul className="flex flex-col">
-              {[{ label: "Products", href: "/catalogue" }, ...LEFT_LINKS, ...RIGHT_LINKS, { label: `My albums (${albums.length || account.albums || 3})`, href: "/account/albums" }].map((l) => (
+              {/* Products: accordion with the mega-menu categories and their sub-items */}
+              <li className="border-b border-line">
+                <button
+                  type="button"
+                  aria-expanded={mobileProducts}
+                  onClick={() => setMobileProducts((v) => !v)}
+                  className={cn(
+                    "flex w-full items-center justify-between py-5 text-left text-[24px] font-medium leading-none tracking-[-0.04em]",
+                    isActive("/catalogue") ? "text-accent" : "text-black"
+                  )}
+                >
+                  Products
+                  <CaretIcon className={cn("size-5 transition-transform duration-300", mobileProducts && "rotate-180")} />
+                </button>
+                <div className="grid transition-[grid-template-rows] duration-300 ease-out" style={{ gridTemplateRows: mobileProducts ? "1fr" : "0fr" }}>
+                  <div className="overflow-hidden">
+                    <ul className="flex flex-col gap-2 pb-5">
+                      {CATEGORIES.map((c, i) => (
+                        <li key={c.label} className="border-t border-line/60 first:border-t-0">
+                          <button
+                            type="button"
+                            aria-expanded={mobileCategory === i}
+                            onClick={() => setMobileCategory((v) => (v === i ? null : i))}
+                            className="flex w-full items-center justify-between py-3 text-left text-[18px] font-medium leading-none tracking-[-0.04em] text-black"
+                          >
+                            {c.label}
+                            <CaretIcon className={cn("transition-transform duration-300", mobileCategory === i && "rotate-180")} />
+                          </button>
+                          <div className="grid transition-[grid-template-rows] duration-300 ease-out" style={{ gridTemplateRows: mobileCategory === i ? "1fr" : "0fr" }}>
+                            <div className="overflow-hidden">
+                              <div className="flex flex-col gap-4 pb-4">
+                                {c.groups.map((g) => (
+                                  <div key={g.heading} className="flex flex-col gap-2">
+                                    <p className="text-[12px] tracking-[-0.04em] text-secondary">{g.heading}</p>
+                                    <ul className="flex flex-col">
+                                      {g.items.map((item) => (
+                                        <li key={item}>
+                                          <Link
+                                            href={catalogueHref(c.label, item)}
+                                            onClick={() => setMobileOpen(false)}
+                                            className="block py-2 text-[16px] leading-none tracking-[-0.04em] text-[#2b2b2b] hover:text-accent"
+                                          >
+                                            {item}
+                                          </Link>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </li>
+              {[...LEFT_LINKS, ...RIGHT_LINKS, { label: `My albums (${albums.length || account.albums || 3})`, href: "/account/albums" }].map((l) => (
                 <li key={l.label} className="border-b border-line">
                   <Link
                     href={l.href}
