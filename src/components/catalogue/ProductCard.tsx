@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { SaveButton } from "@/components/catalogue/SaveButton";
+import { toSavedProduct } from "@/lib/albums-store";
 import { PLACEHOLDER_IMAGE, PRODUCT_PLACEHOLDER_IMAGE } from "@/lib/placeholder";
 
 export type ProductCardData = {
@@ -70,7 +71,7 @@ export function ProductCard({ product, className, imageClassName, compact = fals
             </span>
           ) : null}
         </div>
-        <SaveButton productId={product.id} saved={product.saved} className="pointer-events-auto" />
+        <SaveButton productId={product.id} product={toSavedProduct(product)} saved={product.saved} className="pointer-events-auto" />
       </div>
       <div className="pointer-events-none relative flex items-center gap-1.5">
         {onSale ? (

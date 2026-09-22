@@ -42,7 +42,21 @@ export function ProductInfo({ product }: { product: ProductView }) {
                 <p className="text-[16px] leading-[1.3] tracking-[-0.04em] text-[#2b2b2b]">{product.brand}</p>
                 <div className="flex w-full items-center justify-between gap-4">
                   <h1 className="text-[36px] leading-none tracking-[-0.04em] text-black">{product.name}</h1>
-                  <SaveButton productId={product.id} className="shrink-0 [&>button]:size-9 [&_svg]:size-9" />
+                  <SaveButton
+                    productId={product.id}
+                    product={{
+                      id: product.id,
+                      name: product.name,
+                      category: product.typology ?? product.category?.name ?? "",
+                      brand: product.brand,
+                      price: product.price.replace(/^From /, ""),
+                      salePrice: null,
+                      priceCents: Math.round(Number(product.price.replace(/[^0-9.]/g, "")) * 100) || 0,
+                      image: product.images[0] ?? null,
+                      href: `/catalogue/${product.id}`,
+                    }}
+                    className="shrink-0 [&>button]:size-9 [&_svg]:size-9"
+                  />
                 </div>
               </div>
               <p className="flex items-baseline gap-3 text-[24px] leading-[1.3] tracking-[-0.04em] text-black">

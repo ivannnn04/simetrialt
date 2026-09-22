@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { CaretIcon, Wordmark } from "@/components/ui/Icons";
+import { useAlbums } from "@/lib/albums-store";
 import { Photo } from "@/components/ui/Photo";
 import { SearchPanel } from "@/components/site/SearchPanel";
 
@@ -82,10 +83,11 @@ type Props = {
 };
 
 export function HeaderClient({ variant = "solid", account = { signedIn: false, albums: 0 } }: Props) {
+  // Albums live in the browser for now; with none saved the page shows the three sample albums.
+  const albums = useAlbums();
   const accountLinks = [
     ...RIGHT_LINKS,
-    // The albums overview is public for now; anonymous visitors see the sample albums.
-    { label: `My albums (${account.albums})`, href: "/account/albums" },
+    { label: `My albums (${albums.length || account.albums || 3})`, href: "/account/albums" },
     { label: account.signedIn ? "Account" : "Sign in", href: account.signedIn ? "/account" : "/account/login" },
   ];
   const [open, setOpen] = useState(false);

@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { createCollection } from "@/actions/collections";
+import { useRouter } from "next/navigation";
+import { createAlbum } from "@/lib/albums-store";
 import { Field } from "@/components/ui/Field";
 import { cn } from "@/lib/cn";
 
@@ -12,8 +13,22 @@ import { cn } from "@/lib/cn";
  * Collection name field and a full-width Create button.
  */
 export function NewCollectionButton({ className }: { className?: string }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [state, action, pending] = useActionState(createCollection, undefined);
+  const [name, setName] = useState("");
+  const [error, setError] = useState<string | undefined>();
+  const pending = false;
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) {
+      setError("Please name the collection.");
+      return;
+    }
+    const album = createAlbum(name);
+    setOpen(false);
+    setName("");
+    router.push(`/account/albums/${album.id}`);
+  };
 
   // Close on Escape and lock page scroll while the dialog is open.
   useEffect(() => {
@@ -48,7 +63,7 @@ export function NewCollectionButton({ className }: { className?: string }) {
             onPointerDown={(e) => e.target === e.currentTarget && setOpen(false)}
           >
             <form
-              action={action}
+              onSubmit={submit}
               role="dialog"
               aria-modal="true"
               aria-labelledby="new-collection-title"
@@ -75,7 +90,19 @@ export function NewCollectionButton({ className }: { className?: string }) {
                   </div>
                 </div>
 
-                <Field name="name" label="Collection name" required autoFocus maxLength={80} error={state?.error} className="w-full" />
+                <Field
+                  name="name"
+                  label="Collection name"
+                  autoFocus
+                  maxLength={80}
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setError(undefined);
+                  }}
+                  error={error}
+                  className="w-full"
+                />
               </div>
 
               <button

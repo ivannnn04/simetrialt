@@ -2,18 +2,17 @@
 
 import { Field } from "@/components/ui/Field";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { addToCollection, getMyCollections, type CollectionSummary } from "@/actions/collections";
 import { HeartIcon } from "@/components/ui/Icons";
 import { cn } from "@/lib/cn";
-import { useSaved } from "@/components/catalogue/SavedProvider";
+import { addToAlbum, createAlbum, isSavedAnywhere, useAlbums, type SavedProduct } from "@/lib/albums-store";
 import { PRODUCT_PLACEHOLDER_IMAGE } from "@/lib/placeholder";
 
 type Props = {
   productId: string;
+  /** snapshot stored with the album so it can render without a database */
+  product: SavedProduct;
   className?: string;
   light?: boolean;
   /** force the filled ("saved") heart, e.g. inside an album where every product is saved */
@@ -25,31 +24,21 @@ const PANEL_WIDTH = 417;
 /**
  * Heart button on product cards. Opens the Figma "Save to" panel (node 4217:47501) anchored to
  * the heart: its top-right corner sits on the heart's top-right (Figma "Add to collection",
- * 4217:47427). Anonymous visitors see a sign-in prompt in the same panel.
+ * 4217:47427). Collections live in the browser (front-end only for now).
  */
-export function SaveButton({ productId, className, light, saved: forced }: Props) {
-  const pathname = usePathname();
-  const savedIds = useSaved();
+export function SaveButton({ productId, product, className, light, saved: forced }: Props) {
+  const albums = useAlbums();
   const anchor = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
   const [open, setOpen] = useState(false);
-  const [anonymous, setAnonymous] = useState(false);
-  const [collections, setCollections] = useState<CollectionSummary[] | null>(null);
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [saved, setSaved] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [pending, start] = useTransition();
+  const pending = false;
 
-  const openPanel = () => {
-    start(async () => {
-      const list = await getMyCollections(productId);
-      setAnonymous(list === null);
-      setCollections(list);
-      setOpen(true);
-    });
-  };
+  const collections = albums.map((a) => ({ id: a.id, name: a.name, count: a.items.length, hasProduct: a.items.some((i) => i.product.id === productId) }));
+  const openPanel = () => setOpen(true);
 
   // Position the panel on the heart and keep it there on scroll / resize; close on Escape or
   // a click outside.
@@ -84,33 +73,16 @@ export function SaveButton({ productId, className, light, saved: forced }: Props
     };
   }, [open]);
 
-  const next = encodeURIComponent(pathname);
-
   const save = (collectionId: string, name?: string) => {
-    start(async () => {
-      const res = await addToCollection(productId, collectionId, name);
-      if ("error" in res) {
-        setError(res.error);
-        return;
-      }
-      setError(null);
-      savedIds.mark(productId, true);
-      {
-        setSaved(res.name);
-        setCreating(false);
-        setNewName("");
-        setCollections((prev) =>
-          prev
-            ? collectionId === "new"
-              ? [{ id: res.collectionId, name: res.name, count: 1, hasProduct: true }, ...prev]
-              : prev.map((c) => (c.id === collectionId ? { ...c, hasProduct: true, count: c.count + 1 } : c))
-            : prev
-        );
-      }
-    });
+    const target = collectionId === "new" ? createAlbum(name ?? "") : albums.find((a) => a.id === collectionId);
+    if (!target) return;
+    addToAlbum(target.id, product);
+    setSaved(target.name);
+    setCreating(false);
+    setNewName("");
   };
 
-  const isSaved = forced ?? (collections?.some((c) => c.hasProduct) || savedIds.has(productId));
+  const isSaved = forced ?? isSavedAnywhere(albums, productId);
 
   return (
     <div className={cn("relative", className)}>
@@ -155,30 +127,10 @@ export function SaveButton({ productId, className, light, saved: forced }: Props
                 </button>
               </div>
 
-              {anonymous ? (
-                <>
-                  <p className="w-full text-[16px] leading-[1.3] tracking-[-0.04em] text-label">
-                    Sign in to your account to save products to your albums and build moodboards for your projects.
-                  </p>
-                  <div className="flex w-full flex-col gap-2">
-                    <Link
-                      href={`/account/login?next=${next}`}
-                      className="w-full bg-dark px-8 py-[11px] text-center text-[13px] font-medium text-white transition-colors hover:bg-accent"
-                    >
-                      Sign in
-                    </Link>
-                    <Link
-                      href={`/account/register?next=${next}`}
-                      className="w-full border border-line px-8 py-[11px] text-center text-[13px] font-medium text-black transition-colors hover:border-dark"
-                    >
-                      Create an account
-                    </Link>
-                  </div>
-                </>
-              ) : (
+              {(
                 <>
                   <ul className="flex w-full flex-col">
-                    {collections?.map((c) => (
+                    {collections.map((c) => (
                       <li key={c.id} className="border-b border-[#e3e3e3]">
                         <button
                           type="button"
@@ -199,7 +151,7 @@ export function SaveButton({ productId, className, light, saved: forced }: Props
                         </button>
                       </li>
                     ))}
-                    {collections?.length === 0 && !creating && (
+                    {collections.length === 0 && !creating && (
                       <li className="py-2 text-[14px] text-secondary">No collections yet — create your first one.</li>
                     )}
                   </ul>
@@ -237,7 +189,6 @@ export function SaveButton({ productId, className, light, saved: forced }: Props
                     </button>
                   )}
                   {saved && <p className="w-full text-[13px] text-secondary">Saved to “{saved}”.</p>}
-                  {error && <p className="w-full text-[13px] text-[#fb3b30]">{error}</p>}
                 </>
               )}
             </>

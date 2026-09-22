@@ -1,11 +1,8 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import {
-  removeFromCollection,
-  updateCollectionItem,
-} from "@/actions/collections";
+import { removeFromAlbum, updateAlbumItem } from "@/lib/albums-store";
 import {
   ProductCard,
   type ProductCardData,
@@ -32,7 +29,7 @@ type Props = {
   collectionName: string;
   customer?: { name: string; email: string } | null;
   rows: AlbumRow[];
-  /** sample albums are read-only: quantity / note changes stay local */
+  /** sample albums are not in the store: quantity / note changes stay in local state */
   readOnly?: boolean;
 };
 
@@ -89,10 +86,11 @@ export function AlbumTable({
   rows: initial,
   readOnly = false,
 }: Props) {
-  const [rows, setRows] = useState(initial);
+  const [localRows, setLocalRows] = useState(initial);
+  // Real albums re-render from the store; sample albums keep their edits in local state only.
+  const rows = readOnly ? localRows : initial;
   const [sort, setSort] = useState<Sort>("category");
   const [view, setView] = useState<"list" | "grid">("list");
-  const [, start] = useTransition();
 
   const sorted = useMemo(() => {
     const list = [...rows];
@@ -108,19 +106,13 @@ export function AlbumTable({
     }
   }, [rows, sort]);
 
-  const patch = (
-    productId: string,
-    p: { quantity?: number; note?: string },
-  ) => {
-    setRows((rs) =>
-      rs.map((r) => (r.productId === productId ? { ...r, ...p } : r)),
-    );
-    if (!readOnly)
-      start(() => updateCollectionItem(collectionId, productId, p));
+  const patch = (productId: string, p: { quantity?: number; note?: string }) => {
+    if (readOnly) setLocalRows((rs) => rs.map((r) => (r.productId === productId ? { ...r, ...p } : r)));
+    else updateAlbumItem(collectionId, productId, p);
   };
   const remove = (productId: string) => {
-    setRows((rs) => rs.filter((r) => r.productId !== productId));
-    if (!readOnly) start(() => removeFromCollection(collectionId, productId));
+    if (readOnly) setLocalRows((rs) => rs.filter((r) => r.productId !== productId));
+    else removeFromAlbum(collectionId, productId);
   };
 
   const [exporting, setExporting] = useState(false);
