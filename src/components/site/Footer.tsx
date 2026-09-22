@@ -54,7 +54,7 @@ export function SiteFooter() {
     <footer className="w-full overflow-hidden bg-cream pt-[82px]">
       <div className="mx-auto flex max-w-[1440px] flex-col items-center gap-[76px]">
         <div className="flex w-full flex-col gap-12 px-4 md:px-10 lg:flex-row lg:items-stretch lg:justify-between lg:gap-8">
-          <div className="flex flex-col gap-10 lg:w-[490px] lg:shrink-0">
+          <div className="flex flex-col gap-10 lg:w-[490px] lg:shrink lg:basis-[490px]">
             <div className="flex flex-col gap-4">
               <h2 className="text-[40px] font-medium leading-[1.1] tracking-[-0.04em] text-dark md:text-[52px]">
                 Your End-to-End Furnishing Partner
@@ -68,7 +68,7 @@ export function SiteFooter() {
             </div>
           </div>
 
-          <div className="flex flex-col justify-between gap-10 lg:w-[825px]">
+          <div className="flex min-w-0 flex-col justify-between gap-10 lg:max-w-[825px] lg:flex-1">
             <div className="grid grid-cols-2 gap-8 md:grid-cols-4 md:gap-4">
               {COLUMNS.map((col, i) => (
                 <div
@@ -91,7 +91,7 @@ export function SiteFooter() {
             </div>
             <div className="flex flex-col gap-4 border-l border-line pl-4">
               <p className="text-[12px] leading-none tracking-[-0.04em] text-body">Contact us</p>
-              <div className="flex flex-col gap-4 md:flex-row">
+              <div className="flex flex-col gap-4 md:flex-row md:flex-wrap">
                 {CONTACTS.map(({ label, value, Icon, href }) => (
                   <Link key={label} href={href} className="group flex w-[218px] items-center gap-2 py-2">
                     <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-line text-dark transition-[background-color,border-color,color] duration-500 ease-out group-hover:border-dark group-hover:bg-dark group-hover:text-white">
