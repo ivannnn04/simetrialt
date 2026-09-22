@@ -101,3 +101,19 @@ export async function updateCollectionItem(
   await db.collection.update({ where: { id: collectionId }, data: { updatedAt: new Date() } });
   revalidatePath(`/account/albums/${collectionId}`);
 }
+
+/** Product ids saved in any of the signed-in customer's collections (empty when anonymous). */
+export async function getSavedProductIds(): Promise<string[]> {
+  try {
+    const customer = await currentCustomer();
+    if (!customer) return [];
+    const items = await db.collectionItem.findMany({
+      where: { collection: { customerId: customer.id } },
+      select: { productId: true },
+      distinct: ["productId"],
+    });
+    return items.map((i) => i.productId);
+  } catch {
+    return [];
+  }
+}

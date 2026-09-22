@@ -14,6 +14,8 @@ export type ProductCardData = {
   image?: string | null;
   /** Lifestyle photo shown over the card on hover (Figma card state with the photo background). */
   hoverImage?: string | null;
+  /** force the filled heart (product is in the album being viewed) */
+  saved?: boolean;
 };
 
 type Props = {
@@ -68,7 +70,7 @@ export function ProductCard({ product, className, imageClassName, compact = fals
             </span>
           ) : null}
         </div>
-        <SaveButton productId={product.id} className="pointer-events-auto" />
+        <SaveButton productId={product.id} saved={product.saved} className="pointer-events-auto" />
       </div>
       <div className="pointer-events-none relative flex items-center gap-1.5">
         {onSale ? (

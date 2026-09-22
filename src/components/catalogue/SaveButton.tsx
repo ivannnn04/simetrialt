@@ -9,9 +9,16 @@ import { usePathname } from "next/navigation";
 import { addToCollection, getMyCollections, type CollectionSummary } from "@/actions/collections";
 import { HeartIcon } from "@/components/ui/Icons";
 import { cn } from "@/lib/cn";
+import { useSaved } from "@/components/catalogue/SavedProvider";
 import { PRODUCT_PLACEHOLDER_IMAGE } from "@/lib/placeholder";
 
-type Props = { productId: string; className?: string; light?: boolean };
+type Props = {
+  productId: string;
+  className?: string;
+  light?: boolean;
+  /** force the filled ("saved") heart, e.g. inside an album where every product is saved */
+  saved?: boolean;
+};
 
 const PANEL_WIDTH = 417;
 
@@ -20,8 +27,9 @@ const PANEL_WIDTH = 417;
  * the heart: its top-right corner sits on the heart's top-right (Figma "Add to collection",
  * 4217:47427). Anonymous visitors see a sign-in prompt in the same panel.
  */
-export function SaveButton({ productId, className, light }: Props) {
+export function SaveButton({ productId, className, light, saved: forced }: Props) {
   const pathname = usePathname();
+  const savedIds = useSaved();
   const anchor = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
@@ -86,6 +94,7 @@ export function SaveButton({ productId, className, light }: Props) {
         return;
       }
       setError(null);
+      savedIds.mark(productId, true);
       {
         setSaved(res.name);
         setCreating(false);
@@ -101,7 +110,7 @@ export function SaveButton({ productId, className, light }: Props) {
     });
   };
 
-  const isSaved = collections?.some((c) => c.hasProduct) ?? false;
+  const isSaved = forced ?? (collections?.some((c) => c.hasProduct) || savedIds.has(productId));
 
   return (
     <div className={cn("relative", className)}>
@@ -117,11 +126,11 @@ export function SaveButton({ productId, className, light }: Props) {
         }}
         className={cn(
           "flex size-6 items-center justify-center transition-colors duration-300",
-          light ? "text-white" : "text-black group-hover:text-white", // white over the card's hover photo
-          isSaved && "text-accent"
+          light ? "text-white" : "text-black group-hover:text-white" // white over the card's hover photo
         )}
       >
-        <HeartIcon className={cn(isSaved && "fill-current")} />
+        {/* Figma saved state: solid heart in the ink colour */}
+        <HeartIcon className={cn("transition-[fill] duration-300", isSaved ? "fill-current" : "fill-transparent")} />
       </button>
 
       {open &&
