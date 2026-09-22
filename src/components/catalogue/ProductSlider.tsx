@@ -43,9 +43,9 @@ export function ProductSlider({ products, cardClassName, title, bleed = false }:
 
   return (
     <div className="flex w-full flex-col gap-10">
-      <div className="flex w-full items-center justify-between">
+      <div className="flex w-full items-center justify-between gap-6">
         {title}
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <button
             type="button"
             aria-label="Previous products"
