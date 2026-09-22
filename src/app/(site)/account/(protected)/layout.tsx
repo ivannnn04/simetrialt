@@ -1,5 +1,5 @@
-// Sign-in is enforced per page for now (the albums overview is public while the site is
-// being built); the album detail page still calls requireCustomer itself.
+// TEMPORARY: sign-in is not enforced anywhere while the site is being built; anonymous visitors
+// act as a shared guest customer (see currentOrGuestCustomer).
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }

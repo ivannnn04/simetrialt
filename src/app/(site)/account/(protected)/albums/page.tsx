@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { currentCustomer } from "@/lib/customer-auth";
+import { currentCustomer, currentOrGuestCustomer } from "@/lib/customer-auth";
 import { relativeTime } from "@/lib/products";
 import { logoutCustomerAction } from "@/actions/account";
 import { SiteHeader } from "@/components/site/Header";
@@ -53,13 +53,14 @@ function Thumb({ url, empty, className }: { url?: string | null; empty?: boolean
 
 // Figma "Wishlist-Collection" (node 4217:47160)
 export default async function AlbumsPage({ searchParams }: { searchParams: Promise<{ sort?: string }> }) {
-  const customer = await currentCustomer();
+  const signedIn = await currentCustomer();
+  const customer = await currentOrGuestCustomer();
   const { sort: rawSort } = await searchParams;
   const sort = (rawSort && rawSort in SORTS ? rawSort : "relevance") as keyof typeof SORTS;
 
-  // Anonymous visitors see the Figma mock collections until sign-in is required again.
-  const collections: AlbumCard[] = customer
-    ? (
+  // Sign-in is not enforced yet: anonymous visitors work as a shared guest account and see the
+  // Figma mock collections until they create their first one.
+  const own: AlbumCard[] = (
         await db.collection.findMany({
           where: { customerId: customer.id },
           orderBy: SORTS[sort],
@@ -78,9 +79,9 @@ export default async function AlbumsPage({ searchParams }: { searchParams: Promi
         updated: relativeTime(c.updatedAt),
         images: c.items.slice(0, 3).map((i) => i.product.images[0]?.url ?? null),
         tags: Array.from(new Set(c.items.map((i) => i.product.brand ?? i.product.category?.name).filter(Boolean))).slice(0, 3) as string[],
-      }))
-    : SAMPLE_ALBUMS;
-  const saved = customer ? collections.reduce((n, c) => n + c.count, 0) : 42;
+      }));
+  const collections = own.length ? own : SAMPLE_ALBUMS;
+  const saved = own.length ? own.reduce((n, c) => n + c.count, 0) : 42;
 
   return (
     <div className="flex w-full flex-col bg-cream pb-[120px]">
@@ -90,9 +91,9 @@ export default async function AlbumsPage({ searchParams }: { searchParams: Promi
           <div className="mx-auto flex w-full max-w-[1440px] flex-col justify-between gap-10 px-4 py-[50px] md:px-10 lg:flex-row lg:items-start">
             <div className="flex flex-col justify-between gap-6 lg:min-h-[176px]">
               <h1 className="text-[56px] font-medium leading-[0.92] tracking-[-0.04em] text-black md:text-[80px] xl:text-[106px]">My albums</h1>
-              {customer && (
+              {signedIn && (
                 <form action={logoutCustomerAction} className="flex items-center gap-4 text-[14px] tracking-[-0.04em] text-secondary">
-                  <span>{customer.name} · {customer.email}</span>
+                  <span>{signedIn.name} · {signedIn.email}</span>
                   <button className="underline hover:text-black">Sign out</button>
                 </form>
               )}

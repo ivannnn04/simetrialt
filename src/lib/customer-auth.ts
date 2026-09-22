@@ -61,3 +61,19 @@ export async function requireCustomer(next = "/account/albums") {
   if (!customer) redirect(`/account/login?next=${encodeURIComponent(next)}`);
   return customer;
 }
+
+const GUEST_EMAIL = "guest@simetria.local";
+
+/**
+ * TEMPORARY: while the site is being built, sign-in is not enforced. Anonymous visitors act as
+ * a shared "Guest" customer so albums, hearts and quantities work without an account.
+ */
+export async function currentOrGuestCustomer() {
+  const customer = await currentCustomer();
+  if (customer) return customer;
+  return db.customer.upsert({
+    where: { email: GUEST_EMAIL },
+    update: {},
+    create: { email: GUEST_EMAIL, name: "Guest", passwordHash: "" },
+  });
+}

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
-import { currentCustomer } from "@/lib/customer-auth";
+import { currentOrGuestCustomer } from "@/lib/customer-auth";
 import { toCard } from "@/lib/products";
 import { deleteCollection, renameCollection } from "@/actions/collections";
 import { SiteHeader } from "@/components/site/Header";
@@ -21,7 +21,7 @@ const SAMPLE_NAME = "Hotel Vilnia refurbishment";
 // Figma "Collection wishlist Open" (node 4217:46938)
 export default async function CollectionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const customer = await currentCustomer();
+  const customer = await currentOrGuestCustomer();
 
   let name = SAMPLE_NAME;
   let rows: AlbumRow[];
@@ -43,7 +43,6 @@ export default async function CollectionPage({ params }: { params: Promise<{ id:
       card: sampleToCard(p),
     }));
   } else {
-    if (!customer) notFound();
     const collection = await db.collection.findFirst({
       where: { id, customerId: customer.id },
       include: {
@@ -106,7 +105,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ id:
           <AlbumTable
             collectionId={id}
             collectionName={name}
-            customer={customer ? { name: customer.name, email: customer.email } : null}
+            customer={{ name: customer.name, email: customer.email }}
             rows={rows}
             readOnly={!owned}
           />
