@@ -117,7 +117,8 @@ export function SiteFooter() {
       <div className="mt-10 w-full border-t border-line">
         <div className="mx-auto flex w-full max-w-[1440px] flex-col-reverse items-center gap-4 px-4 py-6 text-center text-[14px] leading-none text-secondary md:flex-row md:justify-between md:gap-8 md:px-10 md:text-left">
           <p className="whitespace-nowrap py-1">© Copyright {new Date().getFullYear()} Simetria</p>
-          <div className="flex items-center gap-4">
+          {/* phones: the two links spread across the full width */}
+          <div className="flex w-full items-center justify-between gap-4 md:w-auto md:justify-start">
             <Link href="#" className="ul-link whitespace-nowrap py-1 transition-colors hover:text-dark">Privacy Policy</Link>
             <Link href="#" className="ul-link py-1 transition-colors hover:text-dark">Cookie</Link>
           </div>
