@@ -172,13 +172,13 @@ export function AboutSection() {
                 solutions through expert sourcing, specification, procurement, and seamless project execution.
               </p>
             </div>
-            <div className="flex items-center gap-6 border-t border-cream/40 px-4 py-6 text-white md:gap-[50px] lg:h-[137px] lg:w-1/2 lg:justify-center lg:border-l lg:border-t-0 lg:px-0 lg:py-0">
+            <div className="flex items-stretch gap-2 border-t border-cream/40 px-4 py-6 text-white sm:gap-6 md:gap-[50px] lg:h-[137px] lg:w-1/2 lg:items-center lg:justify-center lg:border-l lg:border-t-0 lg:px-0 lg:py-0">
               {NUMBERS.map(([n, label]) => (
-                <div key={label} className="flex flex-col gap-1.5 border-l border-cream/40 px-4">
-                  <p className="text-[44px] font-medium leading-none tracking-[-0.04em] tabular-nums md:text-[64px]">
+                <div key={label} className="flex min-w-0 flex-1 flex-col gap-1.5 border-l border-cream/40 px-3 sm:px-4 lg:flex-none">
+                  <p className="text-[32px] font-medium leading-none tracking-[-0.04em] tabular-nums sm:text-[44px] md:text-[64px]">
                     <CountUp value={n} />
                   </p>
-                  <p className="text-[18px] leading-[1.3] tracking-[-0.04em]">{label}</p>
+                  <p className="text-[14px] leading-[1.3] tracking-[-0.04em] sm:text-[18px]">{label}</p>
                 </div>
               ))}
             </div>
