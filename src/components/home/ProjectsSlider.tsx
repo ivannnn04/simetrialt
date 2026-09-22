@@ -65,7 +65,7 @@ export function ProjectsSlider({ slides, image, interval = 6000 }: Props) {
                       </DotButton>
                     </div>
                   </div>
-                  <dl className="mt-16 flex w-full max-w-[330px] flex-col gap-1.5 text-[14px] leading-none tracking-[-0.04em] text-tertiary">
+                  <dl className="mt-16 flex w-full max-w-[330px] flex-col gap-1.5 pr-8 lg:pr-0 text-[14px] leading-none tracking-[-0.04em] text-tertiary">
                     {s.info.map(([k, v]) => (
                       <div key={k} className="flex items-center justify-between border-b border-white/30 py-1.5">
                         <dt>{k}</dt>
