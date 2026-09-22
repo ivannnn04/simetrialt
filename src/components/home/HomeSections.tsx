@@ -14,6 +14,8 @@ export function Hero() {
   return (
     <section className="relative w-full">
       <Photo src="/images/home/hero.jpg" className="flex h-[100svh] min-h-[560px] w-full flex-col lg:h-auto lg:min-h-[100svh]">
+        {/* darker on phones so the white copy stays readable over the photo */}
+        <div className="absolute inset-0 bg-black/35 lg:bg-transparent" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0)_0%,rgba(0,0,0,0.5)_100%)]" />
         <SiteHeader variant="overlay" />
         <div className="relative mx-auto flex w-full max-w-[1440px] flex-1 flex-col justify-end gap-10 px-4 pb-8 pt-[100px] md:gap-24 md:px-10 md:pb-10 md:pt-[120px] lg:gap-[280px]">
