@@ -16,7 +16,7 @@ export async function AuthPage({ mode, searchParams }: Props) {
       ? "Access your albums, save products from the catalogue and organise them by project."
       : "Save products from the catalogue into collections organised by project, and share them with your team.";
   return (
-    <div className="flex w-full flex-col gap-[120px] bg-cream">
+    <div className="flex w-full flex-col bg-cream pb-[120px]">
       <section className="flex w-full flex-col gap-16 lg:gap-[100px]">
         <SiteHeader variant="solid" />
         <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-12 px-4 md:px-10 lg:flex-row lg:items-start lg:justify-between">
