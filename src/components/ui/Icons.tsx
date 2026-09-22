@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { LOGO_PNG_DATA_URL } from "@/data/logo-png";
 
 type IconProps = { className?: string };
 
@@ -68,10 +69,15 @@ export function SearchIcon({ className }: IconProps) {
   );
 }
 
+/** Header wordmark (Figma navbar logo, 116×29): the supplied PNG used as a mask so it takes `currentColor`. */
 export function Wordmark({ className }: IconProps) {
+  const mask = `url(${LOGO_PNG_DATA_URL})`;
   return (
-    <span className={cn("font-semibold lowercase leading-none tracking-[-0.05em] text-[26px]", className)}>
-      simetria
-    </span>
+    <span
+      role="img"
+      aria-label="Simetria"
+      className={cn("inline-block h-[29px] w-[116px] bg-current", className)}
+      style={{ maskImage: mask, WebkitMaskImage: mask, maskSize: "100% 100%", WebkitMaskSize: "100% 100%", maskRepeat: "no-repeat", WebkitMaskRepeat: "no-repeat" }}
+    />
   );
 }
