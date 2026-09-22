@@ -107,10 +107,11 @@ export function SiteFooter() {
           <div className="w-full px-4 md:px-10">
             <FooterLogo className="block h-auto w-full text-warm" />
           </div>
-          <div className="flex w-full items-center justify-between gap-8 border-t border-line px-4 py-6 text-[14px] leading-none text-secondary md:px-10">
-            <p className="py-1">© Copyright {new Date().getFullYear()} Simetria</p>
+          {/* Phones: links on one line, copyright below, all centred; desktop keeps the two ends */}
+          <div className="flex w-full flex-col-reverse items-center gap-4 border-t border-line px-4 py-6 text-center text-[14px] leading-none text-secondary md:flex-row md:justify-between md:gap-8 md:px-10 md:text-left">
+            <p className="whitespace-nowrap py-1">© Copyright {new Date().getFullYear()} Simetria</p>
             <div className="flex items-center gap-4">
-              <Link href="#" className="ul-link py-1 transition-colors hover:text-dark">Privacy Policy</Link>
+              <Link href="#" className="ul-link whitespace-nowrap py-1 transition-colors hover:text-dark">Privacy Policy</Link>
               <Link href="#" className="ul-link py-1 transition-colors hover:text-dark">Cookie</Link>
             </div>
           </div>
