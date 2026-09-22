@@ -2,6 +2,7 @@ import Link from "next/link";
 import { DotButton } from "@/components/ui/Button";
 import { MailIcon, PhoneIcon, PinIcon } from "@/components/ui/Icons";
 import { FooterLogo } from "@/components/site/FooterLogo";
+import { cn } from "@/lib/cn";
 
 type Item = { label: string; href: string };
 const COLUMNS: { heading: string; items: Item[] }[] = [
@@ -69,8 +70,12 @@ export function SiteFooter() {
 
           <div className="flex flex-col justify-between gap-10 lg:w-[825px]">
             <div className="grid grid-cols-2 gap-8 md:grid-cols-4 md:gap-4">
-              {COLUMNS.map((col) => (
-                <div key={col.heading} className="flex flex-col border-l border-line pl-4">
+              {COLUMNS.map((col, i) => (
+                <div
+                  key={col.heading}
+                  // phones (2 columns): Company sits next to Products, Services goes to the second row
+                  className={cn("flex flex-col border-l border-line pl-4 md:order-none", ["order-1", "order-3", "order-2", "order-4"][i])}
+                >
                   <p className="pb-4 text-[12px] leading-none tracking-[-0.04em] text-body">{col.heading}</p>
                   {col.items.map((item) => (
                     <Link
