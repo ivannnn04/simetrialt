@@ -3,6 +3,7 @@ import { cn } from "@/lib/cn";
 import { DotButton, StrokeLink } from "@/components/ui/Button";
 import { Photo } from "@/components/ui/Photo";
 import { Breadcrumbs } from "@/components/site/Breadcrumbs";
+import { ServicesStackSizer } from "@/components/site/ServicesStackSizer";
 
 // ---------- Services list (Figma "services", node 4188:22369) ----------
 
@@ -51,10 +52,10 @@ export const SERVICES = [
 const STACK_START = 100;
 const STACK_STEP = 200;
 const CARD_HEIGHT = 500;
-// Mobile stacking (below 64rem): the previous card stays pinned under the header and the next
-// one slides over it, with a smaller step because the viewport is short.
-const MOBILE_STACK_START = 76;
-const MOBILE_STACK_STEP = 48;
+// Mobile stacking (below 64rem): cards pin 50px from the top; the step leaves the previous
+// card's first row (the tags) visible under the next card.
+const MOBILE_STACK_START = 50;
+const MOBILE_STACK_STEP = 72;
 
 type ServicesListProps = {
   className?: string;
@@ -70,6 +71,7 @@ export function ServicesList({ className, stack = false }: ServicesListProps) {
   const lastSlot = STACK_START + last * STACK_STEP;
   return (
     <section id="services" className={cn("w-full bg-cream pb-[120px]", className)}>
+      {stack && <ServicesStackSizer start={MOBILE_STACK_START} step={MOBILE_STACK_STEP} count={SERVICES.length} />}
       <div>
         {SERVICES.map((s, i) => {
           const pinned = stack && i < last;
@@ -88,7 +90,7 @@ export function ServicesList({ className, stack = false }: ServicesListProps) {
           return (
         <article
           key={s.number}
-          className={cn("border-t border-line bg-cream py-[50px]", stack && "relative lg:min-h-[500px]", pinned && "services-card")}
+          className={cn("border-t border-line bg-cream pb-10 pt-6 md:py-[50px]", stack && "relative lg:min-h-[500px]", pinned && "services-card")}
           style={style}
         >
           <div
