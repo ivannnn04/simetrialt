@@ -141,9 +141,12 @@ a:hover > .ul-text,
 }
 
 /* Services stack (home section 6): each card sticks and the next one slides over it */
+.services-card {
+  position: sticky;
+  top: var(--stack-top-m);
+}
 @media (min-width: 64rem) {
   .services-card {
-    position: sticky;
     top: var(--stack-top);
     min-height: var(--stack-h);
   }

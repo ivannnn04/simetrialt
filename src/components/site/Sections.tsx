@@ -51,6 +51,10 @@ export const SERVICES = [
 const STACK_START = 100;
 const STACK_STEP = 200;
 const CARD_HEIGHT = 500;
+// Mobile stacking (below 64rem): the previous card stays pinned under the header and the next
+// one slides over it, with a smaller step because the viewport is short.
+const MOBILE_STACK_START = 76;
+const MOBILE_STACK_STEP = 48;
 
 type ServicesListProps = {
   className?: string;
@@ -71,7 +75,13 @@ export function ServicesList({ className, stack = false }: ServicesListProps) {
           const pinned = stack && i < last;
           const top = STACK_START + i * STACK_STEP;
           const style = pinned
-            ? ({ "--stack-top": `${top}px`, "--stack-h": `${lastSlot + CARD_HEIGHT - top}px`, zIndex: i + 1 } as React.CSSProperties)
+            ? ({
+                "--stack-top": `${top}px`,
+                "--stack-h": `${lastSlot + CARD_HEIGHT - top}px`,
+                // phones: tighter steps so every card still pins inside a short viewport
+                "--stack-top-m": `${MOBILE_STACK_START + i * MOBILE_STACK_STEP}px`,
+                zIndex: i + 1,
+              } as React.CSSProperties)
             : stack
               ? { zIndex: i + 1 }
               : undefined;
@@ -88,7 +98,7 @@ export function ServicesList({ className, stack = false }: ServicesListProps) {
             )}
           >
             <div className="flex w-full items-start justify-between gap-6 lg:w-[738px] lg:shrink-0">
-              <p className="text-[18px] leading-[1.3] tracking-[-0.04em] text-secondary">/ {s.number}</p>
+              <p className="whitespace-nowrap text-[18px] leading-[1.3] tracking-[-0.04em] text-secondary">/ {s.number}</p>
               <div className="flex w-full flex-col gap-8 lg:w-[669px]">
                 <div className="flex flex-col gap-6">
                   <ul className="flex flex-wrap gap-[10px]">
