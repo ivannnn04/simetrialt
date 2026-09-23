@@ -86,9 +86,9 @@ export default async function ServicePage({ params }: { params: Promise<Params> 
       </section>
 
       {/* 3 section: how we work (Figma node 4048:30522): pt-120, title → 60 → timeline → 60 → image */}
-      <section className="flex w-full flex-col gap-[60px] bg-cream pt-[120px]">
-        <div className="flex w-full flex-col gap-[60px]">
-          <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-[29px] px-4 md:px-10">
+      <section className="flex w-full flex-col gap-10 bg-cream pt-20 md:gap-[60px] md:pt-[120px]">
+        <div className="flex w-full flex-col gap-10 md:gap-[60px]">
+          <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-5 px-4 md:gap-[29px] md:px-10">
             <p className="text-[18px] leading-[1.3] tracking-[-0.04em] text-secondary">HOW WE WORK</p>
             <h2 className="max-w-[570px] text-[36px] font-medium leading-[1.1] tracking-[-0.04em] text-black md:text-[52px]">
               From brief to installation in the stages
@@ -98,7 +98,7 @@ export default async function ServicePage({ params }: { params: Promise<Params> 
             <StagesTimeline stages={service.stages} />
           </div>
         </div>
-        <Photo src={service.stagesImage} className="aspect-[1440/461] w-full" />
+        <Photo src={service.stagesImage} className="h-[280px] w-full sm:h-[340px] md:h-[400px] xl:aspect-[1440/461] xl:h-auto xl:min-h-[400px]" />
       </section>
 
       {/* 4 section: recent work (Figma node 4217:46084) */}

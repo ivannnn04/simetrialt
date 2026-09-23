@@ -24,7 +24,9 @@ const SEEK_PX_PER_MS = 2.4; // speed when jumping to a clicked dot
 
 export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
   const trackRef = useRef<HTMLDivElement>(null);
+  const vTrackRef = useRef<HTMLOListElement>(null);
   const dotRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const vDotRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const [progress, setProgress] = useState(0); // px from the left edge of the track
   const [dots, setDots] = useState<number[]>([]); // dot centres, px from the track's left edge
   const [width, setWidth] = useState(0);
@@ -34,24 +36,32 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
   const targetRef = useRef<number | null>(null);
   const widthRef = useRef(0);
 
-  // Measure dot positions and the track width (re-run on resize).
+  // Measure dot positions along the visible track: x on the desktop line, y on the vertical
+  // (phone / tablet) line. The progress value is in px along that axis. Re-runs on resize.
   useEffect(() => {
     const track = trackRef.current;
-    if (!track) return;
+    const vTrack = vTrackRef.current;
+    if (!track || !vTrack) return;
     const measure = () => {
-      const rect = track.getBoundingClientRect();
-      widthRef.current = rect.width;
-      setWidth(rect.width);
+      const horizontal = window.matchMedia("(min-width: 80rem)").matches;
+      const el = horizontal ? track : vTrack;
+      const rect = el.getBoundingClientRect();
+      const extent = horizontal ? rect.width : rect.height;
+      widthRef.current = extent;
+      setWidth(extent);
       setDots(
-        dotRefs.current.map((el) => {
-          if (!el) return 0;
-          const r = el.getBoundingClientRect();
-          return r.left - rect.left + r.width / 2;
+        (horizontal ? dotRefs.current : vDotRefs.current).map((d) => {
+          if (!d) return 0;
+          const r = d.getBoundingClientRect();
+          return horizontal ? r.left - rect.left + r.width / 2 : r.top - rect.top + r.height / 2;
         })
       );
+      progressRef.current = Math.min(progressRef.current, extent);
     };
+    measure();
     const ro = new ResizeObserver(measure);
     ro.observe(track);
+    ro.observe(vTrack);
     return () => ro.disconnect();
   }, [stages.length]);
 
@@ -182,22 +192,51 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
         <div style={{ height: DOT_TOP + DOT + DESC_GAP + 52 - BOX }} aria-hidden />
       </div>
 
-      {/* Mobile / tablet: vertical list */}
-      <ol className="flex flex-col gap-6 border-l border-line pl-6 xl:hidden">
-        {stages.map((stage, i) => (
-          <li key={stage.label} className="relative flex flex-col gap-2">
-            <span
-              className={cn(
-                "absolute -left-[33px] top-1 block size-[18px] rounded-full border",
-                i === 0 ? "border-dark bg-dark" : "border-[#c6c6c6] bg-cream"
-              )}
-            />
-            <span className="inline-flex w-max rounded-[50px] border border-[#c6c6c6] px-6 pb-[11px] pt-[9px] text-[14px] font-medium leading-[1.3] tracking-[-0.04em] text-[#1f1f1f]">
-              {stage.label}
-            </span>
-            <p className="max-w-[420px] text-[13px] leading-[1.3] tracking-[-0.04em] text-[#2e2e2e]/80">{stage.text}</p>
-          </li>
-        ))}
+      {/* Phone / tablet: vertical timeline with the same sweep, active pill and tap-to-seek */}
+      <ol ref={vTrackRef} className="relative flex flex-col gap-8 pl-10 xl:hidden">
+        <div className="absolute bottom-0 left-[8px] top-0 w-px bg-line" aria-hidden />
+        <div className="absolute left-[8px] top-0 w-px bg-dark" style={{ height: Math.min(progress, width) }} aria-hidden />
+        {stages.map((stage, i) => {
+          const isActive = i === active;
+          const passed = i <= active;
+          return (
+            <li key={stage.label} className="relative flex flex-col gap-3">
+              <button
+                type="button"
+                onClick={() => jumpTo(i, false)}
+                aria-label={`Go to stage: ${stage.label}`}
+                aria-pressed={isActive}
+                className="absolute -left-[36px] top-[10px] p-1"
+              >
+                <span
+                  ref={(el) => {
+                    vDotRefs.current[i] = el;
+                  }}
+                  className={cn("block rounded-full border transition-colors duration-300", passed ? "border-dark bg-dark" : "border-[#c6c6c6] bg-cream")}
+                  style={{ width: DOT, height: DOT }}
+                />
+              </button>
+              <button
+                type="button"
+                onClick={() => jumpTo(i, false)}
+                className={cn(
+                  "inline-flex w-max max-w-full rounded-[50px] border px-6 pb-[11px] pt-[9px] text-left text-[14px] font-medium leading-[1.3] tracking-[-0.04em] transition-colors duration-300",
+                  isActive ? "border-dark bg-dark text-white" : "border-[#c6c6c6] text-[#1f1f1f]"
+                )}
+              >
+                {stage.label}
+              </button>
+              <p
+                className={cn(
+                  "max-w-[420px] text-[13px] leading-[1.3] tracking-[-0.04em] text-[#2e2e2e]/80 transition-opacity duration-300",
+                  isActive ? "opacity-100" : "opacity-50"
+                )}
+              >
+                {stage.text}
+              </p>
+            </li>
+          );
+        })}
       </ol>
     </div>
   );
