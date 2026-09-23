@@ -63,7 +63,7 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
         centres = dotRefs.current.map((d) => (d ? d.getBoundingClientRect().left - rect.left + d.getBoundingClientRect().width / 2 : 0));
       } else if (tablet) {
         // Serpentine path with rounded turns: row one left → right, down the right edge, row two
-        // right → left, ending at the last point. Progress is the distance along that path.
+        // right → left to the edge. Progress is the distance along that path.
         const rect = rows.getBoundingClientRect();
         const r0 = rowElRefs.current[0]?.getBoundingClientRect();
         const r1 = rowElRefs.current[1]?.getBoundingClientRect();
@@ -77,14 +77,9 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
           const c = d.getBoundingClientRect();
           return along(i, c.left - rect.left + c.width / 2);
         });
-        const lastX = (() => {
-          const d = rDotRefs.current[rDotRefs.current.length - 1];
-          if (!d) return 0;
-          const c = d.getBoundingClientRect();
-          return c.left - rect.left + c.width / 2;
-        })();
+        // the grey path runs on to the left edge; the sweep still ends at the last point
         const total = centres[centres.length - 1] ?? 0;
-        const d = `M0 ${y1} H${w - CORNER} A${CORNER} ${CORNER} 0 0 1 ${w} ${y1 + CORNER} V${y2 - CORNER} A${CORNER} ${CORNER} 0 0 1 ${w - CORNER} ${y2} H${lastX}`;
+        const d = `M0 ${y1} H${w - CORNER} A${CORNER} ${CORNER} 0 0 1 ${w} ${y1 + CORNER} V${y2 - CORNER} A${CORNER} ${CORNER} 0 0 1 ${w - CORNER} ${y2} H0`;
         setPath({ d, total, w, h: rect.height });
         extent = total;
       } else {
@@ -197,8 +192,7 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
               fill="none"
               stroke="var(--color-dark)"
               strokeWidth="1"
-              strokeDasharray={path.total}
-              strokeDashoffset={Math.max(0, path.total - Math.min(progress, path.total))}
+              strokeDasharray={`${Math.min(progress, path.total)} 100000`}
             />
           </svg>
         )}
