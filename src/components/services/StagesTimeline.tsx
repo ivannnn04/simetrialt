@@ -215,6 +215,8 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
                   jumpTo={jumpTo}
                   resume={resume}
                   className={r === 1 ? (k === 0 ? "col-span-2 col-start-4 row-start-1" : "col-span-2 col-start-2 row-start-1") : undefined}
+                  // row two: point 4 keeps its pill above the line, point 5 below
+                  below={r === 1 ? k === 1 : undefined}
                 />
               ))}
             </ol>
@@ -281,11 +283,13 @@ type PointProps = {
   jumpTo: (i: number, pause: boolean) => void;
   resume: () => void;
   className?: string;
+  /** pill under the line (default alternates by index) */
+  below?: boolean;
 };
 
 /** One timeline point (dot, pill, description) for the horizontal layouts. */
-function Point({ stage, i, active, setDot, jumpTo, resume, className }: PointProps) {
-  const below = i % 2 === 1;
+function Point({ stage, i, active, setDot, jumpTo, resume, className, below: belowProp }: PointProps) {
+  const below = belowProp ?? i % 2 === 1;
   const isActive = i === active;
   const passed = i <= active; // dots the line has already reached stay dark
   return (
