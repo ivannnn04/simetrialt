@@ -225,22 +225,23 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
         ))}
       </div>
 
-      {/* Phone: centred vertical line, points alternate right / left of it */}
+      {/* Phone: vertical line. Under 480px it sits on the left with every point to its right;
+          from 480px it is centred and the points alternate right / left. */}
       <ol ref={vTrackRef} className="relative flex flex-col gap-8 md:hidden">
-        <div className="absolute bottom-0 left-1/2 top-0 w-px -translate-x-1/2 bg-line" aria-hidden />
-        <div className="absolute left-1/2 top-0 w-px -translate-x-1/2 bg-dark" style={{ height: Math.min(progress, width) }} aria-hidden />
+        <div className="absolute bottom-0 left-2 top-0 w-px bg-line min-[480px]:left-1/2 min-[480px]:-translate-x-1/2" aria-hidden />
+        <div className="absolute left-2 top-0 w-px bg-dark min-[480px]:left-1/2 min-[480px]:-translate-x-1/2" style={{ height: Math.min(progress, width) }} aria-hidden />
         {stages.map((stage, i) => {
           const isActive = i === active;
           const passed = i <= active;
           const right = i % 2 === 0; // 1st, 3rd, 5th on the right of the line
           return (
-            <li key={stage.label} className="relative grid grid-cols-2 gap-x-8">
+            <li key={stage.label} className="relative grid grid-cols-1 pl-10 min-[480px]:grid-cols-2 min-[480px]:gap-x-8 min-[480px]:pl-0">
               <button
                 type="button"
                 onClick={() => jumpTo(i, false)}
                 aria-label={`Go to stage: ${stage.label}`}
                 aria-pressed={isActive}
-                className="absolute left-1/2 top-[6px] z-10 -translate-x-1/2 p-1"
+                className="absolute left-2 top-[6px] z-10 -translate-x-1/2 p-1 min-[480px]:left-1/2"
               >
                 <span
                   ref={(el) => {
@@ -250,13 +251,18 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
                   style={{ width: DOT, height: DOT }}
                 />
               </button>
-              <div className={cn("flex flex-col gap-3", right ? "col-start-2 items-start text-left" : "col-start-1 items-end text-right")}>
+              <div
+                className={cn(
+                  "flex flex-col gap-3 items-start text-left",
+                  right ? "min-[480px]:col-start-2" : "min-[480px]:col-start-1 min-[480px]:items-end min-[480px]:text-right"
+                )}
+              >
                 <button
                   type="button"
                   onClick={() => jumpTo(i, false)}
                   className={cn(
                     "inline-flex max-w-full rounded-[50px] border px-4 pb-[11px] pt-[9px] text-[14px] font-medium leading-[1.3] tracking-[-0.04em] transition-colors duration-300",
-                    right ? "text-left" : "text-right",
+                    !right && "min-[480px]:text-right",
                     isActive ? "border-dark bg-dark text-white" : "border-[#c6c6c6] text-[#1f1f1f]"
                   )}
                 >
