@@ -36,6 +36,8 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
   const targetRef = useRef<number | null>(null);
   const widthRef = useRef(0);
 
+  // The horizontal track needs the full 1360px container (5 × 225 + 4 × 58), so it only shows
+  // from 1440px; narrower screens use the vertical track.
   // Measure dot positions along the visible track: x on the desktop line, y on the vertical
   // (phone / tablet) line. The progress value is in px along that axis. Re-runs on resize.
   useEffect(() => {
@@ -43,7 +45,7 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
     const vTrack = vTrackRef.current;
     if (!track || !vTrack) return;
     const measure = () => {
-      const horizontal = window.matchMedia("(min-width: 80rem)").matches;
+      const horizontal = window.matchMedia("(min-width: 1440px)").matches;
       const el = horizontal ? track : vTrack;
       const rect = el.getBoundingClientRect();
       const extent = horizontal ? rect.width : rect.height;
@@ -122,7 +124,7 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
   return (
     <div className="w-full">
       {/* Desktop: sweeping line + alternating points */}
-      <div ref={trackRef} className="relative hidden w-full xl:block" style={{ paddingTop: 0 }}>
+      <div ref={trackRef} className="relative hidden w-full min-[1440px]:block" style={{ paddingTop: 0 }}>
         <div className="absolute left-0 right-0 h-px bg-line" style={{ top: LINE_TOP }} aria-hidden />
         <div
           className="absolute left-0 h-px bg-dark"
@@ -193,7 +195,7 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
       </div>
 
       {/* Phone / tablet: vertical timeline with the same sweep, active pill and tap-to-seek */}
-      <ol ref={vTrackRef} className="relative flex flex-col gap-8 pl-10 xl:hidden">
+      <ol ref={vTrackRef} className="relative flex flex-col gap-8 pl-10 min-[1440px]:hidden">
         <div className="absolute bottom-0 left-[8px] top-0 w-px bg-line" aria-hidden />
         <div className="absolute left-[8px] top-0 w-px bg-dark" style={{ height: Math.min(progress, width) }} aria-hidden />
         {stages.map((stage, i) => {

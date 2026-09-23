@@ -61,12 +61,12 @@ export default async function ServicePage({ params }: { params: Promise<Params> 
             {overview.heading}
           </h2>
           <div className="flex w-full flex-col gap-10 lg:flex-row lg:items-stretch lg:justify-between">
-            <Photo src={overview.image} className="aspect-[680/503] w-full lg:w-[680px] lg:shrink-0" />
-            <div className="flex flex-col gap-10 lg:w-[575px]">
+            <Photo src={overview.image} className="aspect-[680/503] w-full lg:w-1/2 lg:max-w-[680px] lg:shrink" />
+            <div className="flex min-w-0 flex-col gap-10 lg:max-w-[575px] lg:flex-1">
               <p className="text-[18px] leading-[1.3] tracking-[-0.04em] text-[#1f1f1f]">{overview.text}</p>
               <div className="flex flex-1 flex-col justify-between gap-10">
                 <div className="flex flex-col gap-10 md:flex-row md:items-start md:gap-[78px]">
-                  <ul className="flex w-full flex-col gap-3 md:w-[316px]">
+                  <ul className="flex w-full flex-col gap-3 md:w-[316px] md:shrink">
                     {overview.points.map((point) => (
                       <li key={point} className="flex items-center gap-2 border-b border-line pb-3">
                         <ArrowIcon className="size-5 shrink-0 text-label" />
@@ -94,7 +94,7 @@ export default async function ServicePage({ params }: { params: Promise<Params> 
               From brief to installation in the stages
             </h2>
           </div>
-          <div className="w-full px-4 md:px-10 xl:px-0">
+          <div className="w-full px-4 md:px-10 min-[1440px]:px-0">
             <StagesTimeline stages={service.stages} />
           </div>
         </div>
