@@ -33,6 +33,7 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
   const vDotRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const [rowWidth, setRowWidth] = useState(0);
   const [connector, setConnector] = useState(0); // tablet: vertical link between the two rows
+  const [tail, setTail] = useState(0); // tablet: row-two line length, right edge → last point
   const rowElRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [progress, setProgress] = useState(0); // px from the left edge of the track
   const [dots, setDots] = useState<number[]>([]); // dot centres, px from the track's left edge
@@ -66,15 +67,18 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
         const r0 = rowElRefs.current[0]?.getBoundingClientRect();
         const r1 = rowElRefs.current[1]?.getBoundingClientRect();
         const link = r0 && r1 ? r1.top - r0.top : 0;
-        setRowWidth(rect.width);
-        setConnector(link);
-        extent = rect.width * ROWS + link;
         centres = rDotRefs.current.map((d, i) => {
           if (!d) return 0;
           const c = d.getBoundingClientRect();
           const x = c.left - rect.left + c.width / 2;
           return i < PER_ROW ? x : rect.width + link + (rect.width - x);
         });
+        // the path ends at the last point instead of running on to the left edge
+        const rowTwo = Math.max(0, (centres[centres.length - 1] ?? 0) - rect.width - link);
+        setRowWidth(rect.width);
+        setConnector(link);
+        setTail(rowTwo);
+        extent = rect.width + link + rowTwo;
       } else {
         const rect = vTrack.getBoundingClientRect();
         extent = rect.height;
@@ -186,7 +190,7 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
         />
         {Array.from({ length: ROWS }, (_, r) => {
           const reversed = r === 1;
-          const dark = reversed ? Math.max(0, Math.min(progress - rowWidth - connector, rowWidth)) : Math.max(0, Math.min(progress, rowWidth));
+          const dark = reversed ? Math.max(0, Math.min(progress - rowWidth - connector, tail)) : Math.max(0, Math.min(progress, rowWidth));
           return (
             <div
               key={r}
@@ -195,7 +199,7 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
               }}
               className="relative w-full"
             >
-              <div className="absolute left-0 right-0 h-px bg-line" style={{ top: LINE_TOP }} aria-hidden />
+              <div className={cn("absolute right-0 h-px bg-line", !reversed && "left-0")} style={reversed ? { top: LINE_TOP, width: tail } : { top: LINE_TOP }} aria-hidden />
               <div className={cn("absolute h-px bg-dark", reversed ? "right-0" : "left-0")} style={{ top: LINE_TOP, width: dark }} aria-hidden />
               <ol className="relative grid w-full grid-cols-3 items-start gap-4" dir={reversed ? "rtl" : undefined}>
                 {stages.slice(r * PER_ROW, (r + 1) * PER_ROW).map((stage, k) => (
