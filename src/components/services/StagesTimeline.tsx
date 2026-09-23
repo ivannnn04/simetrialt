@@ -36,8 +36,6 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
   const targetRef = useRef<number | null>(null);
   const widthRef = useRef(0);
 
-  // The horizontal track needs the full 1360px container (5 × 225 + 4 × 58), so it only shows
-  // from 1440px; narrower screens use the vertical track.
   // Measure dot positions along the visible track: x on the desktop line, y on the vertical
   // (phone / tablet) line. The progress value is in px along that axis. Re-runs on resize.
   useEffect(() => {
@@ -45,7 +43,7 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
     const vTrack = vTrackRef.current;
     if (!track || !vTrack) return;
     const measure = () => {
-      const horizontal = window.matchMedia("(min-width: 1440px)").matches;
+      const horizontal = window.matchMedia("(min-width: 80rem)").matches;
       const el = horizontal ? track : vTrack;
       const rect = el.getBoundingClientRect();
       const extent = horizontal ? rect.width : rect.height;
@@ -124,14 +122,14 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
   return (
     <div className="w-full">
       {/* Desktop: sweeping line + alternating points */}
-      <div ref={trackRef} className="relative hidden w-full min-[1440px]:block" style={{ paddingTop: 0 }}>
+      <div ref={trackRef} className="relative hidden w-full xl:block" style={{ paddingTop: 0 }}>
         <div className="absolute left-0 right-0 h-px bg-line" style={{ top: LINE_TOP }} aria-hidden />
         <div
           className="absolute left-0 h-px bg-dark"
           style={{ top: LINE_TOP, width: Math.min(progress, width) }}
           aria-hidden
         />
-        <ol className="relative mx-auto flex w-max items-start gap-[58px]">
+        <ol className="relative mx-auto flex w-full max-w-[1360px] items-start gap-6 min-[1440px]:gap-[58px]">
           {stages.map((stage, i) => {
             const below = i % 2 === 1;
             const isActive = i === active;
@@ -139,7 +137,7 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
             return (
               <li
                 key={stage.label}
-                className="relative w-[225px]"
+                className="relative min-w-0 flex-1"
                 style={{ height: BOX }}
                 onMouseEnter={() => jumpTo(i, true)}
                 onMouseLeave={resume}
@@ -169,7 +167,7 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
                   onFocus={() => jumpTo(i, true)}
                   onBlur={resume}
                   className={cn(
-                    "absolute left-1/2 flex w-[220px] -translate-x-1/2 items-center justify-center whitespace-nowrap rounded-[50px] border px-6 pb-[11px] pt-[9px] text-[14px] font-medium leading-[1.3] tracking-[-0.04em] transition-colors duration-300",
+                    "absolute left-1/2 flex w-full max-w-[220px] -translate-x-1/2 items-center justify-center whitespace-nowrap rounded-[50px] border px-4 pb-[11px] pt-[9px] text-[14px] font-medium leading-[1.3] tracking-[-0.04em] transition-colors duration-300",
                     isActive ? "border-dark bg-dark text-white" : "border-[#c6c6c6] text-[#1f1f1f] hover:border-dark"
                   )}
                   style={below ? { top: DOT_TOP + DOT + GAP } : { top: DOT_TOP - GAP - PILL }}
@@ -195,7 +193,7 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
       </div>
 
       {/* Phone / tablet: vertical timeline with the same sweep, active pill and tap-to-seek */}
-      <ol ref={vTrackRef} className="relative flex flex-col gap-8 pl-10 min-[1440px]:hidden">
+      <ol ref={vTrackRef} className="relative flex flex-col gap-8 pl-10 xl:hidden">
         <div className="absolute bottom-0 left-[8px] top-0 w-px bg-line" aria-hidden />
         <div className="absolute left-[8px] top-0 w-px bg-dark" style={{ height: Math.min(progress, width) }} aria-hidden />
         {stages.map((stage, i) => {
