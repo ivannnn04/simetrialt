@@ -32,6 +32,8 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
   const rDotRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const vDotRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const [rowWidth, setRowWidth] = useState(0);
+  const [connector, setConnector] = useState(0); // tablet: vertical link between the two rows
+  const rowElRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [progress, setProgress] = useState(0); // px from the left edge of the track
   const [dots, setDots] = useState<number[]>([]); // dot centres, px from the track's left edge
   const [width, setWidth] = useState(0);
@@ -59,10 +61,20 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
         extent = rect.width;
         centres = dotRefs.current.map((d) => (d ? d.getBoundingClientRect().left - rect.left + d.getBoundingClientRect().width / 2 : 0));
       } else if (tablet) {
+        // Serpentine path: row one left → right, down the right edge, row two right → left.
         const rect = rows.getBoundingClientRect();
+        const r0 = rowElRefs.current[0]?.getBoundingClientRect();
+        const r1 = rowElRefs.current[1]?.getBoundingClientRect();
+        const link = r0 && r1 ? r1.top - r0.top : 0;
         setRowWidth(rect.width);
-        extent = rect.width * ROWS;
-        centres = rDotRefs.current.map((d, i) => (d ? Math.floor(i / PER_ROW) * rect.width + d.getBoundingClientRect().left - rect.left + d.getBoundingClientRect().width / 2 : 0));
+        setConnector(link);
+        extent = rect.width * ROWS + link;
+        centres = rDotRefs.current.map((d, i) => {
+          if (!d) return 0;
+          const c = d.getBoundingClientRect();
+          const x = c.left - rect.left + c.width / 2;
+          return i < PER_ROW ? x : rect.width + link + (rect.width - x);
+        });
       } else {
         const rect = vTrack.getBoundingClientRect();
         extent = rect.height;
@@ -77,6 +89,7 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
     const ro = new ResizeObserver(measure);
     ro.observe(track);
     ro.observe(rows);
+    rowElRefs.current.forEach((el) => el && ro.observe(el));
     ro.observe(vTrack);
     return () => ro.disconnect();
   }, [stages.length]);
@@ -161,24 +174,38 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
         <div style={{ height: DOT_TOP + DOT + DESC_GAP + 52 - BOX }} aria-hidden />
       </div>
 
-      {/* Tablet (768–1279): two rows of three points; the line sweeps row one, then row two */}
-      <div ref={rowsRef} className="hidden w-full flex-col gap-10 md:flex xl:hidden">
-        {Array.from({ length: ROWS }, (_, r) => (
-          <div key={r} className="relative w-full">
-            <div className="absolute left-0 right-0 h-px bg-line" style={{ top: LINE_TOP }} aria-hidden />
+      {/* Tablet (768–1279): two rows joined into one path — row one left → right, a vertical
+          link down the right edge, row two right → left (points 4 and 5 sit under point 3) */}
+      <div ref={rowsRef} className="relative hidden w-full flex-col gap-10 md:flex xl:hidden">
+        {/* vertical link between the rows */}
+        <div className="absolute right-0 w-px bg-line" style={{ top: LINE_TOP, height: connector }} aria-hidden />
+        <div
+          className="absolute right-0 w-px bg-dark"
+          style={{ top: LINE_TOP, height: Math.max(0, Math.min(progress - rowWidth, connector)) }}
+          aria-hidden
+        />
+        {Array.from({ length: ROWS }, (_, r) => {
+          const reversed = r === 1;
+          const dark = reversed ? Math.max(0, Math.min(progress - rowWidth - connector, rowWidth)) : Math.max(0, Math.min(progress, rowWidth));
+          return (
             <div
-              className="absolute left-0 h-px bg-dark"
-              style={{ top: LINE_TOP, width: Math.max(0, Math.min(progress - r * rowWidth, rowWidth)) }}
-              aria-hidden
-            />
-            <ol className="relative grid w-full grid-cols-3 items-start gap-4">
-              {stages.slice(r * PER_ROW, (r + 1) * PER_ROW).map((stage, k) => (
-                <Point key={stage.label} stage={stage} i={r * PER_ROW + k} active={active} setDot={setRowDot} jumpTo={jumpTo} resume={resume} />
-              ))}
-            </ol>
-            {r === ROWS - 1 && <div style={{ height: DOT_TOP + DOT + DESC_GAP + 52 - BOX }} aria-hidden />}
-          </div>
-        ))}
+              key={r}
+              ref={(el) => {
+                rowElRefs.current[r] = el;
+              }}
+              className="relative w-full"
+            >
+              <div className="absolute left-0 right-0 h-px bg-line" style={{ top: LINE_TOP }} aria-hidden />
+              <div className={cn("absolute h-px bg-dark", reversed ? "right-0" : "left-0")} style={{ top: LINE_TOP, width: dark }} aria-hidden />
+              <ol className="relative grid w-full grid-cols-3 items-start gap-4" dir={reversed ? "rtl" : undefined}>
+                {stages.slice(r * PER_ROW, (r + 1) * PER_ROW).map((stage, k) => (
+                  <Point key={stage.label} stage={stage} i={r * PER_ROW + k} active={active} setDot={setRowDot} jumpTo={jumpTo} resume={resume} ltr={reversed} />
+                ))}
+              </ol>
+              {r === ROWS - 1 && <div style={{ height: DOT_TOP + DOT + DESC_GAP + 52 - BOX }} aria-hidden />}
+            </div>
+          );
+        })}
       </div>
 
       {/* Phone: vertical timeline with the same sweep, active pill and tap-to-seek */}
@@ -238,16 +265,18 @@ type PointProps = {
   setDot: (i: number, el: HTMLSpanElement | null) => void;
   jumpTo: (i: number, pause: boolean) => void;
   resume: () => void;
+  /** force left-to-right content inside a right-to-left (reversed) row */
+  ltr?: boolean;
 };
 
 /** One timeline point (dot, pill, description) for the horizontal layouts. */
-function Point({ stage, i, active, setDot, jumpTo, resume }: PointProps) {
+function Point({ stage, i, active, setDot, jumpTo, resume, ltr }: PointProps) {
   const below = i % 2 === 1;
   const isActive = i === active;
   const passed = i <= active; // dots the line has already reached stay dark
   return (
     <li
-      key={stage.label}
+      dir={ltr ? "ltr" : undefined}
       className="relative min-w-0 flex-1"
       style={{ height: BOX }}
       onMouseEnter={() => jumpTo(i, true)}
