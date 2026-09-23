@@ -48,7 +48,7 @@ export default async function ServicePage({ params }: { params: Promise<Params> 
             text={service.intro}
             button={{ label: "Book a consultation", href: "/contact" }}
           />
-          <Photo src={service.heroImage} position="bottom" className="aspect-[1440/512] w-full">
+          <Photo src={service.heroImage} position="bottom" className="h-[360px] w-full sm:h-[420px] md:h-[480px] xl:aspect-[1440/512] xl:h-auto xl:min-h-[480px]">
             <div className="absolute inset-0 bg-black/10" />
           </Photo>
         </div>
