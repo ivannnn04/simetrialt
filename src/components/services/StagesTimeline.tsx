@@ -225,21 +225,22 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
         ))}
       </div>
 
-      {/* Phone: vertical timeline with the same sweep, active pill and tap-to-seek */}
-      <ol ref={vTrackRef} className="relative flex flex-col gap-8 pl-10 md:hidden">
-        <div className="absolute bottom-0 left-[8px] top-0 w-px bg-line" aria-hidden />
-        <div className="absolute left-[8px] top-0 w-px bg-dark" style={{ height: Math.min(progress, width) }} aria-hidden />
+      {/* Phone: centred vertical line, points alternate right / left of it */}
+      <ol ref={vTrackRef} className="relative flex flex-col gap-8 md:hidden">
+        <div className="absolute bottom-0 left-1/2 top-0 w-px -translate-x-1/2 bg-line" aria-hidden />
+        <div className="absolute left-1/2 top-0 w-px -translate-x-1/2 bg-dark" style={{ height: Math.min(progress, width) }} aria-hidden />
         {stages.map((stage, i) => {
           const isActive = i === active;
           const passed = i <= active;
+          const right = i % 2 === 0; // 1st, 3rd, 5th on the right of the line
           return (
-            <li key={stage.label} className="relative flex flex-col gap-3">
+            <li key={stage.label} className="relative grid grid-cols-2 gap-x-8">
               <button
                 type="button"
                 onClick={() => jumpTo(i, false)}
                 aria-label={`Go to stage: ${stage.label}`}
                 aria-pressed={isActive}
-                className="absolute -left-[36px] top-[10px] p-1"
+                className="absolute left-1/2 top-[6px] z-10 -translate-x-1/2 p-1"
               >
                 <span
                   ref={(el) => {
@@ -249,24 +250,27 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
                   style={{ width: DOT, height: DOT }}
                 />
               </button>
-              <button
-                type="button"
-                onClick={() => jumpTo(i, false)}
-                className={cn(
-                  "inline-flex w-max max-w-full rounded-[50px] border px-6 pb-[11px] pt-[9px] text-left text-[14px] font-medium leading-[1.3] tracking-[-0.04em] transition-colors duration-300",
-                  isActive ? "border-dark bg-dark text-white" : "border-[#c6c6c6] text-[#1f1f1f]"
-                )}
-              >
-                {stage.label}
-              </button>
-              <p
-                className={cn(
-                  "max-w-[420px] text-[13px] leading-[1.3] tracking-[-0.04em] text-[#2e2e2e]/80 transition-opacity duration-300",
-                  isActive ? "opacity-100" : "opacity-50"
-                )}
-              >
-                {stage.text}
-              </p>
+              <div className={cn("flex flex-col gap-3", right ? "col-start-2 items-start text-left" : "col-start-1 items-end text-right")}>
+                <button
+                  type="button"
+                  onClick={() => jumpTo(i, false)}
+                  className={cn(
+                    "inline-flex max-w-full rounded-[50px] border px-4 pb-[11px] pt-[9px] text-[14px] font-medium leading-[1.3] tracking-[-0.04em] transition-colors duration-300",
+                    right ? "text-left" : "text-right",
+                    isActive ? "border-dark bg-dark text-white" : "border-[#c6c6c6] text-[#1f1f1f]"
+                  )}
+                >
+                  {stage.label}
+                </button>
+                <p
+                  className={cn(
+                    "text-[13px] leading-[1.3] tracking-[-0.04em] text-[#2e2e2e]/80 transition-opacity duration-300",
+                    isActive ? "opacity-100" : "opacity-50"
+                  )}
+                >
+                  {stage.text}
+                </p>
+              </div>
             </li>
           );
         })}
