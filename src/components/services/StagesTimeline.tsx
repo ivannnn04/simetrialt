@@ -23,6 +23,8 @@ const SWEEP_MS = 16000; // full left → right pass
 const SEEK_PX_PER_MS = 2.4; // speed when jumping to a clicked dot
 const PER_ROW = 3; // tablet layout: points per row
 const ROWS = 2;
+const CORNER = 24; // tablet layout: radius of the two turns
+const ARC = (Math.PI * CORNER) / 2;
 
 export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
   const trackRef = useRef<HTMLDivElement>(null);
@@ -31,9 +33,7 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
   const dotRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const rDotRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const vDotRefs = useRef<(HTMLSpanElement | null)[]>([]);
-  const [rowWidth, setRowWidth] = useState(0);
-  const [connector, setConnector] = useState(0); // tablet: vertical link between the two rows
-  const [tail, setTail] = useState(0); // tablet: row-two line length, right edge → last point
+  const [path, setPath] = useState<{ d: string; total: number; w: number; h: number } | null>(null); // tablet path
   const rowElRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [progress, setProgress] = useState(0); // px from the left edge of the track
   const [dots, setDots] = useState<number[]>([]); // dot centres, px from the track's left edge
@@ -62,23 +62,31 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
         extent = rect.width;
         centres = dotRefs.current.map((d) => (d ? d.getBoundingClientRect().left - rect.left + d.getBoundingClientRect().width / 2 : 0));
       } else if (tablet) {
-        // Serpentine path: row one left → right, down the right edge, row two right → left.
+        // Serpentine path with rounded turns: row one left → right, down the right edge, row two
+        // right → left, ending at the last point. Progress is the distance along that path.
         const rect = rows.getBoundingClientRect();
         const r0 = rowElRefs.current[0]?.getBoundingClientRect();
         const r1 = rowElRefs.current[1]?.getBoundingClientRect();
-        const link = r0 && r1 ? r1.top - r0.top : 0;
+        const w = rect.width;
+        const y1 = LINE_TOP;
+        const y2 = r0 && r1 ? r1.top - r0.top + LINE_TOP : y1;
+        const link = Math.max(0, y2 - y1 - 2 * CORNER);
+        const along = (i: number, x: number) => (i < PER_ROW ? x : w - CORNER + ARC + link + ARC + (w - CORNER - x));
         centres = rDotRefs.current.map((d, i) => {
           if (!d) return 0;
           const c = d.getBoundingClientRect();
-          const x = c.left - rect.left + c.width / 2;
-          return i < PER_ROW ? x : rect.width + link + (rect.width - x);
+          return along(i, c.left - rect.left + c.width / 2);
         });
-        // the path ends at the last point instead of running on to the left edge
-        const rowTwo = Math.max(0, (centres[centres.length - 1] ?? 0) - rect.width - link);
-        setRowWidth(rect.width);
-        setConnector(link);
-        setTail(rowTwo);
-        extent = rect.width + link + rowTwo;
+        const lastX = (() => {
+          const d = rDotRefs.current[rDotRefs.current.length - 1];
+          if (!d) return 0;
+          const c = d.getBoundingClientRect();
+          return c.left - rect.left + c.width / 2;
+        })();
+        const total = centres[centres.length - 1] ?? 0;
+        const d = `M0 ${y1} H${w - CORNER} A${CORNER} ${CORNER} 0 0 1 ${w} ${y1 + CORNER} V${y2 - CORNER} A${CORNER} ${CORNER} 0 0 1 ${w - CORNER} ${y2} H${lastX}`;
+        setPath({ d, total, w, h: rect.height });
+        extent = total;
       } else {
         const rect = vTrack.getBoundingClientRect();
         extent = rect.height;
@@ -178,38 +186,47 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
         <div style={{ height: DOT_TOP + DOT + DESC_GAP + 52 - BOX }} aria-hidden />
       </div>
 
-      {/* Tablet (768–1279): two rows joined into one path — row one left → right, a vertical
-          link down the right edge, row two right → left (points 4 and 5 sit under point 3) */}
+      {/* Tablet (768–1279): one serpentine path with rounded turns. Row one holds points 1–3;
+          points 4 and 5 sit centred under the gaps (4 between 2 and 3, 5 between 1 and 2). */}
       <div ref={rowsRef} className="relative hidden w-full flex-col gap-10 md:flex xl:hidden">
-        {/* vertical link between the rows */}
-        <div className="absolute right-0 w-px bg-line" style={{ top: LINE_TOP, height: connector }} aria-hidden />
-        <div
-          className="absolute right-0 w-px bg-dark"
-          style={{ top: LINE_TOP, height: Math.max(0, Math.min(progress - rowWidth, connector)) }}
-          aria-hidden
-        />
-        {Array.from({ length: ROWS }, (_, r) => {
-          const reversed = r === 1;
-          const dark = reversed ? Math.max(0, Math.min(progress - rowWidth - connector, tail)) : Math.max(0, Math.min(progress, rowWidth));
-          return (
-            <div
-              key={r}
-              ref={(el) => {
-                rowElRefs.current[r] = el;
-              }}
-              className="relative w-full"
-            >
-              <div className={cn("absolute right-0 h-px bg-line", !reversed && "left-0")} style={reversed ? { top: LINE_TOP, width: tail } : { top: LINE_TOP }} aria-hidden />
-              <div className={cn("absolute h-px bg-dark", reversed ? "right-0" : "left-0")} style={{ top: LINE_TOP, width: dark }} aria-hidden />
-              <ol className="relative grid w-full grid-cols-3 items-start gap-4" dir={reversed ? "rtl" : undefined}>
-                {stages.slice(r * PER_ROW, (r + 1) * PER_ROW).map((stage, k) => (
-                  <Point key={stage.label} stage={stage} i={r * PER_ROW + k} active={active} setDot={setRowDot} jumpTo={jumpTo} resume={resume} ltr={reversed} />
-                ))}
-              </ol>
-              {r === ROWS - 1 && <div style={{ height: DOT_TOP + DOT + DESC_GAP + 52 - BOX }} aria-hidden />}
-            </div>
-          );
-        })}
+        {path && (
+          <svg className="pointer-events-none absolute inset-0" width={path.w} height={path.h} viewBox={`0 0 ${path.w} ${path.h}`} aria-hidden>
+            <path d={path.d} fill="none" stroke="var(--color-line)" strokeWidth="1" />
+            <path
+              d={path.d}
+              fill="none"
+              stroke="var(--color-dark)"
+              strokeWidth="1"
+              strokeDasharray={path.total}
+              strokeDashoffset={Math.max(0, path.total - Math.min(progress, path.total))}
+            />
+          </svg>
+        )}
+        {Array.from({ length: ROWS }, (_, r) => (
+          <div
+            key={r}
+            ref={(el) => {
+              rowElRefs.current[r] = el;
+            }}
+            className="relative w-full"
+          >
+            <ol className={cn("relative grid w-full gap-4", r === 0 ? "grid-cols-3" : "grid-cols-6")}>
+              {stages.slice(r * PER_ROW, (r + 1) * PER_ROW).map((stage, k) => (
+                <Point
+                  key={stage.label}
+                  stage={stage}
+                  i={r * PER_ROW + k}
+                  active={active}
+                  setDot={setRowDot}
+                  jumpTo={jumpTo}
+                  resume={resume}
+                  className={r === 1 ? (k === 0 ? "col-span-2 col-start-4 row-start-1" : "col-span-2 col-start-2 row-start-1") : undefined}
+                />
+              ))}
+            </ol>
+            {r === ROWS - 1 && <div style={{ height: DOT_TOP + DOT + DESC_GAP + 52 - BOX }} aria-hidden />}
+          </div>
+        ))}
       </div>
 
       {/* Phone: vertical timeline with the same sweep, active pill and tap-to-seek */}
@@ -269,19 +286,17 @@ type PointProps = {
   setDot: (i: number, el: HTMLSpanElement | null) => void;
   jumpTo: (i: number, pause: boolean) => void;
   resume: () => void;
-  /** force left-to-right content inside a right-to-left (reversed) row */
-  ltr?: boolean;
+  className?: string;
 };
 
 /** One timeline point (dot, pill, description) for the horizontal layouts. */
-function Point({ stage, i, active, setDot, jumpTo, resume, ltr }: PointProps) {
+function Point({ stage, i, active, setDot, jumpTo, resume, className }: PointProps) {
   const below = i % 2 === 1;
   const isActive = i === active;
   const passed = i <= active; // dots the line has already reached stay dark
   return (
     <li
-      dir={ltr ? "ltr" : undefined}
-      className="relative min-w-0 flex-1"
+      className={cn("relative min-w-0 flex-1", className)}
       style={{ height: BOX }}
       onMouseEnter={() => jumpTo(i, true)}
       onMouseLeave={resume}
