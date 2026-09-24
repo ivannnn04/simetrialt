@@ -52,7 +52,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
               ))}
             </div>
           </div>
-          <Photo src="/images/contact/hero.jpg" position="bottom" className="aspect-[1440/512] w-full" />
+          <Photo src="/images/contact/hero.jpg" position="bottom" className="h-[360px] w-full sm:h-[420px] md:h-[480px] xl:aspect-[1440/512] xl:h-auto xl:min-h-[480px]" />
         </div>
       </section>
 
