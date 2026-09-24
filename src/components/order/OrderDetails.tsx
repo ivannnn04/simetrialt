@@ -31,31 +31,31 @@ export function OrderDetails({ items }: { items: OrderItem[] }) {
 
   return (
     <div className="flex w-full max-w-[706px] flex-col bg-white">
-      <div className="border-b border-line p-6">
+      <div className="border-b border-line p-4 md:p-6">
         <h2 className="text-[20px] font-medium leading-[1.3] tracking-[-0.04em] text-[#1b2a41]">Order Details</h2>
       </div>
       <ul>
         {visible.map((item) => (
-          <li key={item.id} className="flex items-center border-b border-line">
-            <div className="flex items-center gap-6 p-6">
-              <div className="flex size-[70px] shrink-0 items-center justify-center bg-[#f2f2f2]">
+          <li key={item.id} className="flex items-center gap-4 border-b border-line p-4 md:gap-6 md:p-6">
+            <div className="flex min-w-0 flex-1 items-center gap-4 md:gap-6">
+              <div className="flex size-14 shrink-0 items-center justify-center bg-[#f2f2f2] md:size-[70px]">
                 {item.image && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={item.image} alt="" className="max-h-[60%] max-w-[70%] object-contain" />
                 )}
               </div>
-              <div className="flex min-w-[140px] flex-col gap-2 leading-none">
-                <p className="text-[18px] font-semibold tracking-[-0.04em] text-[#1b2a41]">{item.name}</p>
+              <div className="flex min-w-0 flex-col gap-2 leading-none md:min-w-[140px]">
+                <p className="break-words text-[16px] font-semibold leading-[1.2] tracking-[-0.04em] text-[#1b2a41] md:text-[18px] md:leading-none">{item.name}</p>
                 <p className="text-[14px] tracking-[-0.04em] text-tertiary">Qty {item.qty}</p>
                 <p className="text-[14px] tracking-[-0.04em] text-tertiary">Color: {item.color}</p>
               </div>
             </div>
-            <p className="ml-auto pr-6 text-[18px] leading-[1.3] tracking-[-0.04em] text-[#1b2a41]">{eur(item.priceCents * item.qty)}</p>
+            <p className="shrink-0 whitespace-nowrap text-[16px] leading-[1.3] tracking-[-0.04em] text-[#1b2a41] md:text-[18px]">{eur(item.priceCents * item.qty)}</p>
           </li>
         ))}
       </ul>
       {hidden && (
-        <div className="flex justify-end border-b border-line px-6 py-4">
+        <div className="flex justify-center border-b border-line px-4 py-4 md:justify-end md:px-6">
           <button
             type="button"
             aria-expanded={expanded}
@@ -67,7 +67,7 @@ export function OrderDetails({ items }: { items: OrderItem[] }) {
           </button>
         </div>
       )}
-      <div className="flex items-center justify-between p-6 text-[20px] font-medium leading-[1.3] tracking-[-0.04em] text-[#1b2a41]">
+      <div className="flex items-center justify-between p-4 text-[20px] md:p-6 font-medium leading-[1.3] tracking-[-0.04em] text-[#1b2a41]">
         <p>Total</p>
         <p>{total}</p>
       </div>
