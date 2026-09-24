@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 const CONTACTS = [
   { label: "Give us a call", value: "(000) 666 555 444", Icon: PhoneIcon, href: "tel:+000666555444" },
   { label: "Send us an email", value: "info@simetria.com", Icon: MailIcon, href: "mailto:info@simetria.com" },
-  { label: "Simetria Showroom", value: "Vilnius, Lithuania", Icon: PinIcon, href: "#" },
+  { label: "Simetria Showroom", value: "Vilnius, Lithuania", Icon: PinIcon, href: "https://www.google.com/maps/search/?api=1&query=Simetria+Showroom+Vilnius+Lithuania", external: true },
 ];
 
 const TICKER = "Let’s Collaborate • Get in Touch • Start Your Project • ";
@@ -39,8 +39,14 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
               </div>
             </div>
             <div className="flex flex-col gap-4 md:flex-row md:items-center">
-              {CONTACTS.map(({ label, value, Icon, href }) => (
-                <Link key={label} href={href} className="group flex items-center gap-[10px] py-2 md:w-[216px]">
+              {CONTACTS.map(({ label, value, Icon, href, external }) => (
+                <Link
+                  key={label}
+                  href={href}
+                  target={external ? "_blank" : undefined}
+                  rel={external ? "noopener noreferrer" : undefined}
+                  className="group flex items-center gap-[10px] py-2 md:w-[216px]"
+                >
                   <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-line text-ink transition-[background-color,border-color,color] duration-500 ease-out group-hover:border-dark group-hover:bg-dark group-hover:text-white">
                     <Icon />
                   </span>
