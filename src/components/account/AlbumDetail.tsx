@@ -84,7 +84,7 @@ export function AlbumDetail({ id }: { id: string }) {
         <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-8 px-4 py-[50px] md:px-10 lg:flex-row lg:items-end lg:justify-between">
           <div className="flex flex-col gap-[35px]">
             <Breadcrumbs items={[{ label: "My album", href: "/account/albums" }, { label: name }]} />
-            <h1 className="max-w-[846px] text-[56px] font-medium leading-[0.92] tracking-[-0.04em] text-black md:text-[80px] xl:text-[106px]">{name}</h1>
+            <h1 className="max-w-[846px] break-words text-[40px] font-medium leading-[0.92] tracking-[-0.04em] text-black min-[400px]:text-[56px] md:text-[80px] xl:text-[106px]">{name}</h1>
           </div>
           {album && (
             <div className="flex flex-col gap-3 lg:w-[366px]">
