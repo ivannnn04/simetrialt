@@ -45,7 +45,7 @@ export default function AboutPage() {
             text="Curated product sourcing, precise calculations, and dedicated technical support for professional architects and interior designers"
             button={{ label: "Book a consultation", href: "/contact" }}
           />
-          <Photo src="/images/about/hero.jpg" position="bottom" className="aspect-[1440/512] w-full" />
+          <Photo src="/images/about/hero.jpg" position="bottom" className="h-[360px] w-full sm:h-[420px] md:h-[480px] xl:aspect-[1440/512] xl:h-auto xl:min-h-[480px]" />
         </div>
       </section>
 
