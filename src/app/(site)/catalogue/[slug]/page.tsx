@@ -45,15 +45,15 @@ export default async function ProductPage({ params }: Params) {
   return (
     <div className="flex w-full flex-col bg-cream pb-10 md:pb-[120px]">
       <SiteHeader variant="solid" />
-      <section className="mx-auto grid w-full max-w-[1440px] gap-10 px-4 pt-[34px] md:px-10 min-[1025px]:grid-cols-2 min-[1025px]:gap-x-20">
-        {/* Gallery column (node 4217:46872): vertical stack on desktop, slider up to 1024px */}
+      <section className="mx-auto grid w-full max-w-[1440px] gap-10 px-4 pt-[34px] md:px-10 min-[993px]:grid-cols-2 min-[993px]:gap-x-10 xl:gap-x-20">
+        {/* Gallery column (node 4217:46872): vertical stack on desktop, slider up to 992px */}
         <div className="flex min-w-0 flex-col gap-[45px]">
           <Breadcrumbs items={crumbs} />
           <ProductGallery images={product.images} name={product.name} />
         </div>
 
         {/* Info column (node 4217:46881) */}
-        <div className="min-[1025px]:sticky min-[1025px]:top-0 min-[1025px]:self-start">
+        <div className="min-[993px]:sticky min-[993px]:top-0 min-[993px]:self-start">
           <ProductInfo product={product} />
         </div>
       </section>

@@ -7,7 +7,7 @@ type Props = { images: (string | null | undefined)[]; name: string };
 
 /**
  * Product photos: a vertical stack next to the info column on desktop (Figma node 4217:46872);
- * up to 1024px a horizontal snap slider with dots, and the info column follows below.
+ * up to 992px a horizontal snap slider with dots, and the info column follows below.
  */
 export function ProductGallery({ images, name }: Props) {
   const track = useRef<HTMLDivElement>(null);
@@ -27,7 +27,7 @@ export function ProductGallery({ images, name }: Props) {
       <div
         ref={track}
         onScroll={onScroll}
-        className="flex snap-x snap-mandatory gap-4 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden min-[1025px]:snap-none min-[1025px]:flex-col min-[1025px]:overflow-visible"
+        className="flex snap-x snap-mandatory gap-4 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden min-[993px]:snap-none min-[993px]:flex-col min-[993px]:overflow-visible"
       >
         {images.map((src, i) => (
           <figure
@@ -47,7 +47,7 @@ export function ProductGallery({ images, name }: Props) {
         ))}
       </div>
       {images.length > 1 && (
-        <div className="flex items-center justify-center gap-2 min-[1025px]:hidden" role="tablist" aria-label="Photos">
+        <div className="flex items-center justify-center gap-2 min-[993px]:hidden" role="tablist" aria-label="Photos">
           {images.map((_, i) => (
             <button
               key={i}
