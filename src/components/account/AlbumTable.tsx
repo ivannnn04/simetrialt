@@ -209,26 +209,25 @@ export function AlbumTable({
         </Link>
       </div>
 
-      {/* Grid layout (Figma 4217:47128): full-width 3-up cards with filled hearts, no summary panel */}
-      {view === "grid" ? (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {sorted.map((r) => (
-            <ProductCard
-              key={r.productId}
-              product={{ ...r.card, saved: true }}
-              className="h-[420px] xl:h-[449px]"
-            />
-          ))}
-          {sorted.length === 0 && (
-            <p className="text-[16px] tracking-[-0.04em] text-secondary">
-              This collection is empty. Save products from the catalogue with
-              the heart icon.
-            </p>
-          )}
-        </div>
-      ) : (
-        <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between">
-          {
+      <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between">
+        {view === "grid" ? (
+          /* Grid layout (Figma 4217:47128): cards with filled hearts next to the summary panel */
+          <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 lg:min-w-0 lg:flex-1 xl:grid-cols-3">
+            {sorted.map((r) => (
+              <ProductCard
+                key={r.productId}
+                product={{ ...r.card, saved: true }}
+                className="h-[420px] xl:h-[449px]"
+              />
+            ))}
+            {sorted.length === 0 && (
+              <p className="text-[16px] tracking-[-0.04em] text-secondary">
+                This collection is empty. Save products from the catalogue with
+                the heart icon.
+              </p>
+            )}
+          </div>
+        ) : (
             <div className="w-full overflow-x-auto lg:w-auto lg:flex-1">
               <table className="w-full border-separate border-spacing-0">
                 <thead>
@@ -359,7 +358,7 @@ export function AlbumTable({
                 </tbody>
               </table>
             </div>
-          }
+        )}
 
           {/* Collection summary (node 4217:47106) */}
           <aside className="flex w-full shrink-0 flex-col gap-12 border border-[#ddd] px-5 py-10 lg:w-[292px]">
@@ -416,7 +415,6 @@ export function AlbumTable({
             </div>
           </aside>
         </div>
-      )}
     </div>
   );
 }
