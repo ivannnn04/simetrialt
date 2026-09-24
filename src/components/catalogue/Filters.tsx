@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { startTransition, useOptimistic, useState } from "react";
 import { cn } from "@/lib/cn";
 import { CaretIcon } from "@/components/ui/Icons";
 
@@ -47,7 +47,11 @@ function FilterSection({ group, selected, onToggle }: { group: FilterGroup; sele
 /** Figma catalogue sidebar (node 4217:47888): grouped option boxes, price range, reset. */
 export function Filters({ groups, basePath = "/catalogue" }: { groups: FilterGroup[]; basePath?: string }) {
   const router = useRouter();
-  const params = useSearchParams();
+  const routeParams = useSearchParams();
+  // The selected state is shown from the URL we are navigating to, not the one the server has
+  // already rendered, so a tapped option turns active at once while the products reload.
+  const [paramString, setParamString] = useOptimistic(routeParams.toString());
+  const params = new URLSearchParams(paramString);
   const [min, setMin] = useState(params.get("min") ?? "");
   const [max, setMax] = useState(params.get("max") ?? "");
 
@@ -55,7 +59,10 @@ export function Filters({ groups, basePath = "/catalogue" }: { groups: FilterGro
     const next = new URLSearchParams(params.toString());
     mutate(next);
     next.delete("page"); // any filter change starts from the first page
-    router.push(`${basePath}?${next.toString()}`, { scroll: false });
+    startTransition(() => {
+      setParamString(next.toString());
+      router.push(`${basePath}?${next.toString()}`, { scroll: false });
+    });
   };
 
   const toggle = (key: string, value: string) =>

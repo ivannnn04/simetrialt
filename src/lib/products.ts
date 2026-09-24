@@ -1,5 +1,5 @@
 import type { Category, Product, ProductImage } from "@prisma/client";
-import { db } from "@/lib/db";
+import { db, tryDb } from "@/lib/db";
 import { formatPrice } from "@/lib/slug";
 import type { ProductCardData } from "@/components/catalogue/ProductCard";
 
@@ -42,18 +42,15 @@ export const SAMPLE_PRODUCTS: ProductCardData[] = [
 
 /** Latest published products as cards, padded with samples up to `take`; never throws on DB outages. */
 export async function getFeaturedProducts(take = 3): Promise<ProductCardData[]> {
-  let cards: ProductCardData[] = [];
-  try {
-    const products = await db.product.findMany({
+  const products = await tryDb("getFeaturedProducts", () =>
+    db.product.findMany({
       where: { published: true },
       orderBy: { updatedAt: "desc" },
       take,
       include: { category: true, images: { orderBy: { sort: "asc" }, take: 2 } },
-    });
-    cards = products.map(toCard);
-  } catch (e) {
-    console.error("getFeaturedProducts: database unavailable", e);
-  }
+    })
+  );
+  const cards: ProductCardData[] = (products ?? []).map(toCard);
   for (let i = 0; cards.length < take && i < SAMPLE_PRODUCTS.length; i++) cards.push(SAMPLE_PRODUCTS[i]);
   return cards;
 }

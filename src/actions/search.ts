@@ -1,6 +1,6 @@
 "use server";
 
-import { db } from "@/lib/db";
+import { db, tryDb } from "@/lib/db";
 import { toCard, searchSampleProducts } from "@/lib/products";
 import type { ProductCardData } from "@/components/catalogue/ProductCard";
 
@@ -8,8 +8,8 @@ import type { ProductCardData } from "@/components/catalogue/ProductCard";
 export async function searchProducts(query: string): Promise<ProductCardData[]> {
   const q = query.trim();
   if (q.length < 2) return [];
-  try {
-    const products = await db.product.findMany({
+  const products = await tryDb("searchProducts", () =>
+    db.product.findMany({
       where: {
         published: true,
         OR: [
@@ -22,11 +22,9 @@ export async function searchProducts(query: string): Promise<ProductCardData[]> 
       orderBy: { updatedAt: "desc" },
       take: 12,
       include: { category: true, images: { orderBy: { sort: "asc" }, take: 2 } },
-    });
-    if (products.length > 0) return products.map(toCard);
-  } catch (e) {
-    console.error("searchProducts: database unavailable", e);
-  }
+    })
+  );
+  if (products && products.length > 0) return products.map(toCard);
   // No real products yet (or DB down): fall back to the placeholder catalogue.
   return searchSampleProducts(q);
 }

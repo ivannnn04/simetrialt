@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import { db } from "@/lib/db";
+import { db, tryDb } from "@/lib/db";
 import { toCard } from "@/lib/products";
 import type { FilterGroup } from "@/components/catalogue/Filters";
 import type { ProductCardData } from "@/components/catalogue/ProductCard";
@@ -59,12 +59,7 @@ export async function loadCatalogue(sp: Search, opts: { saleOnly?: boolean; perP
     ...(min || max ? { priceCents: { ...(min ? { gte: min * 100 } : {}), ...(max ? { lte: max * 100 } : {}) } } : {}),
   };
 
-  let hasProducts = false;
-  try {
-    hasProducts = (await db.product.count({ where: { published: true } })) > 0;
-  } catch (e) {
-    console.error("catalogue: database unavailable", e);
-  }
+  const hasProducts = ((await tryDb("catalogue", () => db.product.count({ where: { published: true } }))) ?? 0) > 0;
 
   let groups: FilterGroup[] = [];
   let cards: ProductCardData[] = [];

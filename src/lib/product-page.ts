@@ -1,4 +1,4 @@
-import { db } from "@/lib/db";
+import { db, tryDb } from "@/lib/db";
 import { formatPrice } from "@/lib/slug";
 import { SAMPLE_PRODUCTS, toCard } from "@/lib/products";
 import { PLACEHOLDER_IMAGE, PRODUCT_PLACEHOLDER_IMAGE } from "@/lib/placeholder";
@@ -92,12 +92,14 @@ function fromSampleCard(card: ProductCardData): ProductView {
 }
 
 export async function loadProduct(slug: string): Promise<ProductView | null> {
-  try {
-    const product = await db.product.findFirst({
+  const product = await tryDb("loadProduct", () =>
+    db.product.findFirst({
       where: { slug, published: true },
       include: { images: { orderBy: { sort: "asc" } }, category: true },
-    });
-    if (product) {
+    })
+  );
+  if (product) {
+    try {
       const onSale = product.salePriceCents != null && product.salePriceCents < product.priceCents;
       const price = (c: number) => formatPrice(c, product.currency);
       const related = await db.product.findMany({
@@ -123,9 +125,9 @@ export async function loadProduct(slug: string): Promise<ProductView | null> {
         details: DETAILS,
         related: related.length ? related.map(toCard) : SAMPLE_CATALOGUE.slice(0, 6).map(sampleToCard),
       };
+    } catch (e) {
+      console.error("loadProduct: database unavailable", e);
     }
-  } catch (e) {
-    console.error("loadProduct: database unavailable", e);
   }
   const sample = SAMPLE_CATALOGUE.find((p) => p.id === slug);
   if (sample) return fromSample(sample);
