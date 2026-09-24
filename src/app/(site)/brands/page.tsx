@@ -31,7 +31,7 @@ export default function BrandsPage() {
               <li key={brand.slug}>
                 <Link
                   href={`/brands/${brand.slug}`}
-                  className="group relative flex h-[270px] flex-col justify-between overflow-hidden border border-[#909090] p-10 text-[#111] transition-colors hover:border-cream hover:text-white"
+                  className="group relative flex h-[190px] flex-col justify-between overflow-hidden border border-[#909090] p-6 text-[#111] transition-colors hover:border-cream hover:text-white md:h-[220px] md:p-8 xl:h-[270px] xl:p-10"
                 >
                   <span
                     aria-hidden
@@ -40,7 +40,7 @@ export default function BrandsPage() {
                       backgroundImage: `url(${PLACEHOLDER_IMAGE ?? `/images/brands/${brand.slug}.jpg`}), linear-gradient(165deg, #4b4641 0%, #2b2825 55%, #171615 100%)`,
                     }}
                   />
-                  <span className="relative w-[235px]">
+                  <span className="relative w-[180px] xl:w-[235px]">
                     <BrandMark brand={brand} />
                   </span>
                   <span className="relative flex flex-col gap-2">
