@@ -64,7 +64,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
       {/* Details + specifications */}
       <section className="w-full bg-cream px-4 py-[120px] md:px-10">
         <div className="mx-auto flex w-full max-w-[1360px] flex-col gap-12 lg:flex-row lg:items-end lg:justify-between">
-          <Photo src={img("4")} className="h-[293px] w-full max-w-[432px]" />
+          <Photo src={img("4")} className="aspect-[4/5] w-full max-w-[432px] lg:h-[540px] lg:w-[432px] lg:shrink-0" />
           <div className="flex flex-col gap-12 lg:w-[640px]">
             <div className="flex max-w-[606px] flex-col gap-6">
               <h2 className="text-[36px] font-medium leading-none tracking-[-0.04em] text-ink md:text-[46px]">{project.sectionTitle}</h2>
@@ -96,7 +96,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
               ))}
             </div>
           </div>
-          <Photo src={img("6")} className="aspect-[687/480] w-full lg:w-[687px] lg:shrink-0" />
+          <Photo src={img("6")} className="aspect-[4/3] w-full sm:aspect-[687/560] lg:h-[620px] lg:w-[687px] lg:shrink-0" />
         </div>
       </section>
 
