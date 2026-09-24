@@ -17,14 +17,16 @@ export default function BrandsPage() {
     <div className="flex w-full flex-col gap-[120px] bg-cream">
       <section className="flex w-full flex-col gap-16 lg:gap-[100px]">
         <SiteHeader variant="solid" />
-        <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-[70px] px-4 md:px-10">
+        {/* PageHero brings its own 1440px container, so the grid gets a matching one instead of
+            nesting inside a second padded wrapper (which pushed the hero 40px further right) */}
+        <div className="flex w-full flex-col gap-[70px]">
           <PageHero
             title={<span className="block max-w-[837px]">Partner Brands We Trust</span>}
             titleClassName="xl:text-[106px]"
             text="We don't chase trends — we represent brands for excellent design, high quality and timeless solutions, and we stay with them for years."
             button={{ label: "Book a consultation", href: "/contact" }}
           />
-          <ul className="grid grid-cols-1 gap-2 pb-[120px] md:grid-cols-2 xl:grid-cols-3">
+          <ul className="mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-2 px-4 pb-[120px] md:grid-cols-2 md:px-10 xl:grid-cols-3">
             {BRANDS.map((brand) => (
               <li key={brand.slug}>
                 <Link
