@@ -108,7 +108,7 @@ export function StrokeLink({
   className?: string;
 }) {
   const cls = cn(
-    "inline-flex h-[27px] items-center gap-2 border-b pb-1.5 text-[18px] font-medium leading-none tracking-[-0.04em] transition-colors",
+    "inline-flex h-[27px] shrink-0 items-center gap-2 whitespace-nowrap border-b pb-1.5 text-[18px] font-medium leading-none tracking-[-0.04em] transition-colors",
     disabled ? "cursor-not-allowed border-tertiary text-tertiary" : "border-black text-black hover:border-accent hover:text-accent",
     className
   );

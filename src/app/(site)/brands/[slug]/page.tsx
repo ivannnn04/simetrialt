@@ -62,7 +62,7 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
 
       {/* Signature collections */}
       <section className="flex w-full flex-col gap-10">
-        <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between px-4 md:px-10">
+        <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-6 px-4 md:px-10">
           <h2 className="text-[36px] font-medium leading-[1.1] tracking-[-0.04em] text-black md:text-[52px]">Signature collections</h2>
           <SectionLink href="/catalogue">See more</SectionLink>
         </div>
@@ -78,7 +78,7 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
 
       {/* Projects */}
       <section className="flex w-full flex-col gap-10">
-        <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between px-4 md:px-10">
+        <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-6 px-4 md:px-10">
           <h2 className="text-[36px] font-medium leading-[1.1] tracking-[-0.04em] text-black md:text-[52px]">Projects</h2>
           <SectionLink href="/projects">See more</SectionLink>
         </div>
