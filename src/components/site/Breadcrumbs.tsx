@@ -5,11 +5,11 @@ type Crumb = { label: string; href?: string };
 /** Figma "Breadcrumbs" (4068:10001) / "Link Breadcrumb" (4068:9949): grey trail, black current item, hover accent. */
 export function Breadcrumbs({ items }: { items: Crumb[] }) {
   return (
-    <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-[15px] leading-[1.4] tracking-[-0.04em]">
+    <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[15px] leading-[1.4] tracking-[-0.04em]">
       {items.map((item, i) => {
         const last = i === items.length - 1;
         return (
-          <span key={item.label} className="flex items-center gap-2">
+          <span key={item.label} className="flex items-center gap-2 whitespace-nowrap">
             {item.href && !last ? (
               <Link href={item.href} className="text-secondary transition-colors duration-300 hover:text-accent">{item.label}</Link>
             ) : (
