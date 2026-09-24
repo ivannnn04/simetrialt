@@ -126,7 +126,7 @@ export function ContactSection({ initialMessage = "" }: { initialMessage?: strin
   const [errors, setErrors] = useState<FieldErrors>({});
 
   return (
-    <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-16 px-4 pb-[120px] pt-20 md:px-10 lg:flex-row lg:gap-[180px]">
+    <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-16 px-4 pb-10 md:pb-[120px] pt-20 md:px-10 lg:flex-row lg:gap-[180px]">
       <form
         action={formAction}
         id="contact-form"

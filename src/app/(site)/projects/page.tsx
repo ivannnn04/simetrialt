@@ -86,7 +86,7 @@ export default async function ProjectsPage({
           </div>
         </section>
 
-        <section className="mx-auto flex w-full max-w-[1440px] flex-col gap-8 px-4 pb-[120px] md:px-10">
+        <section className="mx-auto flex w-full max-w-[1440px] flex-col gap-8 px-4 pb-10 md:pb-[120px] md:px-10">
           {/* Tabs + link (Figma node 4217:46230) */}
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-2">

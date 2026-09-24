@@ -26,7 +26,7 @@ export default async function CataloguePage({ searchParams }: { searchParams: Pr
   ];
 
   return (
-    <div className="flex w-full flex-col bg-cream pb-[120px]">
+    <div className="flex w-full flex-col bg-cream pb-10 md:pb-[120px]">
       <div className="flex w-full flex-col gap-10">
         <section className="flex w-full flex-col">
           <SiteHeader variant="solid" />

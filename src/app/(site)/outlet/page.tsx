@@ -17,7 +17,7 @@ export default async function OutletPage({ searchParams }: { searchParams: Promi
   const { groups, cards, sort, page, pages } = await loadCatalogue(sp, { saleOnly: true });
 
   return (
-    <div className="flex w-full flex-col bg-cream pb-[120px]">
+    <div className="flex w-full flex-col bg-cream pb-10 md:pb-[120px]">
       <div className="flex w-full flex-col gap-10">
         <section className="flex w-full flex-col">
           <SiteHeader variant="solid" />

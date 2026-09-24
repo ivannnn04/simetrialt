@@ -26,7 +26,7 @@ export default function BrandsPage() {
             text="We don't chase trends — we represent brands for excellent design, high quality and timeless solutions, and we stay with them for years."
             button={{ label: "Book a consultation", href: "/contact" }}
           />
-          <ul className="mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-2 px-4 pb-[120px] md:grid-cols-2 md:px-10 xl:grid-cols-3">
+          <ul className="mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-2 px-4 pb-10 md:pb-[120px] md:grid-cols-2 md:px-10 xl:grid-cols-3">
             {BRANDS.map((brand) => (
               <li key={brand.slug}>
                 <Link

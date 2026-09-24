@@ -42,7 +42,7 @@ export default async function ProductPage({ params }: Params) {
   ];
 
   return (
-    <div className="flex w-full flex-col bg-cream pb-[120px]">
+    <div className="flex w-full flex-col bg-cream pb-10 md:pb-[120px]">
       <SiteHeader variant="solid" />
       <section className="mx-auto grid w-full max-w-[1440px] gap-10 px-4 pt-[34px] md:px-10 lg:grid-cols-2 lg:gap-x-20">
         {/* Gallery column (node 4217:46872) */}

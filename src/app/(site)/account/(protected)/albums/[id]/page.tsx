@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Collection — Simetria LT" };
 export default async function CollectionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   return (
-    <div className="flex w-full flex-col bg-cream pb-[120px]">
+    <div className="flex w-full flex-col bg-cream pb-10 md:pb-[120px]">
       <SiteHeader variant="solid" />
       <AlbumDetail id={id} />
     </div>

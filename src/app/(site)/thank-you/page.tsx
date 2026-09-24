@@ -13,7 +13,7 @@ export default async function ThankYouPage() {
   const products = await getFeaturedProducts(6);
 
   return (
-    <div className="flex w-full flex-col bg-cream pb-[120px]">
+    <div className="flex w-full flex-col bg-cream pb-10 md:pb-[120px]">
       <SiteHeader variant="solid" />
       <section className="mx-auto flex w-full max-w-[1440px] flex-col items-center gap-10 px-4 pt-[100px] md:px-10">
         <div className="flex max-w-[884px] flex-col items-center gap-6 text-center">
