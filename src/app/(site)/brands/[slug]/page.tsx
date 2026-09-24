@@ -103,7 +103,7 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
       <ProductLine products={cards} title="Product line" cta={{ label: "See more", href: "/catalogue" }} className="" />
 
       {/* CTA (Figma "section cta") */}
-      <section className="w-full border-y border-line">
+      <section className="w-full lg:border-y lg:border-line">
         <div className="mx-auto flex max-w-[1440px] flex-col lg:flex-row lg:items-stretch">
           <div className="flex flex-1 p-4 md:p-10">
             <Photo src={`/images/brands/${brand.slug}-cta.jpg`} className="min-h-[360px] w-full lg:min-h-[500px]" />
