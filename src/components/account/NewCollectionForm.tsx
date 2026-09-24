@@ -59,7 +59,7 @@ export function NewCollectionButton({ className }: { className?: string }) {
       {open &&
         createPortal(
           <div
-            className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/20 px-4 py-[116px] backdrop-blur-[10px] menu-fade"
+            className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/20 px-4 py-10 backdrop-blur-[10px] menu-fade sm:py-[116px]"
             onPointerDown={(e) => e.target === e.currentTarget && setOpen(false)}
           >
             <form
@@ -67,9 +67,9 @@ export function NewCollectionButton({ className }: { className?: string }) {
               role="dialog"
               aria-modal="true"
               aria-labelledby="new-collection-title"
-              className="flex w-full max-w-[440px] flex-col items-center gap-[62px] bg-white p-8"
+              className="flex w-full max-w-[440px] flex-col items-center gap-10 bg-white p-5 sm:gap-[62px] sm:p-8"
             >
-              <div className="flex w-full flex-col items-center gap-11">
+              <div className="flex w-full flex-col items-center gap-8 sm:gap-11">
                 <div className="flex w-full items-center justify-between">
                   <h2 id="new-collection-title" className="text-[24px] font-semibold leading-[1.3] tracking-[-0.04em] text-[#1a1c18]">
                     Create new collection
@@ -82,9 +82,9 @@ export function NewCollectionButton({ className }: { className?: string }) {
                 </div>
 
                 {/* empty album preview: one tall tile and two small ones */}
-                <div aria-hidden className="flex h-[237px] w-[278px] items-center gap-[2.5px]">
-                  <div className="h-full w-[169px] bg-[#f2f2f2]" />
-                  <div className="flex h-full w-[106px] flex-col gap-[2.5px]">
+                <div aria-hidden className="flex aspect-[278/237] w-full max-w-[278px] items-center gap-[2.5px]">
+                  <div className="h-full flex-[169] bg-[#f2f2f2]" />
+                  <div className="flex h-full flex-[106] flex-col gap-[2.5px]">
                     <div className="flex-1 bg-[#f2f2f2]" />
                     <div className="flex-1 bg-[#f2f2f2]" />
                   </div>
