@@ -49,7 +49,7 @@ export function NewCollectionButton({ className }: { className?: string }) {
         type="button"
         onClick={() => setOpen(true)}
         className={cn(
-          "flex h-[39px] items-center justify-center bg-dark px-8 text-center text-[13px] font-medium text-white transition-colors duration-300 hover:bg-accent",
+          "flex h-[39px] items-center justify-center whitespace-nowrap bg-dark px-4 text-center text-[13px] font-medium text-white transition-colors duration-300 hover:bg-accent md:px-8",
           className
         )}
       >

@@ -110,10 +110,10 @@ export function AlbumsList() {
               ))}
             </select>
           </label>
-          <div className="flex items-center gap-5 md:w-[367px]">
+          <div className="flex items-center gap-3 md:w-[367px] md:gap-5">
             <Link
               href="/catalogue"
-              className="flex h-[39px] w-[168px] shrink-0 items-center justify-center whitespace-nowrap border border-dark text-center text-[13px] font-medium text-black transition-colors duration-300 hover:bg-dark hover:text-white"
+              className="flex h-[39px] flex-1 items-center justify-center whitespace-nowrap border border-dark px-4 md:w-[168px] md:flex-none text-center text-[13px] font-medium text-black transition-colors duration-300 hover:bg-dark hover:text-white"
             >
               Browse products
             </Link>
