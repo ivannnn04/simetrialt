@@ -59,7 +59,7 @@ export function NewCollectionButton({ className }: { className?: string }) {
       {open &&
         createPortal(
           <div
-            className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/20 px-4 py-10 backdrop-blur-[10px] menu-fade sm:py-[116px]"
+            className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-black/20 px-4 py-10 backdrop-blur-[10px] menu-fade"
             onPointerDown={(e) => e.target === e.currentTarget && setOpen(false)}
           >
             <form
@@ -67,14 +67,14 @@ export function NewCollectionButton({ className }: { className?: string }) {
               role="dialog"
               aria-modal="true"
               aria-labelledby="new-collection-title"
-              className="flex w-full max-w-[440px] flex-col items-center gap-10 bg-white p-5 sm:gap-[62px] sm:p-8"
+              className="my-auto flex w-full max-w-[440px] flex-col items-center gap-10 bg-white p-5 sm:gap-[62px] sm:p-8"
             >
               <div className="flex w-full flex-col items-center gap-8 sm:gap-11">
-                <div className="flex w-full items-center justify-between">
+                <div className="flex w-full items-center justify-between gap-6">
                   <h2 id="new-collection-title" className="text-[24px] font-semibold leading-[1.3] tracking-[-0.04em] text-[#1a1c18]">
                     Create new collection
                   </h2>
-                  <button type="button" aria-label="Close" onClick={() => setOpen(false)} className="text-[#1a1c18] transition-colors hover:text-accent">
+                  <button type="button" aria-label="Close" onClick={() => setOpen(false)} className="shrink-0 text-[#1a1c18] transition-colors hover:text-accent">
                     <svg viewBox="0 0 24 24" className="size-6" fill="none" aria-hidden>
                       <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                     </svg>
