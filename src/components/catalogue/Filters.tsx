@@ -152,25 +152,35 @@ export function SortSelect({
   const router = useRouter();
   const params = useSearchParams();
   return (
-    <label className="flex items-center gap-2 text-[15px]">
+    <label className="flex items-center gap-2 text-[15px] leading-none">
       <span className="text-[#1a1c18]/60">Sort by</span>
-      <select
-        value={value}
-        onChange={(e) => {
-          const next = new URLSearchParams(params.toString());
-          if (e.target.value === "relevance") next.delete("sort");
-          else next.set("sort", e.target.value);
-          next.delete("page");
-          router.push(`${basePath}?${next.toString()}`, { scroll: false });
-        }}
-        className="bg-transparent text-[#1a1c18] focus:outline-none"
-      >
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
+      {/* Figma 4217:47880: value, 6px gap, 8×4 caret (native select padding and arrow removed) */}
+      <span className="relative inline-block">
+        {/* Invisible mirror of the selected label sizes the select to its text, so the caret follows the value. */}
+        <span aria-hidden className="invisible block whitespace-nowrap pr-[14px]">
+          {options.find((o) => o.value === value)?.label ?? options[0]?.label}
+        </span>
+        <select
+          value={value}
+          onChange={(e) => {
+            const next = new URLSearchParams(params.toString());
+            if (e.target.value === "relevance") next.delete("sort");
+            else next.set("sort", e.target.value);
+            next.delete("page");
+            router.push(`${basePath}?${next.toString()}`, { scroll: false });
+          }}
+          className="absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent p-0 pr-[14px] text-[15px] leading-none text-[#1a1c18] focus:outline-none"
+        >
+          {options.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+        <svg aria-hidden viewBox="0 0 8 4" className="pointer-events-none absolute right-0 top-1/2 h-1 w-2 -translate-y-1/2 text-[#1a1c18]">
+          <path d="M0 0l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1" />
+        </svg>
+      </span>
     </label>
   );
 }
