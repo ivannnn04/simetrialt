@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/site/Header";
 import { Breadcrumbs } from "@/components/site/Breadcrumbs";
 import { ProductLine } from "@/components/home/HomeSections";
 import { ProductInfo } from "@/components/product/ProductInfo";
+import { ProductGallery } from "@/components/product/ProductGallery";
 import { loadProduct } from "@/lib/product-page";
 
 export const dynamic = "force-dynamic";
@@ -44,28 +45,15 @@ export default async function ProductPage({ params }: Params) {
   return (
     <div className="flex w-full flex-col bg-cream pb-10 md:pb-[120px]">
       <SiteHeader variant="solid" />
-      <section className="mx-auto grid w-full max-w-[1440px] gap-10 px-4 pt-[34px] md:px-10 lg:grid-cols-2 lg:gap-x-20">
-        {/* Gallery column (node 4217:46872) */}
-        <div className="flex flex-col gap-[45px]">
+      <section className="mx-auto grid w-full max-w-[1440px] gap-10 px-4 pt-[34px] md:px-10 min-[1025px]:grid-cols-2 min-[1025px]:gap-x-20">
+        {/* Gallery column (node 4217:46872): vertical stack on desktop, slider up to 1024px */}
+        <div className="flex min-w-0 flex-col gap-[45px]">
           <Breadcrumbs items={crumbs} />
-          <div className="flex flex-col gap-4">
-            {product.images.map((src, i) => (
-              <figure key={i} className="flex aspect-[640/452] w-full items-center justify-center overflow-hidden bg-[#f2f2f2]">
-                {src ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={src}
-                    alt={i === 0 ? product.name : ""}
-                    className={i === 0 ? "max-h-[86%] max-w-[70%] object-contain" : "size-full object-cover"}
-                  />
-                ) : null}
-              </figure>
-            ))}
-          </div>
+          <ProductGallery images={product.images} name={product.name} />
         </div>
 
         {/* Info column (node 4217:46881) */}
-        <div className="lg:sticky lg:top-0 lg:self-start">
+        <div className="min-[1025px]:sticky min-[1025px]:top-0 min-[1025px]:self-start">
           <ProductInfo product={product} />
         </div>
       </section>
