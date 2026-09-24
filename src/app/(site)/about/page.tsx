@@ -68,12 +68,12 @@ export default function AboutPage() {
               className="relative w-full border-t border-line bg-cream md:-mb-6"
               style={{ zIndex: i + 1 }}
             >
-              <div className="mx-auto flex w-full max-w-[1440px] flex-col px-4 pt-6 md:flex-row md:items-start md:gap-[156px] md:pl-[320px] md:pr-10">
-                <div className="flex w-[250px] items-start">
+              <div className="mx-auto flex w-full max-w-[1440px] flex-col px-4 pt-6 md:flex-row md:items-start md:gap-12 md:px-10 lg:gap-[100px] lg:pl-[180px] xl:gap-[156px] xl:pl-[320px]">
+                <div className="flex w-[250px] shrink-0 items-start">
                   <span className="text-[96px] font-medium leading-none tracking-[-0.04em] text-black md:text-[134px]">{row.years}</span>
                   <span className="py-8 text-[13px] leading-[1.3] tracking-[-0.04em] text-black">(years)</span>
                 </div>
-                <div className="flex flex-1 items-center justify-between gap-8 py-8 text-[18px] leading-[1.3] tracking-[-0.04em] text-[#1f1f1f]">
+                <div className="flex min-w-0 flex-1 items-center justify-between gap-8 py-8 text-[18px] leading-[1.3] tracking-[-0.04em] text-[#1f1f1f]">
                   <p className="max-w-[380px]">{row.text}</p>
                   <p className="whitespace-nowrap">({String(i + 1).padStart(2, "0")})</p>
                 </div>
