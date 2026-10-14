@@ -5,14 +5,16 @@ import { PageHero } from "@/components/site/Sections";
 import { BRANDS } from "@/data/brands";
 import { BrandMark } from "@/components/site/BrandMark";
 import { PLACEHOLDER_IMAGE } from "@/lib/placeholder";
+import { getT } from "@/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Brands — Simetria LT",
-  description: "Partner brands we trust: furniture and lighting manufacturers represented by Simetria.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return (await getT()).brandsPage.meta;
+}
 
-// Figma "Brands page" (node 4217:46278)
-export default function BrandsPage() {
+// Figma "Brands page" (node 4217:46278; Lithuanian 4217:48317)
+export default async function BrandsPage() {
+  const t = await getT();
+  const b = t.brandsPage;
   return (
     <div className="flex w-full flex-col gap-[120px] bg-cream">
       <section className="flex w-full flex-col gap-16 lg:gap-[100px]">
@@ -21,10 +23,10 @@ export default function BrandsPage() {
             nesting inside a second padded wrapper (which pushed the hero 40px further right) */}
         <div className="flex w-full flex-col gap-[70px]">
           <PageHero
-            title={<span className="block max-w-[837px]">Partner Brands We Trust</span>}
+            title={<span className="block max-w-[900px]">{b.title}</span>}
             titleClassName="xl:text-[106px]"
-            text="We don't chase trends — we represent brands for excellent design, high quality and timeless solutions, and we stay with them for years."
-            button={{ label: "Book a consultation", href: "/contact" }}
+            text={b.text}
+            button={{ label: b.book, href: "/contact" }}
           />
           <ul className="mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-2 px-4 pb-10 md:pb-[120px] md:grid-cols-2 md:px-10 xl:grid-cols-3">
             {BRANDS.map((brand) => (
@@ -46,7 +48,7 @@ export default function BrandsPage() {
                   <span className="relative flex flex-col gap-2">
                     <span className="text-[18px] font-semibold leading-none tracking-[-0.04em]">{brand.name}</span>
                     <span className="text-[14px] leading-[1.3] tracking-[-0.04em] text-label group-hover:text-tertiary">
-                      {brand.category} · {brand.country}
+                      {b.categories[brand.category] ?? brand.category} · {b.countries[brand.country] ?? brand.country}
                     </span>
                   </span>
                 </Link>

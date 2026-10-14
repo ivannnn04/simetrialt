@@ -202,6 +202,28 @@ export const en = {
       services: ["Services Applied", "Lighting design, Bespoke interior solutions, Installation & after-sales"],
     },
   },
+  brandsPage: {
+    meta: { title: "Brands — Simetria LT", description: "Partner brands we trust: furniture and lighting manufacturers represented by Simetria." },
+    title: "Partner Brands We Trust",
+    text: "We don't chase trends — we represent brands for excellent design, high quality and timeless solutions, and we stay with them for years.",
+    book: "Book a consultation",
+    categories: {} as Record<string, string>,
+    countries: {} as Record<string, string>,
+    detail: {
+      home: "Home",
+      brands: "Brands",
+      title: (name: string) => `Explore ${name} Brand`,
+      collections: "Signature collections",
+      projects: "Projects",
+      seeMore: "See more",
+      viewProject: "View project",
+      productLine: "Product line",
+      ctaTitle: "A Complete Furniture Collection for Architects & Designers",
+      ctaText: "Reliable manufacturing, premium finishes, and solutions tailored to professional specifications.",
+      viewProducts: "View products from this brand",
+      enquiry: "Send enquiry",
+    },
+  },
   /** Strings shared by every service detail page. */
   servicePage: {
     home: "Home",

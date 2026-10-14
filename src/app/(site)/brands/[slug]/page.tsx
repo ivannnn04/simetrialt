@@ -10,6 +10,8 @@ import { ProductLine } from "@/components/home/HomeSections";
 import { getFeaturedProducts } from "@/lib/products";
 import { getBrand } from "@/data/brands";
 import { PROJECTS } from "@/data/projects";
+import { getT } from "@/i18n/server";
+import { term, termParts } from "@/i18n/dictionaries";
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +42,8 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
   const brand = getBrand(slug);
   if (!brand) notFound();
 
-  const cards = await getFeaturedProducts(9);
+  const [cards, t] = await Promise.all([getFeaturedProducts(9), getT()]);
+  const d = t.brandsPage.detail;
 
   const projects = PROJECTS;
 
@@ -51,10 +54,10 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
         <div className="flex w-full flex-col gap-16 lg:gap-[100px]">
           <SiteHeader variant="solid" />
           <PageHero
-            crumbs={[{ label: "Home", href: "/" }, { label: "Brands", href: "/brands" }, { label: brand.name }]}
-            title={<span className="block max-w-[646px]">Explore {brand.name} Brand</span>}
-            text="We don't chase trends — we represent brands for excellent design, high quality and timeless solutions, and we stay with them for years."
-            button={{ label: "Book a consultation", href: "/contact" }}
+            crumbs={[{ label: d.home, href: "/" }, { label: d.brands, href: "/brands" }, { label: brand.name }]}
+            title={<span className="block max-w-[900px]">{d.title(brand.name)}</span>}
+            text={t.brandsPage.text}
+            button={{ label: t.brandsPage.book, href: "/contact" }}
           />
         </div>
         <hr className="border-line" />
@@ -63,14 +66,14 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
       {/* Signature collections */}
       <section className="flex w-full flex-col gap-10">
         <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-6 px-4 md:px-10">
-          <h2 className="text-[36px] font-medium leading-[1.1] tracking-[-0.04em] text-black md:text-[52px]">Signature collections</h2>
-          <SectionLink href="/catalogue">See more</SectionLink>
+          <h2 className="text-[36px] font-medium leading-[1.1] tracking-[-0.04em] text-black md:text-[52px]">{d.collections}</h2>
+          <SectionLink href="/catalogue">{d.seeMore}</SectionLink>
         </div>
         <CardStrip>
           {brand.collections.map((c, i) => (
             <Link key={c.title} href="/catalogue" className="flex w-[300px] flex-col gap-4 lg:w-[360px]">
               <Photo src={`/images/brands/${brand.slug}-collection-${i + 1}.jpg`} tone="light" className={cn("w-full", COLLECTION_HEIGHT[c.height])} />
-              <p className="text-[18px] font-medium leading-none tracking-[-0.04em] text-black">{c.title}</p>
+              <p className="text-[18px] font-medium leading-none tracking-[-0.04em] text-black">{term(t, c.title)}</p>
             </Link>
           ))}
         </CardStrip>
@@ -79,28 +82,28 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
       {/* Projects */}
       <section className="flex w-full flex-col gap-10">
         <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-6 px-4 md:px-10">
-          <h2 className="text-[36px] font-medium leading-[1.1] tracking-[-0.04em] text-black md:text-[52px]">Projects</h2>
-          <SectionLink href="/projects">See more</SectionLink>
+          <h2 className="text-[36px] font-medium leading-[1.1] tracking-[-0.04em] text-black md:text-[52px]">{d.projects}</h2>
+          <SectionLink href="/projects">{d.seeMore}</SectionLink>
         </div>
         <CardStrip>
           {projects.map((p, i) => (
             <Link
               key={p.slug}
               href={`/projects/${p.slug}`}
-              data-cursor="View project"
+              data-cursor={d.viewProject}
               className={cn("flex flex-col gap-4", i === 0 ? "w-[300px] lg:w-[728px]" : "w-[300px] lg:w-[360px]")}
             >
               <Photo src={p.image} className={cn("w-full", i === 0 ? "h-[458px]" : "h-[366px]")} />
               <div className="flex flex-col gap-2 font-medium leading-none">
                 <p className="text-[18px] tracking-[-0.04em] text-black">{p.name}</p>
-                <p className="text-[13px] uppercase tracking-[-0.04em] text-body">{p.category}</p>
+                <p className="text-[13px] uppercase tracking-[-0.04em] text-body">{termParts(t, p.category)}</p>
               </div>
             </Link>
           ))}
         </CardStrip>
       </section>
 
-      <ProductLine products={cards} title="Product line" cta={{ label: "See more", href: "/catalogue" }} className="" />
+      <ProductLine products={cards} title={d.productLine} cta={{ label: d.seeMore, href: "/catalogue" }} className="" />
 
       {/* CTA (Figma "section cta") */}
       <section className="w-full lg:border-y lg:border-line">
@@ -112,15 +115,13 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
           <div className="flex flex-1 flex-col items-center justify-center gap-8 p-4 text-center md:p-10 lg:aspect-square">
             <div className="flex flex-col gap-6">
               <h2 className="text-[36px] font-medium leading-none tracking-[-0.04em] text-black md:text-[46px]">
-                A Complete Furniture Collection for Architects &amp; Designers
+                {d.ctaTitle}
               </h2>
-              <p className="text-[18px] leading-[1.3] tracking-[-0.04em] text-body">
-                Reliable manufacturing, premium finishes, and solutions tailored to professional specifications.
-              </p>
+              <p className="text-[18px] leading-[1.3] tracking-[-0.04em] text-body">{d.ctaText}</p>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2">
-              <DotButton href="/catalogue">View products from this brand</DotButton>
-              <DotButton variant="ghost" dots={false} href={`/contact?product=${encodeURIComponent(brand.name)}`}>Send enquiry</DotButton>
+              <DotButton href="/catalogue">{d.viewProducts}</DotButton>
+              <DotButton variant="ghost" dots={false} href={`/contact?product=${encodeURIComponent(brand.name)}`}>{d.enquiry}</DotButton>
             </div>
           </div>
         </div>
