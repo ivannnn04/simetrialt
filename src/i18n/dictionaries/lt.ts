@@ -244,7 +244,7 @@ export const lt: Dictionary = {
       ],
       recentWork: {
         eyebrow: "NAUJAUSI APŠVIETIMO DARBAI",
-        heading: "Projektai, kuriuose mes parengėme apšvietimo užduotį",
+        heading: "Įgyvendinti apšvietimo projektai",
         cards: [
           { category: "BŪSTAI · INDIVIDUALIAI PRITAIKYTI ĮRENGINIAI", title: "„Baltic Innovation“ būstinė", tag: "NAUJAS PROJEKTAS" },
           { category: "BŪSTAI · INDIVIDUALIAI PRITAIKYTI ĮRENGINIAI", title: "„Baltic Residence“", tag: "NAUJAS PROJEKTAS" },
