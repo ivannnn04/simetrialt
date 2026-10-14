@@ -158,7 +158,17 @@ export const lt: Dictionary = {
       lighting: {
         tags: ["Apšvietimo skaičiavimas", "Individualūs tvirtinimo elementai", "Integracija ir palaikymas"],
         title: "Apšvietimo dizainas ir sprendimai",
-        text: "Apšvietimo projekto rengimas, skaičiavimai ir atitiktis, išmaniojo apšvietimo integravimas ir nestandartiniai šviestuvai – nuo koncepcijos iki perdavimo. Užtikriname, kad jūsų dizaino vizija būtų visiškai įgyvendinta, užtikrindami sklandų koordinavimą kiekviename projekto etape.",
+        text: "Kuriame apšvietimą, kuris sujungia erdvės funkciją, architektūrą ir atmosferą. Rengiame sprendimus privačios ir viešosios paskirties objektams – nuo koncepcijos iki šviestuvų parinkimo ir valdymo scenarijų.",
+        points: [
+          "Apšvietimo koncepcijos kūrimas",
+          "Architektūrinis ir techninis apšvietimas",
+          "Dekoratyvinis apšvietimas",
+          "Apšvietos skaičiavimai ir analizė",
+          "Energetiškai efektyvūs apšvietimo sprendimai",
+          "Šviestuvų ir įrangos parinkimas",
+          "Apšvietimo valdymo scenarijai ir sistemos: šviesos intensyvumo reguliavimas, scenos ir išmanusis valdymas",
+        ],
+        cta: "Aptarkime jūsų projektą",
       },
       "smart-home": {
         tags: ["Išmanusis apšvietimas", "Klimato kontrolė", "AV ir apsauga"],

@@ -131,7 +131,7 @@ export const en = {
         title: "Installation & after-sales support",
         text: "Comprehensive on-site delivery including installation, configuration, testing and final commissioning, plus ongoing technical support, maintenance and service long after the project is handed over.",
       },
-    } as Record<string, { tags: string[]; title: string; text: string }>,
+    } as Record<string, { tags: string[]; title: string; text: string; points?: string[]; cta?: string }>,
   },
   letsTalk: ["Let’s", "Talk"] as string[],
   footer: {

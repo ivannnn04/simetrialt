@@ -121,9 +121,18 @@ export async function ServicesList({ className, stack = false }: ServicesListPro
                   </h2>
                 </div>
                 <div className="flex flex-col gap-8">
-                  <p className="max-w-[562px] text-[16px] leading-[1.3] tracking-[-0.04em] text-label">{s.text}</p>
+                  <div className="flex max-w-[562px] flex-col gap-4 text-[16px] leading-[1.3] tracking-[-0.04em] text-label">
+                    <p>{s.text}</p>
+                    {s.points && (
+                      <ul className="flex flex-col gap-1 pl-5 list-disc marker:text-label">
+                        {s.points.map((point) => (
+                          <li key={point}>{point}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                   <div>
-                    <DotButton href={`/services/${s.slug}`}>{t.services.readMore}</DotButton>
+                    <DotButton href={`/services/${s.slug}`}>{s.cta ?? t.services.readMore}</DotButton>
                   </div>
                 </div>
               </div>
