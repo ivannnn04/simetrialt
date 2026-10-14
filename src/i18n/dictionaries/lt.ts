@@ -77,6 +77,15 @@ export const lt: Dictionary = {
     "vases & objects": "Vazos ir objektai",
     textiles: "Tekstilė",
     "wall art": "Sienų dekoras",
+    // project categories ("Residential · Custom fixtures" is translated segment by segment)
+    residential: "Būstai",
+    office: "Biuras",
+    hospitality: "Svetingumas",
+    culture: "Kultūra",
+    "custom fixtures": "Individualiai pritaikyti įrenginiai",
+    "lighting design": "Apšvietimo dizainas",
+    "bespoke interior": "Individualus interjeras",
+    "smart home": "Išmanieji namai",
   },
   home: {
     hero: {
@@ -218,6 +227,44 @@ export const lt: Dictionary = {
       title: "Meistriškų idėjų, integruotų sprendimų ir intelektualaus dizaino namai.",
       text: "Skaičiavimai, atitiktis reikalavimams, pažangi integracija ir individualiai pritaikyti įrenginiai.",
       button: "Slinkti",
+    },
+  },
+  // Figma "Projects page / ver 4" (node 4217:48261)
+  projectsPage: {
+    meta: { title: "Projektai — Simetria LT", description: "Atrinkti „Simetria“ baldų ir apšvietimo projektai." },
+    title: "Mūsų projektai",
+    tabs: { all: "Visi", private: "Privatus", public: "Viešas", other: "Kita" },
+    viewProducts: "Peržiūrėti produktus",
+    viewProject: "Peržiūrėti projektą",
+    empty: "Šioje kategorijoje projektų kol kas nėra.",
+  },
+  // Figma "Case page / ver 2 / upd 06.08" (node 4217:49761)
+  casePage: {
+    back: "Grįžti į projektus",
+    scroll: "Pervilkite, kad peržiūrėtumėte",
+    aboutEyebrow: "Apie projektą",
+    kinds: { Apartment: "Butas", Residential: "Būstas", Office: "Biuras", Hospitality: "Svetingumo objektas", Culture: "Kultūra" },
+    aboutTitle: "Baldai, kurie puikiai tinka bet kokiai erdvei",
+    about: [
+      "Atnaujinant viešbutį „Vilnia“ didžiausias dėmesys buvo skiriamas elegantiškų ir svetingų erdvių kūrimui, kuriose šiuolaikinė estetika derinama su kasdieniu komfortu. Kruopščiai atrinkti baldai pabrėžia interjero charakterį ir tuo pačiu atitinka viešbučių sektoriui keliamus ilgaamžiškumo bei funkcionalumo reikalavimus. Rezultatas – rafinuota aplinka, sukurta siekiant pagerinti svečių patirtį.",
+      "Kiekvienas baldų elementas buvo parinktas siekiant pusiausvyros tarp vizualinio patrauklumo ir ilgalaikio patvarumo. Nuo svečių kambarių iki bendrų poilsio zonų baldai prisideda prie darnios interjero kalbos, tuo pačiu užtikrindami komfortą, funkcionalumą ir lankstumą, kurių tikimasi iš šiuolaikinės viešbučio aplinkos.",
+    ],
+    sectionTitle: "Sukurta ilgalaikiam įspūdžiui",
+    sectionText:
+      "Šis projektas parodo, kaip kruopščiai suderinti baldai gali paversti viešbučių erdves į patrauklias vietas. Derinant aukščiausio lygio meistriškumą, aukštos kokybės medžiagas ir nesenstantį dizainą, renovacijos metu sukurti interjerai ne tik atitinka veiklos poreikius, bet ir palieka neišdildomą įspūdį kiekvienam svečiui.",
+    lightTitle: "Šviesos ir formos pusiausvyra",
+    light: [
+      "Individualiai pritaikytam apšvietimo projektui reikėjo atlikti tikslius skaičiavimus, kad jis derėtų su architektūrinėmis linijomis. Kiekvienas šviestuvas buvo strategiškai išdėstytas taip, kad apibrėžtų erdvės zonas, pabrėžtų aukštos kokybės apdailą ir užtikrintų sklandų vizualinį tęstinumą visose viešosiose erdvėse.",
+      "Derindamas aplinkos šviesą su tikslingu akcentiniu apšvietimu, projektas sukuria daugiasluoksnę atmosferą, kuri sklandžiai kinta nuo dienos iki nakties, užtikrindamas, kad svečiai visoje viešbučio erdvėje patirtų tiek funkcinį aiškumą, tiek šiltą, kviečiančią atmosferą.",
+    ],
+    specs: {
+      status: ["Statusas", "Pastatytas"],
+      type: "Tipas",
+      scale: ["Apimtis", "140 svečių kambarių + viešosios erdvės"],
+      timeline: ["Trukmė", "14 mėnesių"],
+      engineering: ["Inžinerija", "CMCU Engineering Co., Ltd"],
+      brands: ["Naudoti prekių ženklai ir produktai", "Marset, Sancal, Custom joinery, Pedrali"],
+      services: ["Suteiktos paslaugos", "Apšvietimo projektavimas, individualūs interjero sprendimai, montavimas ir aptarnavimas po pardavimo"],
     },
   },
   servicePage: {

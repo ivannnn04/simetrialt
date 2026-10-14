@@ -10,6 +10,11 @@ export function getDictionary(locale: Locale): Dictionary {
   return DICTIONARIES[locale] ?? en;
 }
 
+/** Translates a " · "-separated label segment by segment ("Residential · Custom fixtures"). */
+export function termParts(t: Dictionary, value: string): string {
+  return value.split(" · ").map((part) => term(t, part)).join(" · ");
+}
+
 /** Translates a catalogue term (category, typology, menu group) by its English value; unknown terms pass through. */
 export function term(t: Dictionary, value: string): string {
   return t.terms[value.toLowerCase()] ?? value;

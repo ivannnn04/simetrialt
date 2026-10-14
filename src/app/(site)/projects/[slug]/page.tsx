@@ -6,6 +6,8 @@ import { BackLink } from "@/components/ui/Button";
 import { LetsTalk } from "@/components/site/Sections";
 import { ImageStrip } from "@/components/projects/ImageStrip";
 import { PROJECTS, getProject } from "@/data/projects";
+import { getLocale, getT } from "@/i18n/server";
+import { DEFAULT_LOCALE } from "@/i18n/config";
 
 export function generateStaticParams() {
   return PROJECTS.map((p) => ({ slug: p.slug }));
@@ -23,21 +25,45 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
   const project = getProject(slug);
   if (!project) notFound();
   const img = (n: string) => `/images/projects/${project.slug}/${n}.jpg`;
+  const t = await getT();
+  const c = t.casePage;
+  // Every project shares the same body copy for now; other locales take it from the dictionary.
+  const localized = (await getLocale()) !== DEFAULT_LOCALE;
+  const copy = localized
+    ? {
+        aboutTitle: c.aboutTitle,
+        about: c.about,
+        sectionTitle: c.sectionTitle,
+        sectionText: c.sectionText,
+        lightTitle: c.lightTitle,
+        light: c.light,
+        specs: [
+          c.specs.status,
+          [c.specs.type, c.kinds[project.kind] ?? project.kind],
+          c.specs.scale,
+          c.specs.timeline,
+          c.specs.engineering,
+          c.specs.brands,
+          c.specs.services,
+        ] as [string, string][],
+      }
+    : project;
+  const kind = c.kinds[project.kind] ?? project.kind;
 
   return (
     <>
       {/* Hero */}
-      <section className="relative w-full" data-cursor="Scroll to view" data-cursor-size="lg">
+      <section className="relative w-full" data-cursor={c.scroll} data-cursor-size="lg">
         <Photo src={img("hero")} className="flex min-h-[100svh] w-full flex-col">
           <div className="absolute inset-0 bg-black/30" />
           <SiteHeader variant="overlay" />
           <div className="relative mx-auto flex w-full max-w-[1440px] flex-1 flex-col gap-[78px] pb-10 pt-[116px]">
             <div className="px-4 md:px-10">
-              <BackLink href="/projects">Back to Projects</BackLink>
+              <BackLink href="/projects">{c.back}</BackLink>
             </div>
             <div className="flex flex-col items-center gap-8 px-4 text-center text-white">
               <h1 className="max-w-[450px] text-[44px] font-medium leading-none tracking-[-0.04em] md:text-[64px]">{project.name}</h1>
-              <p className="text-[15px] leading-[1.4] tracking-[-0.04em]">{project.kind}</p>
+              <p className="text-[15px] leading-[1.4] tracking-[-0.04em]">{kind}</p>
             </div>
           </div>
         </Photo>
@@ -46,11 +72,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
       {/* About the project */}
       <section className="w-full bg-cream px-4 py-[120px] md:px-10">
         <div className="mx-auto flex w-full max-w-[1360px] flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
-          <p className="text-[18px] leading-[1.3] tracking-[-0.04em] text-secondary">About the Project</p>
+          <p className="text-[18px] leading-[1.3] tracking-[-0.04em] text-secondary">{c.aboutEyebrow}</p>
           <div className="flex flex-col gap-8 lg:w-[640px]">
-            <h2 className="text-[36px] font-medium leading-none tracking-[-0.04em] text-[#1f1f1f] md:text-[46px]">{project.aboutTitle}</h2>
+            <h2 className="text-[36px] font-medium leading-none tracking-[-0.04em] text-[#1f1f1f] md:text-[46px]">{copy.aboutTitle}</h2>
             <div className="flex flex-col gap-6 text-[18px] leading-[1.3] tracking-[-0.04em] text-label">
-              {project.about.map((p, i) => (
+              {copy.about.map((p, i) => (
                 <p key={i}>{p}</p>
               ))}
             </div>
@@ -67,11 +93,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           <Photo src={img("4")} className="h-[293px] w-full max-w-[432px]" />
           <div className="flex flex-col gap-12 lg:w-[640px]">
             <div className="flex max-w-[606px] flex-col gap-6">
-              <h2 className="text-[36px] font-medium leading-none tracking-[-0.04em] text-ink md:text-[46px]">{project.sectionTitle}</h2>
-              <p className="text-[18px] leading-[1.3] tracking-[-0.04em] text-label">{project.sectionText}</p>
+              <h2 className="text-[36px] font-medium leading-none tracking-[-0.04em] text-ink md:text-[46px]">{copy.sectionTitle}</h2>
+              <p className="text-[18px] leading-[1.3] tracking-[-0.04em] text-label">{copy.sectionText}</p>
             </div>
             <dl className="flex flex-col gap-4 text-[14px]">
-              {project.specs.map(([k, v]) => (
+              {copy.specs.map(([k, v]) => (
                 <div key={k} className="flex gap-8 border-b border-[#d3d3d3] pb-4">
                   <dt className="flex-1 font-semibold leading-none tracking-[-0.03em] text-[#57595b]">{k}</dt>
                   <dd className="flex-1 leading-[1.3] tracking-[-0.04em] text-label">{v}</dd>
@@ -89,9 +115,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
       <section className="w-full bg-cream px-4 py-[120px] md:px-10">
         <div className="mx-auto flex w-full max-w-[1360px] flex-col gap-12 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-col gap-6 lg:w-[606px]">
-            <h2 className="text-[36px] font-medium leading-none tracking-[-0.04em] text-ink md:text-[46px]">{project.lightTitle}</h2>
+            <h2 className="text-[36px] font-medium leading-none tracking-[-0.04em] text-ink md:text-[46px]">{copy.lightTitle}</h2>
             <div className="flex flex-col gap-6 text-[18px] leading-[1.3] tracking-[-0.04em] text-label">
-              {project.light.map((p, i) => (
+              {copy.light.map((p, i) => (
                 <p key={i}>{p}</p>
               ))}
             </div>

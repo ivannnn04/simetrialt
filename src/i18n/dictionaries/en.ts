@@ -165,6 +165,43 @@ export const en = {
       button: "Scroll",
     },
   },
+  projectsPage: {
+    meta: { title: "Projects — Simetria LT", description: "Selected furnishing and lighting projects by Simetria." },
+    title: "Our projects",
+    tabs: { all: "All", private: "Private", public: "Public", other: "Other" },
+    viewProducts: "View products",
+    viewProject: "View project",
+    empty: "No projects in this category yet.",
+  },
+  /** Case page copy; every project currently shares the same body text (src/data/projects.ts). */
+  casePage: {
+    back: "Back to Projects",
+    scroll: "Scroll to view",
+    aboutEyebrow: "About the Project",
+    kinds: {} as Record<string, string>,
+    aboutTitle: "Furniture That Supports Every Space",
+    about: [
+      "The refurbishment focused on creating elegant, welcoming spaces that combine contemporary aesthetics with everyday comfort. Carefully selected furniture enhances the character of the interiors while meeting the durability and functionality required by the client. The result is a refined environment designed to elevate the everyday experience.",
+      "Every furnishing element was chosen to achieve a balance between visual appeal and long-term performance. From private rooms to shared areas, the furniture contributes to a cohesive interior language while supporting the comfort, functionality, and flexibility expected in a modern space.",
+    ],
+    sectionTitle: "Crafted for Lasting Impressions",
+    sectionText:
+      "The project demonstrates how thoughtfully integrated furniture can transform spaces into inviting destinations. By combining premium craftsmanship, high-quality materials, and timeless design, the result meets operational needs and leaves a lasting impression.",
+    lightTitle: "Balance of Light and Form",
+    light: [
+      "Custom lighting engineering required precise calculations to harmonize with the architectural lines. Every fixture was strategically positioned to define spatial zones, accent high-end finishes, and maintain a seamless visual flow across all public areas.",
+      "By blending ambient glow with targeted accent illumination, the design creates a layered atmosphere that shifts fluidly from day to night, ensuring guests experience both functional clarity and a warm, inviting ambiance throughout the entire space.",
+    ],
+    specs: {
+      status: ["Status", "Built"],
+      type: "Type",
+      scale: ["Scale", "140 guest rooms + public areas"],
+      timeline: ["Timeline", "14 months"],
+      engineering: ["Engineering", "CMCU Engineering Co, Ltd"],
+      brands: ["Brands & Products Used", "Marset, Sancal, Custom joinery, Pedrali"],
+      services: ["Services Applied", "Lighting design, Bespoke interior solutions, Installation & after-sales"],
+    },
+  },
   /** Strings shared by every service detail page. */
   servicePage: {
     home: "Home",

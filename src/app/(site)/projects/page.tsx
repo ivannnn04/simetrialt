@@ -5,18 +5,14 @@ import { SiteHeader } from "@/components/site/Header";
 import { Photo } from "@/components/ui/Photo";
 import { StrokeLink } from "@/components/ui/Button";
 import { PROJECTS, type Project, type ProjectType } from "@/data/projects";
+import { getT } from "@/i18n/server";
+import { termParts, type Dictionary } from "@/i18n/dictionaries";
 
-export const metadata: Metadata = {
-  title: "Projects — Simetria LT",
-  description: "Selected furnishing and lighting projects by Simetria.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return (await getT()).projectsPage.meta;
+}
 
-const TABS: { label: string; value: ProjectType | "all" }[] = [
-  { label: "All", value: "all" },
-  { label: "Private", value: "private" },
-  { label: "Public", value: "public" },
-  { label: "Other", value: "other" },
-];
+const TAB_VALUES: (ProjectType | "all")[] = ["all", "private", "public", "other"];
 
 // Row layouts from the Figma grid: "wide" cards flex to fill, others are 360px; "tall" images are 752px.
 type Slot = { wide: boolean; tall: boolean };
@@ -44,11 +40,11 @@ function buildRows(projects: Project[]): { project: Project; slot: Slot }[][] {
   return rows;
 }
 
-function ProjectCard({ project, slot }: { project: Project; slot: Slot }) {
+function ProjectCard({ project, slot, t }: { project: Project; slot: Slot; t: Dictionary }) {
   return (
     <Link
       href={`/projects/${project.slug}`}
-      data-cursor="View project"
+      data-cursor={t.projectsPage.viewProject}
       className={cn("group flex flex-col gap-4", slot.wide ? "w-full lg:flex-1" : "w-full lg:w-[360px] lg:shrink-0")}
     >
       <Photo
@@ -57,7 +53,7 @@ function ProjectCard({ project, slot }: { project: Project; slot: Slot }) {
       />
       <div className="flex flex-col gap-2 font-medium leading-none">
         <p className="text-[18px] tracking-[-0.04em] text-black">{project.name}</p>
-        <p className="text-[13px] uppercase tracking-[-0.04em] text-body">{project.category}</p>
+        <p className="text-[13px] uppercase tracking-[-0.04em] text-body">{termParts(t, project.category)}</p>
       </div>
     </Link>
   );
@@ -69,7 +65,9 @@ export default async function ProjectsPage({
   searchParams: Promise<{ type?: string }>;
 }) {
   const { type } = await searchParams;
-  const active = TABS.some((t) => t.value === type) ? (type as ProjectType | "all") : "all";
+  const t = await getT();
+  const TABS = TAB_VALUES.map((value) => ({ value, label: t.projectsPage.tabs[value] }));
+  const active = TABS.some((tab) => tab.value === type) ? (type as ProjectType | "all") : "all";
   const projects = active === "all" ? PROJECTS : PROJECTS.filter((p) => p.type === active);
   const rows = buildRows(projects);
 
@@ -81,7 +79,7 @@ export default async function ProjectsPage({
           <SiteHeader variant="solid" />
           <div className="mx-auto w-full max-w-[1440px] px-4 md:px-10">
             <h1 className="max-w-[700px] text-[56px] font-medium leading-[0.92] tracking-[-0.04em] text-black md:text-[80px] xl:text-[106px]">
-              Our projects
+              {t.projectsPage.title}
             </h1>
           </div>
         </section>
@@ -107,7 +105,7 @@ export default async function ProjectsPage({
                 );
               })}
             </div>
-            <StrokeLink href="/catalogue">View products</StrokeLink>
+            <StrokeLink href="/catalogue">{t.projectsPage.viewProducts}</StrokeLink>
           </div>
 
           {/* Grid (Figma node 4217:46237) */}
@@ -115,11 +113,11 @@ export default async function ProjectsPage({
             {rows.map((row, i) => (
               <div key={i} className="flex flex-col gap-4 lg:flex-row lg:items-start">
                 {row.map(({ project, slot }) => (
-                  <ProjectCard key={project.slug} project={project} slot={slot} />
+                  <ProjectCard key={project.slug} project={project} slot={slot} t={t} />
                 ))}
               </div>
             ))}
-            {projects.length === 0 && <p className="text-secondary">No projects in this category yet.</p>}
+            {projects.length === 0 && <p className="text-secondary">{t.projectsPage.empty}</p>}
           </div>
         </section>
       </div>
