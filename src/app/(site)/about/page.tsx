@@ -3,47 +3,36 @@ import { SiteHeader } from "@/components/site/Header";
 import { Photo } from "@/components/ui/Photo";
 import { CtaSection, LetsTalk, PageHero } from "@/components/site/Sections";
 import { FeaturesSection } from "@/components/home/HomeSections";
+import { getT } from "@/i18n/server";
 
-export const metadata: Metadata = {
-  title: "About — Simetria LT",
-  description: "Discover the Simetria system: curated sourcing, precise calculations and dedicated technical support.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return (await getT()).aboutPage.meta;
+}
 
-const YEARS = [
-  { years: "12", text: "Representing Marset in the Baltics." },
-  { years: "9", text: "Representing Sancal across hospitality and residential projects." },
-  { years: "7", text: "Representing Pedrali for large-scale commercial fit-outs." },
-];
+const YEARS = ["12", "9", "7"];
 
-const TEAM = [
-  ["Alexander Wright", "Managing Director & Head of Curation"],
-  ["Regina Feil", "Central Applications Orchestrator"],
-  ["Phillip Nienow", "Human Usability Consultant"],
-  ["Michael Kub", "Central Mobility Technician"],
-  ["Carol Steuber", "Human Program Director"],
-  ["Alberta Macejkovic", "Senior Implementation Director"],
-  ["Terri Wisozk", "Product Research Specialist"],
-  ["Erica Barrows", "Future Creative Consultant"],
-];
+const TEAM = ["Alexander Wright", "Regina Feil", "Phillip Nienow", "Michael Kub", "Carol Steuber", "Alberta Macejkovic", "Terri Wisozk", "Erica Barrows"];
 
-// Figma "About Us page" (node 4217:46302)
-export default function AboutPage() {
+// Figma "About Us page" (node 4217:46302; Lithuanian 4217:48341)
+export default async function AboutPage() {
+  const t = await getT();
+  const a = t.aboutPage;
   return (
     <>
       <section className="flex w-full flex-col gap-16 bg-cream lg:gap-[100px]">
         <SiteHeader variant="solid" />
         <div className="flex w-full flex-col gap-8">
           <PageHero
-            crumbs={[{ label: "Home", href: "/" }, { label: "About" }]}
+            crumbs={[{ label: a.home, href: "/" }, { label: a.about }]}
             title={
               <>
-                Discover the
+                {a.title[0]}
                 <br />
-                Simetria system
+                {a.title[1]}
               </>
             }
-            text="Curated product sourcing, precise calculations, and dedicated technical support for professional architects and interior designers"
-            button={{ label: "Book a consultation", href: "/contact" }}
+            text={a.text}
+            button={{ label: a.book, href: "/contact" }}
           />
           <Photo src="/images/about/hero.jpg" position="bottom" className="h-[360px] w-full sm:h-[420px] md:h-[480px] xl:aspect-[1440/512] xl:h-auto xl:min-h-[480px]" />
         </div>
@@ -52,17 +41,13 @@ export default function AboutPage() {
       {/* About + years (Figma 4217:46310): full-width divider lines, content inside the container, rows overlap by 24px */}
       <section className="flex w-full flex-col gap-20 py-[120px]">
         <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-6 px-4 md:px-10">
-          <p className="text-[18px] leading-[1.3] tracking-[-0.04em] text-secondary">About us</p>
-          <p className="text-[32px] font-medium leading-none tracking-[-0.04em] text-black md:text-[46px]">
-            We specialize in lighting project development, calculations, compliance, smart integration, and custom
-            fixtures. From concept to handover, we manage every detail to ensure your design vision is flawlessly
-            realized.
-          </p>
+          <p className="text-[18px] leading-[1.3] tracking-[-0.04em] text-secondary">{a.aboutUs}</p>
+          <p className="text-[32px] font-medium leading-none tracking-[-0.04em] text-black md:text-[46px]">{a.intro}</p>
         </div>
         <div className="flex w-full flex-col">
-          {YEARS.map((row, i) => (
+          {YEARS.map((years, i) => (
             <div
-              key={row.years}
+              key={years}
               // Figma: rows overlap by 24px; each row has the page background and sits above the
               // previous one, so the bottom of the previous digits is cut off by the divider line.
               className="relative w-full border-t border-line bg-cream md:-mb-6"
@@ -70,11 +55,11 @@ export default function AboutPage() {
             >
               <div className="mx-auto flex w-full max-w-[1440px] flex-col px-4 pt-6 md:flex-row md:items-start md:gap-12 md:px-10 lg:gap-[100px] lg:pl-[180px] xl:gap-[156px] xl:pl-[320px]">
                 <div className="flex w-[250px] shrink-0 items-start gap-2">
-                  <span className="text-[96px] font-medium leading-none tracking-[-0.04em] text-black md:text-[134px]">{row.years}</span>
-                  <span className="py-8 text-[13px] leading-[1.3] tracking-[-0.04em] text-black">(years)</span>
+                  <span className="text-[96px] font-medium leading-none tracking-[-0.04em] text-black md:text-[134px]">{years}</span>
+                  <span className="py-8 text-[13px] leading-[1.3] tracking-[-0.04em] text-black">{a.years}</span>
                 </div>
                 <div className="flex min-w-0 flex-1 items-center justify-between gap-8 py-8 text-[18px] leading-[1.3] tracking-[-0.04em] text-[#1f1f1f]">
-                  <p className="max-w-[380px]">{row.text}</p>
+                  <p className="max-w-[380px]">{a.yearRows[i]}</p>
                   <p className="whitespace-nowrap">({String(i + 1).padStart(2, "0")})</p>
                 </div>
               </div>
@@ -83,34 +68,26 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <FeaturesSection
-        image="/images/about/features.jpg"
-        slides={[
-          { title: "Personalised approach", text: "Every project is treated as unique, tailoring our curation and support precisely to your specific requirements." },
-          { title: "Technical precision", text: "Lighting calculations, compliance checks and specification sheets prepared by our own engineers." },
-          { title: "Reliable delivery", text: "Consolidated logistics and on-site coordination so every piece arrives on time and in place." },
-          { title: "Support after handover", text: "Maintenance, spare parts and adjustments long after the project is complete." },
-        ]}
-      />
+      <FeaturesSection image="/images/about/features.jpg" slides={a.features} />
 
       <CtaSection
-        eyebrow="Explore Our Portfolio"
+        eyebrow={a.cta.eyebrow}
         image="/images/about/cta.jpg"
-        title="Proven expertise shaping inspiring interiors through meticulous collaboration"
-        text="Sourcing, Calculations, Architectural Support, and Execution."
-        button={{ label: "View Portfolio", href: "/projects" }}
+        title={a.cta.title}
+        text={a.cta.text}
+        button={{ label: a.cta.button, href: "/projects" }}
       />
 
       {/* Team */}
       <section className="mx-auto flex w-full max-w-[1440px] flex-col gap-10 px-4 pb-[120px] md:px-10">
-        <h2 className="text-[36px] font-medium leading-[1.1] tracking-[-0.04em] text-black md:text-[52px]">Our team</h2>
+        <h2 className="text-[36px] font-medium leading-[1.1] tracking-[-0.04em] text-black md:text-[52px]">{a.team}</h2>
         <ul className="grid grid-cols-1 gap-x-[14px] gap-y-12 sm:grid-cols-2 xl:grid-cols-4">
-          {TEAM.map(([name, role], i) => (
+          {TEAM.map((name, i) => (
             <li key={name} className="flex flex-col gap-4">
               <Photo src={`/images/about/team-${i + 1}.jpg`} tone="light" className="h-[420px] w-full" />
               <div className="flex flex-col gap-2">
                 <p className="text-[18px] font-semibold leading-none tracking-[-0.04em] text-black">{name}</p>
-                <p className="text-[14px] leading-[1.3] tracking-[-0.04em] text-body">{role}</p>
+                <p className="text-[14px] leading-[1.3] tracking-[-0.04em] text-body">{a.roles[i]}</p>
               </div>
             </li>
           ))}
@@ -123,12 +100,9 @@ export default function AboutPage() {
           <div className="absolute inset-0 bg-black/[0.32]" />
           <div className="relative mx-auto flex min-h-[531px] max-w-[1440px] flex-col justify-between gap-10 px-4 py-[100px] md:px-10">
             <h2 className="max-w-[672px] text-[36px] font-medium leading-[1.1] tracking-[-0.04em] text-white md:text-[52px]">
-              Precision lighting design and furnishing solutions crafted for professional spaces.
+              {a.banner.title}
             </h2>
-            <p className="max-w-[460px] text-[18px] leading-[1.3] tracking-[-0.04em] text-white">
-              From initial concept layout to final fixture installation, we provide comprehensive technical support,
-              accurate calculations, and curated product sourcing.
-            </p>
+            <p className="max-w-[460px] text-[18px] leading-[1.3] tracking-[-0.04em] text-white">{a.banner.text}</p>
           </div>
         </Photo>
       </section>
