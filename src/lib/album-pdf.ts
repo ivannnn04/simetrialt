@@ -76,7 +76,7 @@ export async function downloadAlbumPdf(input: AlbumPdfInput) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(BODY);
-  doc.text(["Simetria Showroom", "Vilnius, Lithuania", "info@simetria.com  ·  (000) 666 555 444"], W - M, 15, { align: "right" });
+  doc.text(["Simetria Showroom", "Vilnius, Lithuania", "info@simetria.lt  ·  069 029 606"], W - M, 15, { align: "right" });
 
   // Title
   doc.setTextColor(INK);

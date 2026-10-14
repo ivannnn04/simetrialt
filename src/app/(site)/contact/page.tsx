@@ -12,8 +12,8 @@ export const metadata: Metadata = {
 };
 
 const CONTACTS = [
-  { label: "Give us a call", value: "(000) 666 555 444", Icon: PhoneIcon, href: "tel:+000666555444" },
-  { label: "Send us an email", value: "info@simetria.com", Icon: MailIcon, href: "mailto:info@simetria.com" },
+  { label: "Give us a call", value: "069 029 606", Icon: PhoneIcon, href: "tel:+37069029606" },
+  { label: "Send us an email", value: "info@simetria.lt", Icon: MailIcon, href: "mailto:info@simetria.lt" },
   { label: "Simetria Showroom", value: "Vilnius, Lithuania", Icon: PinIcon, href: "https://www.google.com/maps/search/?api=1&query=Simetria+Showroom+Vilnius+Lithuania", external: true },
 ];
 

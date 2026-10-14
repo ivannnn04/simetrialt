@@ -40,13 +40,14 @@ const columns = (t: Dictionary): { heading: string; items: Item[] }[] => [
     items: [
       { label: "Instagram", href: "#" },
       { label: "Facebook", href: "#" },
+      { label: "LinkedIn", href: "#" },
     ],
   },
 ];
 
 const contacts = (t: Dictionary) => [
-  { label: t.footer.call, value: "(000) 666 555 444", Icon: PhoneIcon, href: "tel:+000666555444" },
-  { label: t.footer.email, value: "info@simetria.com", Icon: MailIcon, href: "mailto:info@simetria.com" },
+  { label: t.footer.call, value: "069 029 606", Icon: PhoneIcon, href: "tel:+37069029606" },
+  { label: t.footer.email, value: "info@simetria.lt", Icon: MailIcon, href: "mailto:info@simetria.lt" },
   { label: t.footer.showroom, value: t.footer.showroomValue, Icon: PinIcon, href: "/contact" },
 ];
 
