@@ -7,6 +7,7 @@ import { CtaSection, LetsTalk, ServicesList } from "@/components/site/Sections";
 import { ProjectsSlider } from "@/components/home/ProjectsSlider";
 import { PROJECT_SLIDES, PROJECT_SLIDES_IMAGE } from "@/data/project-slides";
 import { cn } from "@/lib/cn";
+import { getT } from "@/i18n/server";
 
 export const metadata: Metadata = {
   title: "Services — Simetria LT",
@@ -45,7 +46,8 @@ const PROCESS = [
   },
 ];
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  const t = await getT();
   return (
     <>
       {/* Hero (Figma node 4217:47503) */}
@@ -104,11 +106,11 @@ export default function ServicesPage() {
       </section>
 
       <CtaSection
-        eyebrow="Check out our projects"
+        eyebrow={t.servicesPage.cta.eyebrow}
         image="/images/services/cta.jpg"
-        title="A dedicated design partner for full-cycle lighting development and interior solutions."
-        text="Calculations, compliance, smart integration, and custom fixtures."
-        button={{ label: "Scroll", href: "#projects" }}
+        title={t.servicesPage.cta.title}
+        text={t.servicesPage.cta.text}
+        button={{ label: t.servicesPage.cta.button, href: "#projects" }}
       />
 
       <ProjectsSlider image={PROJECT_SLIDES_IMAGE} slides={PROJECT_SLIDES} />

@@ -133,6 +133,14 @@ export const en = {
       },
     } as Record<string, { tags: string[]; title: string; text: string; points?: string[]; cta?: string }>,
   },
+  servicesPage: {
+    cta: {
+      eyebrow: "Check out our projects",
+      title: "A dedicated design partner for full-cycle lighting development and interior solutions.",
+      text: "Calculations, compliance, smart integration, and custom fixtures.",
+      button: "Scroll",
+    },
+  },
   letsTalk: ["Let’s", "Talk"] as string[],
   footer: {
     title: "Your End-to-End Furnishing Partner",

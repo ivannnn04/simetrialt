@@ -187,6 +187,14 @@ export const lt: Dictionary = {
       },
     },
   },
+  servicesPage: {
+    cta: {
+      eyebrow: "Peržiūrėkite mūsų projektus",
+      title: "Meistriškų idėjų, integruotų sprendimų ir intelektualaus dizaino namai.",
+      text: "Skaičiavimai, atitiktis reikalavimams, pažangi integracija ir individualiai pritaikyti įrenginiai.",
+      button: "Slinkti",
+    },
+  },
   letsTalk: ["Pakalbėkime"],
   footer: {
     title: "Jūsų visapusiškas partneris kuriant erdves",
