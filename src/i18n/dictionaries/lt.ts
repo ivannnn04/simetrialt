@@ -343,7 +343,7 @@ export const lt: Dictionary = {
       "Atstovaujame „Pedrali“ vykdant didelio masto komercinių patalpų įrengimo projektus.",
     ],
     features: [
-      { title: "Individualus požiūris", text: "Kiekvienas projektas vertinamas kaip unikalus, todėl mūsų paslaugas ir paramą pritaikome būtent pagal jūsų konkrečius poreikius." },
+      { title: "Individualus požiūris", text: "Įsiklausome į jūsų viziją ir deriname estetiką, funkciją bei technines galimybes." },
       { title: "Techninis tikslumas", text: "Apšvietimo skaičiavimus, atitikties patikras ir specifikacijų lapus rengia mūsų pačių inžinieriai." },
       { title: "Patikimas pristatymas", text: "Konsoliduota logistika ir koordinavimas objekte, kad kiekvienas elementas atvyktų laiku ir į savo vietą." },
       { title: "Pagalba po perdavimo", text: "Priežiūra, atsarginės dalys ir koregavimai dar ilgai po projekto užbaigimo." },
