@@ -26,6 +26,12 @@ export const en = {
       outlet: "Special Outlet Pricing & Archives",
     },
   },
+  search: {
+    placeholder: "Search",
+    label: "Search products",
+    results: "Search Results",
+    empty: "No results were found for your query",
+  },
   /** Category, typology and menu-group names shown in the header menu and on product cards. Keys are the English values. */
   terms: {} as Record<string, string>,
   home: {

@@ -6,6 +6,7 @@ import { SearchIcon } from "@/components/ui/Icons";
 import { ProductSlider } from "@/components/catalogue/ProductSlider";
 import type { ProductCardData } from "@/components/catalogue/ProductCard";
 import { searchProducts } from "@/actions/search";
+import { useT } from "@/i18n/client";
 
 type Props = { open: boolean; onClose: () => void };
 
@@ -15,6 +16,7 @@ type Props = { open: boolean; onClose: () => void };
  * miss shows "No results were found for your query".
  */
 export function SearchPanel({ open, onClose }: Props) {
+  const t = useT();
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ProductCardData[] | null>(null); // null = nothing searched yet
@@ -74,8 +76,8 @@ export function SearchPanel({ open, onClose }: Props) {
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search"
-          aria-label="Search products"
+          placeholder={t.search.placeholder}
+          aria-label={t.search.label}
           autoComplete="off"
           className="w-full bg-transparent text-[18px] font-medium leading-none tracking-[-0.04em] text-black outline-none placeholder:text-[#57595b] [&::-webkit-search-cancel-button]:hidden"
         />
@@ -86,16 +88,16 @@ export function SearchPanel({ open, onClose }: Props) {
           <ProductSlider
             products={results}
             bleed
-            title={<p className="text-[14px] leading-[1.3] tracking-[-0.04em] text-label">Search Results</p>}
+            title={<p className="text-[14px] leading-[1.3] tracking-[-0.04em] text-label">{t.search.results}</p>}
           />
         </div>
       )}
 
       {active && results !== null && results.length === 0 && !pending && (
         <div className="flex flex-col gap-6">
-          <p className="text-[14px] leading-[1.3] tracking-[-0.04em] text-label">Search Results</p>
+          <p className="text-[14px] leading-[1.3] tracking-[-0.04em] text-label">{t.search.results}</p>
           <p className="text-[24px] font-medium leading-[1.3] tracking-[-0.04em] text-black md:text-[30px]">
-            No results were found for your query
+            {t.search.empty}
           </p>
         </div>
       )}

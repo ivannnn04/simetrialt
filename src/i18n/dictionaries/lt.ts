@@ -28,6 +28,13 @@ export const lt: Dictionary = {
       outlet: "Specialios išparduotuvės kainos ir archyvai",
     },
   },
+  // Figma 4217:49515 (placeholder), 4217:49485 (results), 4217:49500 (no results)
+  search: {
+    placeholder: "Paieška",
+    label: "Ieškoti produktų",
+    results: "Paieškos rezultatai",
+    empty: "Pagal jūsų užklausą rezultatų nerasta",
+  },
   terms: {
     // categories
     lighting: "Apšvietimas",
