@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/cn";
+import { useT } from "@/i18n/client";
+import { term } from "@/i18n/dictionaries";
 import { CaretIcon } from "@/components/ui/Icons";
 import { PRODUCT_PLACEHOLDER_IMAGE } from "@/lib/placeholder";
 
@@ -24,6 +26,8 @@ const PREVIEW = 3;
 
 /** Figma "Order Details" card (node 4217:46505): three items, "Show all N items" reveals the rest, total line. */
 export function OrderDetails({ items }: { items: OrderItem[] }) {
+  const t = useT();
+  const y = t.thankYou;
   const [expanded, setExpanded] = useState(false);
   const visible = expanded ? items : items.slice(0, PREVIEW);
   const hidden = items.length > PREVIEW;
@@ -32,7 +36,7 @@ export function OrderDetails({ items }: { items: OrderItem[] }) {
   return (
     <div className="flex w-full max-w-[706px] flex-col bg-white">
       <div className="border-b border-line p-4 md:p-6">
-        <h2 className="text-[20px] font-medium leading-[1.3] tracking-[-0.04em] text-[#1b2a41]">Order Details</h2>
+        <h2 className="text-[20px] font-medium leading-[1.3] tracking-[-0.04em] text-[#1b2a41]">{y.details}</h2>
       </div>
       <ul>
         {visible.map((item) => (
@@ -46,8 +50,8 @@ export function OrderDetails({ items }: { items: OrderItem[] }) {
               </div>
               <div className="flex min-w-0 flex-col gap-2 leading-none md:min-w-[140px]">
                 <p className="break-words text-[16px] font-semibold leading-[1.2] tracking-[-0.04em] text-[#1b2a41] md:text-[18px] md:leading-none">{item.name}</p>
-                <p className="text-[14px] tracking-[-0.04em] text-tertiary">Qty {item.qty}</p>
-                <p className="text-[14px] tracking-[-0.04em] text-tertiary">Color: {item.color}</p>
+                <p className="text-[14px] tracking-[-0.04em] text-tertiary">{y.qty(item.qty)}</p>
+                <p className="text-[14px] tracking-[-0.04em] text-tertiary">{y.color(term(t, item.color))}</p>
               </div>
             </div>
             <p className="shrink-0 whitespace-nowrap text-[16px] leading-[1.3] tracking-[-0.04em] text-[#1b2a41] md:text-[18px]">{eur(item.priceCents * item.qty)}</p>
@@ -62,13 +66,13 @@ export function OrderDetails({ items }: { items: OrderItem[] }) {
             onClick={() => setExpanded((v) => !v)}
             className="inline-flex h-[27px] items-center gap-2 border-b border-black pb-1.5 text-[18px] font-medium leading-none tracking-[-0.04em] text-black transition-colors hover:border-accent hover:text-accent"
           >
-            {expanded ? "Show less" : `Show all ${items.length} items`}
+            {expanded ? y.showLess : y.showAll(items.length)}
             <CaretIcon className={cn("size-5 transition-transform duration-300", expanded && "rotate-180")} />
           </button>
         </div>
       )}
       <div className="flex items-center justify-between p-4 text-[20px] md:p-6 font-medium leading-[1.3] tracking-[-0.04em] text-[#1b2a41]">
-        <p>Total</p>
+        <p>{y.total}</p>
         <p>{total}</p>
       </div>
     </div>
