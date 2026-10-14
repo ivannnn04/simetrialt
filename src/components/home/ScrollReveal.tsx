@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
+import { useT } from "@/i18n/client";
 import { DotButton } from "@/components/ui/Button";
-import { Badge } from "@/components/site/Sections";
+import { Badge } from "@/components/ui/Badge";
 import { PLACEHOLDER_IMAGE } from "@/lib/placeholder";
 import { FeatureSlider, type FeatureSlide } from "@/components/home/FeatureSlider";
 
@@ -139,16 +140,17 @@ export function ScrollReveal({ image, slides }: Props) {
 }
 
 function WhyCopy({ onScroll }: { onScroll?: () => void }) {
+  const t = useT();
   return (
     <div className="mx-auto flex w-full max-w-[1360px] flex-col items-center gap-8">
       <div className="flex flex-col items-center gap-4 text-center">
-        <Badge className="text-ink">Why architects work with us</Badge>
+        <Badge className="text-ink">{t.home.why.badge}</Badge>
         <h2 className="max-w-[725px] text-[40px] font-medium leading-none tracking-[-0.04em] text-ink md:text-[64px]">
-          Everything architects need in a design partner
+          {t.home.why.title}
         </h2>
       </div>
       <DotButton onClick={onScroll} href={onScroll ? undefined : "#features"}>
-        Scroll
+        {t.home.why.scroll}
       </DotButton>
     </div>
   );

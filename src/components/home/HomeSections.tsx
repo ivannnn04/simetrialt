@@ -3,14 +3,16 @@ import { DotButton } from "@/components/ui/Button";
 import { Photo } from "@/components/ui/Photo";
 import type { ProductCardData } from "@/components/catalogue/ProductCard";
 import { ProductSlider } from "@/components/catalogue/ProductSlider";
-import { Badge } from "@/components/site/Sections";
+import { Badge } from "@/components/ui/Badge";
 import { SiteHeader } from "@/components/site/Header";
 import { FeatureSlider, type FeatureSlide } from "@/components/home/FeatureSlider";
 import { CountUp } from "@/components/ui/CountUp";
+import { getT } from "@/i18n/server";
 
 // ---------- Hero (Figma node 4189:40696) ----------
 
-export function Hero() {
+export async function Hero() {
+  const t = await getT();
   return (
     <section className="relative w-full">
       <Photo src="/images/home/hero.jpg" className="flex h-[100svh] min-h-[560px] w-full flex-col lg:h-auto lg:min-h-[100svh]">
@@ -19,23 +21,21 @@ export function Hero() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0)_0%,rgba(0,0,0,0.5)_100%)]" />
         <SiteHeader variant="overlay" />
         <div className="relative mx-auto flex w-full max-w-[1440px] flex-1 flex-col justify-end gap-10 px-4 pb-8 pt-[100px] md:gap-24 md:px-10 md:pb-10 md:pt-[120px] lg:gap-[280px]">
-          <p className="max-w-[417px] text-[16px] leading-[1.3] tracking-[-0.04em] text-white">
-            For long-term projects with real volume — hotels, offices, residential developments — Simetria sources,
-            specifies and delivers from a single point of accountability.
-          </p>
+          <p className="max-w-[417px] text-[16px] leading-[1.3] tracking-[-0.04em] text-white">{t.home.hero.text}</p>
           <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex flex-wrap items-center gap-4">
-              <DotButton variant="primary" href="/catalogue">Explore products</DotButton>
-              <DotButton variant="ghost-light" dots={false} href="/contact">Book a consultation</DotButton>
+              <DotButton variant="primary" href="/catalogue">{t.home.hero.explore}</DotButton>
+              <DotButton variant="ghost-light" dots={false} href="/contact">{t.home.hero.book}</DotButton>
             </div>
             <div className="flex flex-col gap-[15px] lg:items-end lg:text-right">
-              <Badge className="text-white">Design house, established for architects</Badge>
+              <Badge className="text-white">{t.home.hero.badge}</Badge>
               <h1 className="max-w-[824px] text-[34px] font-medium leading-none tracking-[-0.04em] text-white sm:text-[40px] md:text-[64px]">
-                Furniture and lighting
-                <br />
-                solutions for architects
-                <br />
-                who build at scale
+                {t.home.hero.title.map((line, i) => (
+                  <span key={i}>
+                    {i > 0 && <br />}
+                    {line}
+                  </span>
+                ))}
               </h1>
             </div>
           </div>
@@ -95,20 +95,18 @@ type ProductLineProps = {
   className?: string;
 };
 
-export function ProductLine({
-  products,
-  title = "Our product line",
-  cta = { label: "Catalog", href: "/catalogue" },
-  className = "pt-[120px]",
-}: ProductLineProps) {
+export async function ProductLine({ products, title, cta, className = "pt-[120px]" }: ProductLineProps) {
+  const t = await getT();
+  const heading = title ?? t.home.productLine.title;
+  const action = cta === undefined ? { label: t.home.productLine.cta, href: "/catalogue" } : cta;
   return (
     <section className={cn("w-full bg-cream px-4 md:px-10", className)}>
       <div className="mx-auto flex w-full max-w-[1360px] flex-col items-center gap-10">
         <ProductSlider
           products={products}
-          title={<h2 className="text-[36px] font-medium leading-[1.1] tracking-[-0.04em] text-ink md:text-[52px]">{title}</h2>}
+          title={<h2 className="text-[36px] font-medium leading-[1.1] tracking-[-0.04em] text-ink md:text-[52px]">{heading}</h2>}
         />
-        {cta && <DotButton href={cta.href}>{cta.label}</DotButton>}
+        {action && <DotButton href={action.href}>{action.label}</DotButton>}
       </div>
     </section>
   );
@@ -118,13 +116,14 @@ export function ProductLine({
 
 const BRANDS = ["Kartell", "Moooi", "Luceplan", "Dorelan", "Marset", "Tom Dixon", "Flos", "Vibia"];
 
-export function BrandsSection() {
+export async function BrandsSection() {
+  const t = await getT();
   // The strip is duplicated so the marquee can loop seamlessly (translateX -50%).
   const strip = [...BRANDS, ...BRANDS];
   return (
     <section id="brands" className="w-full overflow-hidden bg-cream py-[120px]">
       <div className="flex flex-col items-center gap-6">
-        <p className="text-center text-[18px] leading-[1.3] tracking-[-0.04em] text-secondary">BRANDS WE REPRESENT</p>
+        <p className="text-center text-[18px] leading-[1.3] tracking-[-0.04em] text-secondary">{t.home.brands}</p>
         <div className="brands-marquee w-full overflow-hidden" aria-label="Brands we represent">
           <ul className="brands-track flex w-max items-center gap-[15px] pr-[15px]">
             {strip.map((brand, i) => (
@@ -145,13 +144,10 @@ export function BrandsSection() {
 
 // ---------- About (Figma node 4217:47660) ----------
 
-const NUMBERS: [number, string][] = [
-  [140, "Rooms"],
-  [40, "Projects"],
-  [15, "Brands"],
-];
+const NUMBERS = [140, 40, 15];
 
-export function AboutSection() {
+export async function AboutSection() {
+  const t = await getT();
   return (
     <section id="about" className="w-full">
       <Photo src="/images/home/about.jpg" className="w-full">
@@ -159,26 +155,23 @@ export function AboutSection() {
         <div className="relative mx-auto flex min-h-[750px] max-w-[1440px] flex-col justify-end gap-6">
           <div className="flex flex-col gap-6 px-4 md:px-10 lg:flex-row lg:items-end lg:justify-between">
             <h2 className="max-w-[554px] text-[36px] font-medium leading-[1.1] tracking-[-0.04em] text-cream md:text-[52px]">
-              Furniture Solutions Without Complexity
+              {t.home.about.title}
             </h2>
             <div>
-              <DotButton variant="primary" href="/contact">About Us</DotButton>
+              <DotButton variant="primary" href="/contact">{t.home.about.button}</DotButton>
             </div>
           </div>
           <div className="flex flex-col border-t border-cream/40 lg:flex-row lg:items-stretch">
             <div className="flex items-center px-4 py-6 md:px-10 lg:h-[137px] lg:w-1/2">
-              <p className="max-w-[554px] text-[16px] leading-[1.3] tracking-[-0.04em] text-cream">
-                Simetria is a premium design showroom and project partner, delivering curated furniture and lighting
-                solutions through expert sourcing, specification, procurement, and seamless project execution.
-              </p>
+              <p className="max-w-[554px] text-[16px] leading-[1.3] tracking-[-0.04em] text-cream">{t.home.about.text}</p>
             </div>
             <div className="flex items-stretch gap-2 border-t border-cream/40 px-4 py-6 text-white sm:gap-6 md:gap-[50px] lg:h-[137px] lg:w-1/2 lg:items-center lg:justify-center lg:border-l lg:border-t-0 lg:px-0 lg:py-0">
-              {NUMBERS.map(([n, label]) => (
-                <div key={label} className="flex min-w-0 flex-1 flex-col gap-1.5 border-l border-cream/40 px-3 sm:px-4 lg:flex-none">
+              {NUMBERS.map((n, i) => (
+                <div key={i} className="flex min-w-0 flex-1 flex-col gap-1.5 border-l border-cream/40 px-3 sm:px-4 lg:flex-none">
                   <p className="text-[32px] font-medium leading-none tracking-[-0.04em] tabular-nums sm:text-[44px] md:text-[64px]">
                     <CountUp value={n} />
                   </p>
-                  <p className="text-[14px] leading-[1.3] tracking-[-0.04em] sm:text-[18px]">{label}</p>
+                  <p className="text-[14px] leading-[1.3] tracking-[-0.04em] sm:text-[18px]">{t.home.about.numbers[i]}</p>
                 </div>
               ))}
             </div>

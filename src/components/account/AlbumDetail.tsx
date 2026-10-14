@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useHref } from "@/i18n/client";
 import { Breadcrumbs } from "@/components/site/Breadcrumbs";
 import { AlbumTable, type AlbumRow } from "@/components/account/AlbumTable";
 import { deleteAlbum, renameAlbum, useAlbums } from "@/lib/albums-store";
@@ -34,6 +35,7 @@ const SAMPLE_ROWS: AlbumRow[] = SAMPLE_CATALOGUE.slice(0, 6).map((p, i) => ({
 // Figma "Collection wishlist Open" (node 4217:46938); albums are stored in the browser for now.
 export function AlbumDetail({ id }: { id: string }) {
   const router = useRouter();
+  const href = useHref();
   const albums = useAlbums();
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
@@ -109,7 +111,7 @@ export function AlbumDetail({ id }: { id: string }) {
                 type="button"
                 onClick={() => {
                   deleteAlbum(album.id);
-                  router.push("/account/albums");
+                  router.push(href("/account/albums"));
                 }}
                 className="self-start text-[13px] text-[#fb3b30] underline"
               >

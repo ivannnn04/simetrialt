@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { cn } from "@/lib/cn";
 import { SiteHeader } from "@/components/site/Header";
 import { Photo } from "@/components/ui/Photo";

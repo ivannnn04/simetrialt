@@ -17,6 +17,8 @@ type Props = {
   slides: ProjectSlide[];
   image: string;
   interval?: number;
+  /** Default button for slides without their own cta. */
+  cta?: { label: string; href: string };
 };
 
 /**
@@ -24,7 +26,7 @@ type Props = {
  * vertical pagination column bottom-right. Slides move vertically (translateY), the active
  * bullet stretches into a bar. Autoplays in a loop; clicking a bullet jumps to that slide.
  */
-export function ProjectsSlider({ slides, image, interval = 6000 }: Props) {
+export function ProjectsSlider({ slides, image, interval = 6000, cta }: Props) {
   const [index, setIndex] = useState(0);
   const n = slides.length;
 
@@ -60,8 +62,8 @@ export function ProjectsSlider({ slides, image, interval = 6000 }: Props) {
                       <p className="text-[16px] leading-[1.3] tracking-[-0.04em]">{s.text}</p>
                     </div>
                     <div>
-                      <DotButton variant="primary" href={s.cta?.href ?? "/projects"} className={cn(i !== index && "pointer-events-none")}>
-                        {s.cta?.label ?? "Explore products"}
+                      <DotButton variant="primary" href={s.cta?.href ?? cta?.href ?? "/projects"} className={cn(i !== index && "pointer-events-none")}>
+                        {s.cta?.label ?? cta?.label ?? "Explore products"}
                       </DotButton>
                     </div>
                   </div>

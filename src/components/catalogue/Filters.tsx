@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { startTransition, useOptimistic, useState } from "react";
+import { useHref } from "@/i18n/client";
 import { cn } from "@/lib/cn";
 import { CaretIcon } from "@/components/ui/Icons";
 
@@ -47,6 +48,7 @@ function FilterSection({ group, selected, onToggle }: { group: FilterGroup; sele
 /** Figma catalogue sidebar (node 4217:47888): grouped option boxes, price range, reset. */
 export function Filters({ groups, basePath = "/catalogue" }: { groups: FilterGroup[]; basePath?: string }) {
   const router = useRouter();
+  const href = useHref();
   const routeParams = useSearchParams();
   // The selected state is shown from the URL we are navigating to, not the one the server has
   // already rendered, so a tapped option turns active at once while the products reload.
@@ -61,7 +63,7 @@ export function Filters({ groups, basePath = "/catalogue" }: { groups: FilterGro
     next.delete("page"); // any filter change starts from the first page
     startTransition(() => {
       setParamString(next.toString());
-      router.push(`${basePath}?${next.toString()}`, { scroll: false });
+      router.push(href(`${basePath}?${next.toString()}`), { scroll: false });
     });
   };
 
@@ -129,7 +131,7 @@ export function Filters({ groups, basePath = "/catalogue" }: { groups: FilterGro
         {sections}
         <button
           type="button"
-          onClick={() => router.push(basePath)}
+          onClick={() => router.push(href(basePath))}
           className="w-full bg-[#e2e2e2]/50 px-8 py-[11px] text-center text-[13px] font-medium text-black transition-colors hover:bg-[#e2e2e2]"
         >
           Reset all filters

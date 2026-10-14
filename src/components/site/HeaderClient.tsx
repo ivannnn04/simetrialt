@@ -1,8 +1,11 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { useEffect, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useLocale, useT } from "@/i18n/client";
+import { LOCALES, LOCALE_LABELS, stripLocale, switchLocale } from "@/i18n/config";
+import { term, type Dictionary } from "@/i18n/dictionaries";
 import { cn } from "@/lib/cn";
 import { BurgerIcon, CaretIcon, CloseIcon, SearchIcon, UserIcon, Wordmark } from "@/components/ui/Icons";
 import { useAlbums } from "@/lib/albums-store";
@@ -48,22 +51,55 @@ const CATEGORIES: Category[] = [
   },
 ];
 
-const MENU_CARDS = [
-  { title: "Design Icons & Best-Selling Items", image: "/images/menu/icons.jpg", href: "/catalogue" },
-  { title: "Special Outlet Pricing & Archives", image: "/images/menu/outlet.jpg", href: "/outlet" },
+const menuCards = (t: Dictionary) => [
+  { title: t.nav.cards.icons, image: "/images/menu/icons.jpg", href: "/catalogue" },
+  { title: t.nav.cards.outlet, image: "/images/menu/outlet.jpg", href: "/outlet" },
 ];
 
-const LEFT_LINKS = [
-  { label: "Services", href: "/services" },
-  { label: "Projects", href: "/projects" },
-  { label: "Brands", href: "/brands" },
-  { label: "Outlet", href: "/outlet" },
+const leftLinks = (t: Dictionary) => [
+  { label: t.nav.services, href: "/services" },
+  { label: t.nav.projects, href: "/projects" },
+  { label: t.nav.brands, href: "/brands" },
+  { label: t.nav.outlet, href: "/outlet" },
 ];
 
-const RIGHT_LINKS = [
-  { label: "About", href: "/about" },
-  { label: "Contacts", href: "/contact" },
+const rightLinks = (t: Dictionary) => [
+  { label: t.nav.about, href: "/about" },
+  { label: t.nav.contacts, href: "/contact" },
 ];
+
+/** EN / LT switch that keeps the current page, query and hash. */
+function LanguageSwitch({ className, light }: { className?: string; light: boolean }) {
+  const locale = useLocale();
+  const t = useT();
+  const pathname = usePathname();
+  const router = useRouter();
+  return (
+    <div className={cn("flex items-center gap-1.5 text-[14px] leading-none tracking-[-0.04em]", className)} aria-label={t.nav.language}>
+      {LOCALES.map((l, i) => (
+        <span key={l} className="flex items-center gap-1.5">
+          {i > 0 && <span className={cn(light ? "text-white/40" : "text-tertiary")}>/</span>}
+          <a
+            href={switchLocale(pathname, l)}
+            hrefLang={l}
+            lang={l}
+            aria-current={l === locale ? "true" : undefined}
+            onClick={(e) => {
+              e.preventDefault();
+              router.push(switchLocale(pathname, l, window.location.search + window.location.hash));
+            }}
+            className={cn(
+              "ul-link transition-colors",
+              l === locale ? (light ? "text-white" : "text-black") : light ? "text-white/60 hover:text-white" : "text-secondary hover:text-accent"
+            )}
+          >
+            {LOCALE_LABELS[l]}
+          </a>
+        </span>
+      ))}
+    </div>
+  );
+}
 
 export type HeaderAccount = { signedIn: boolean; albums: number; name?: string };
 
@@ -83,12 +119,16 @@ type Props = {
 };
 
 export function HeaderClient({ variant = "solid", account = { signedIn: false, albums: 0 } }: Props) {
+  const t = useT();
+  const LEFT_LINKS = leftLinks(t);
+  const RIGHT_LINKS = rightLinks(t);
+  const MENU_CARDS = menuCards(t);
   // Albums live in the browser for now; with none saved the page shows the three sample albums.
   const albums = useAlbums();
   const accountLinks = [
     ...RIGHT_LINKS,
-    { label: `My albums (${albums.length || account.albums || 3})`, href: "/account/albums" },
-    { label: account.signedIn ? "Account" : "Sign in", href: account.signedIn ? "/account" : "/account/login" },
+    { label: t.nav.myAlbums(albums.length || account.albums || 3), href: "/account/albums" },
+    { label: account.signedIn ? t.nav.account : t.nav.signIn, href: account.signedIn ? "/account" : "/account/login" },
   ];
   const [open, setOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -127,7 +167,8 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
     };
   }, [mobileOpen]);
 
-  const pathname = usePathname();
+  // Compare against the path without the locale prefix ("/lt/services" → "/services").
+  const pathname = stripLocale(usePathname());
   const solid = variant === "solid" || open || searchOpen;
   // Figma "Link header": default black/white, hover = underline, active page = accent.
   const isActive = (href: string) => {
@@ -163,7 +204,7 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
             aria-expanded={open}
             className={link(open || isActive("/catalogue"))}
           >
-            Products
+            {t.nav.products}
             <CaretIcon className={cn("transition-transform", open && "rotate-180")} />
           </button>
           {LEFT_LINKS.map((l) => (
@@ -173,7 +214,7 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
           ))}
         </nav>
 
-        <Link href="/" className={cn("leading-none", solid ? "text-black" : "text-white")} aria-label="Simetria home">
+        <Link href="/" className={cn("leading-none", solid ? "text-black" : "text-white")} aria-label={t.nav.home}>
           <Wordmark />
         </Link>
 
@@ -193,20 +234,21 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
             aria-expanded={searchOpen}
             className={link(searchOpen)}
           >
-            Search
+            {t.nav.search}
           </button>
           {accountLinks.slice(RIGHT_LINKS.length).map((l) => (
             <Link key={l.label} href={l.href} className={link(isActive(l.href))} onMouseEnter={() => setOpen(false)}>
               {l.label}
             </Link>
           ))}
+          <LanguageSwitch light={!solid} />
         </nav>
 
         {/* Mobile: search and account as icons, everything else behind the burger */}
         <div className={cn("flex items-center gap-4 lg:hidden", solid ? "text-black" : "text-white")}>
           <button
             type="button"
-            aria-label="Search"
+            aria-label={t.nav.search}
             aria-expanded={searchOpen}
             onClick={() => {
               setMobileOpen(false);
@@ -216,12 +258,12 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
           >
             <SearchIcon />
           </button>
-          <Link href={account.signedIn ? "/account" : "/account/login"} aria-label="Account" className="transition-colors hover:text-accent">
+          <Link href={account.signedIn ? "/account" : "/account/login"} aria-label={t.nav.account} className="transition-colors hover:text-accent">
             <UserIcon />
           </Link>
           <button
             type="button"
-            aria-label="Menu"
+            aria-label={t.nav.menu}
             aria-expanded={mobileOpen}
             onClick={() => {
               setSearchOpen(false);
@@ -249,7 +291,7 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
           <div className="mx-auto flex max-w-[1440px] items-start justify-between">
             <div className="flex flex-1 items-stretch">
               <div className="flex w-[211px] shrink-0 flex-col gap-6 border-r border-line p-10">
-                <p className="text-[16px] leading-[1.3] tracking-[-0.04em] text-secondary">CATEGORY</p>
+                <p className="text-[16px] leading-[1.3] tracking-[-0.04em] text-secondary">{t.nav.category}</p>
                 <ul className="flex flex-col gap-1.5">
                   {CATEGORIES.map((cat, i) => (
                     <li key={cat.label}>
@@ -262,7 +304,7 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
                           i === active ? "font-semibold text-black" : "font-medium text-secondary hover:text-accent"
                         )}
                       >
-                        {cat.label}
+                        {term(t, cat.label)}
                       </button>
                     </li>
                   ))}
@@ -271,7 +313,7 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
               <div key={active} className="menu-fade flex flex-1 items-stretch">
                 {CATEGORIES[active].groups.map((group) => (
                   <div key={group.heading} className="flex flex-1 flex-col gap-6 border-r border-line p-10">
-                    <p className="text-[16px] leading-[1.3] tracking-[-0.04em] text-secondary">{group.heading}</p>
+                    <p className="text-[16px] leading-[1.3] tracking-[-0.04em] text-secondary">{term(t, group.heading)}</p>
                     <ul className="flex flex-col gap-1.5">
                       {group.items.map((item) => (
                         <li key={item}>
@@ -280,7 +322,7 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
                             onClick={() => setOpen(false)}
                             className="block py-2 text-[18px] font-medium leading-none tracking-[-0.04em] text-black transition-colors duration-300 hover:text-accent"
                           >
-                            {item}
+                            {term(t, item)}
                           </Link>
                         </li>
                       ))}
@@ -326,12 +368,12 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
 
       {/* Mobile menu: full-screen white sheet */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-[80] flex flex-col bg-white text-black menu-fade lg:hidden" role="dialog" aria-modal="true" aria-label="Menu">
+        <div className="fixed inset-0 z-[80] flex flex-col bg-white text-black menu-fade lg:hidden" role="dialog" aria-modal="true" aria-label={t.nav.menu}>
           <div className="flex h-[76px] items-center justify-between px-4 md:px-10">
-            <Link href="/" aria-label="Simetria home" onClick={() => setMobileOpen(false)}>
+            <Link href="/" aria-label={t.nav.home} onClick={() => setMobileOpen(false)}>
               <Wordmark />
             </Link>
-            <button type="button" aria-label="Close menu" onClick={() => setMobileOpen(false)} className="transition-colors hover:text-accent">
+            <button type="button" aria-label={t.nav.closeMenu} onClick={() => setMobileOpen(false)} className="transition-colors hover:text-accent">
               <CloseIcon />
             </button>
           </div>
@@ -348,7 +390,7 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
                     isActive("/catalogue") ? "text-accent" : "text-black"
                   )}
                 >
-                  Products
+                  {t.nav.products}
                   <CaretIcon className={cn("size-5 transition-transform duration-300", mobileProducts && "rotate-180")} />
                 </button>
                 <div className="grid transition-[grid-template-rows] duration-300 ease-out" style={{ gridTemplateRows: mobileProducts ? "1fr" : "0fr" }}>
@@ -362,7 +404,7 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
                             onClick={() => setMobileCategory((v) => (v === i ? null : i))}
                             className="flex w-full items-center justify-between py-3 text-left text-[18px] font-medium leading-none tracking-[-0.04em] text-black"
                           >
-                            {c.label}
+                            {term(t, c.label)}
                             <CaretIcon className={cn("transition-transform duration-300", mobileCategory === i && "rotate-180")} />
                           </button>
                           <div className="grid transition-[grid-template-rows] duration-300 ease-out" style={{ gridTemplateRows: mobileCategory === i ? "1fr" : "0fr" }}>
@@ -370,7 +412,7 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
                               <div className="flex flex-col gap-4 pb-4">
                                 {c.groups.map((g) => (
                                   <div key={g.heading} className="flex flex-col gap-2">
-                                    <p className="text-[12px] tracking-[-0.04em] text-secondary">{g.heading}</p>
+                                    <p className="text-[12px] tracking-[-0.04em] text-secondary">{term(t, g.heading)}</p>
                                     <ul className="flex flex-col">
                                       {g.items.map((item) => (
                                         <li key={item}>
@@ -379,7 +421,7 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
                                             onClick={() => setMobileOpen(false)}
                                             className="block py-2 text-[16px] leading-none tracking-[-0.04em] text-[#2b2b2b] hover:text-accent"
                                           >
-                                            {item}
+                                            {term(t, item)}
                                           </Link>
                                         </li>
                                       ))}
@@ -395,7 +437,7 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
                   </div>
                 </div>
               </li>
-              {[...LEFT_LINKS, ...RIGHT_LINKS, { label: `My albums (${albums.length || account.albums || 3})`, href: "/account/albums" }].map((l) => (
+              {[...LEFT_LINKS, ...RIGHT_LINKS, { label: t.nav.myAlbums(albums.length || account.albums || 3), href: "/account/albums" }].map((l) => (
                 <li key={l.label} className="border-b border-line">
                   <Link
                     href={l.href}
@@ -407,6 +449,7 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
                 </li>
               ))}
             </ul>
+            <LanguageSwitch light={false} className="mt-8 text-[18px]" />
           </nav>
         </div>
       )}

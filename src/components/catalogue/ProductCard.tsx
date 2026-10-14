@@ -1,4 +1,8 @@
-import Link from "next/link";
+"use client";
+
+import Link from "@/components/ui/Link";
+import { useT } from "@/i18n/client";
+import { term } from "@/i18n/dictionaries";
 import { cn } from "@/lib/cn";
 import { SaveButton } from "@/components/catalogue/SaveButton";
 import { toSavedProduct } from "@/lib/albums-store";
@@ -29,6 +33,7 @@ type Props = {
 
 /** Figma "product card": light panel, name/category top-left, heart top-right, price bottom-left. */
 export function ProductCard({ product, className, imageClassName, compact = false }: Props) {
+  const t = useT();
   const onSale = Boolean(product.salePrice);
   const image = product.image ?? PRODUCT_PLACEHOLDER_IMAGE;
   const hoverImage = product.hoverImage ?? PLACEHOLDER_IMAGE;
@@ -63,7 +68,7 @@ export function ProductCard({ product, className, imageClassName, compact = fals
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-[5px] leading-none">
             <p className={cn("text-[14px] tracking-[-0.04em] text-black transition-colors duration-300", hoverImage && "group-hover:text-white")}>{product.name}</p>
-            <p className="text-[13px] tracking-[-0.04em] text-tertiary">{product.category}</p>
+            <p className="text-[13px] tracking-[-0.04em] text-tertiary">{term(t, product.category)}</p>
           </div>
           {!compact && onSale && product.discount ? (
             <span className="w-fit border border-[#fb3b30] px-2 py-1 text-[14px] leading-[1.3] tracking-[-0.04em] text-[#fb3b30]">

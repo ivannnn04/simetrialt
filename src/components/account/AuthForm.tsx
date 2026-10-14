@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { useActionState, useState } from "react";
 import { loginCustomerAction, registerAction } from "@/actions/account";
 import { DotButton } from "@/components/ui/Button";

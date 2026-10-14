@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { cn } from "@/lib/cn";
 import { SaveButton } from "@/components/catalogue/SaveButton";
 import type { ProductView } from "@/lib/product-page";

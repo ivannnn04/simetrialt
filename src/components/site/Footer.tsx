@@ -1,40 +1,42 @@
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { DotButton } from "@/components/ui/Button";
 import { MailIcon, PhoneIcon, PinIcon } from "@/components/ui/Icons";
 import { FooterLogo } from "@/components/site/FooterLogo";
 import { cn } from "@/lib/cn";
+import { getT } from "@/i18n/server";
+import type { Dictionary } from "@/i18n/dictionaries";
 
 type Item = { label: string; href: string };
-const COLUMNS: { heading: string; items: Item[] }[] = [
+const columns = (t: Dictionary): { heading: string; items: Item[] }[] => [
   {
-    heading: "Products",
+    heading: t.footer.columns.products,
     items: [
-      { label: "Furniture", href: "/catalogue?category=furniture" },
-      { label: "Lighting", href: "/catalogue?category=lighting" },
-      { label: "Decor (Accessories)", href: "/catalogue?category=decor" },
-      { label: "Outlet", href: "/outlet" },
+      { label: t.footer.products.furniture, href: "/catalogue?category=furniture" },
+      { label: t.footer.products.lighting, href: "/catalogue?category=lighting" },
+      { label: t.footer.products.decor, href: "/catalogue?category=decor" },
+      { label: t.footer.products.outlet, href: "/outlet" },
     ],
   },
   {
-    heading: "Services",
+    heading: t.footer.columns.services,
     items: [
-      { label: "Lighting design & solutions", href: "/services/lighting" },
-      { label: "Smart home systems", href: "/services/smart-home" },
-      { label: "Bespoke interior solutions", href: "/services/bespoke" },
-      { label: "Installation & after-sales support", href: "/services/installation" },
+      { label: t.footer.services.lighting, href: "/services/lighting" },
+      { label: t.footer.services.smartHome, href: "/services/smart-home" },
+      { label: t.footer.services.bespoke, href: "/services/bespoke" },
+      { label: t.footer.services.installation, href: "/services/installation" },
     ],
   },
   {
-    heading: "Company",
+    heading: t.footer.columns.company,
     items: [
-      { label: "Projects", href: "/projects" },
-      { label: "Brands", href: "/brands" },
-      { label: "About", href: "/about" },
-      { label: "Contacts", href: "/contact" },
+      { label: t.footer.company.projects, href: "/projects" },
+      { label: t.footer.company.brands, href: "/brands" },
+      { label: t.footer.company.about, href: "/about" },
+      { label: t.footer.company.contacts, href: "/contact" },
     ],
   },
   {
-    heading: "Social media",
+    heading: t.footer.columns.social,
     items: [
       { label: "Instagram", href: "#" },
       { label: "Facebook", href: "#" },
@@ -42,14 +44,17 @@ const COLUMNS: { heading: string; items: Item[] }[] = [
   },
 ];
 
-const CONTACTS = [
-  { label: "Give us a call", value: "(000) 666 555 444", Icon: PhoneIcon, href: "tel:+000666555444" },
-  { label: "Send us an email", value: "info@simetria.com", Icon: MailIcon, href: "mailto:info@simetria.com" },
-  { label: "Simetria Showroom", value: "Vilnius, Lithuania", Icon: PinIcon, href: "/contact" },
+const contacts = (t: Dictionary) => [
+  { label: t.footer.call, value: "(000) 666 555 444", Icon: PhoneIcon, href: "tel:+000666555444" },
+  { label: t.footer.email, value: "info@simetria.com", Icon: MailIcon, href: "mailto:info@simetria.com" },
+  { label: t.footer.showroom, value: t.footer.showroomValue, Icon: PinIcon, href: "/contact" },
 ];
 
-/** Figma "Footer" (node 4263:30197). */
-export function SiteFooter() {
+/** Figma "Footer" (node 4263:30197; Lithuanian variant 4263:48375). */
+export async function SiteFooter() {
+  const t = await getT();
+  const COLUMNS = columns(t);
+  const CONTACTS = contacts(t);
   return (
     <footer className="w-full overflow-hidden bg-cream pt-[82px]">
       <div className="mx-auto flex max-w-[1440px] flex-col items-center gap-[76px]">
@@ -57,14 +62,12 @@ export function SiteFooter() {
           <div className="flex flex-col gap-10 lg:w-[490px] lg:shrink lg:basis-[490px]">
             <div className="flex flex-col gap-4">
               <h2 className="text-[40px] font-medium leading-[1.1] tracking-[-0.04em] text-dark md:text-[52px]">
-                Your End-to-End Furnishing Partner
+                {t.footer.title}
               </h2>
-              <p className="max-w-[364px] text-[16px] leading-[1.3] tracking-[-0.04em] text-secondary">
-                We source, specify, deliver, and coordinate every stage of your furnishing project.
-              </p>
+              <p className="max-w-[364px] text-[16px] leading-[1.3] tracking-[-0.04em] text-secondary">{t.footer.text}</p>
             </div>
             <div>
-              <DotButton href="/contact">Get in touch</DotButton>
+              <DotButton href="/contact">{t.footer.cta}</DotButton>
             </div>
           </div>
 
@@ -90,7 +93,7 @@ export function SiteFooter() {
               ))}
             </div>
             <div className="flex flex-col gap-4 border-l border-line pl-4">
-              <p className="text-[12px] leading-none tracking-[-0.04em] text-body">Contact us</p>
+              <p className="text-[12px] leading-none tracking-[-0.04em] text-body">{t.footer.contactUs}</p>
               <div className="flex flex-col gap-4 md:flex-row md:flex-wrap">
                 {CONTACTS.map(({ label, value, Icon, href }) => (
                   <Link key={label} href={href} className="group flex w-[218px] items-center gap-2 py-2">
@@ -116,11 +119,11 @@ export function SiteFooter() {
       {/* Sign line: full-width rule; phones stack the links over the centred copyright */}
       <div className="mt-10 w-full border-t border-line">
         <div className="mx-auto flex w-full max-w-[1440px] flex-col-reverse items-center gap-4 px-4 py-6 text-center text-[14px] leading-none text-secondary md:flex-row md:justify-between md:gap-8 md:px-10 md:text-left">
-          <p className="whitespace-nowrap py-1">© Copyright {new Date().getFullYear()} Simetria</p>
+          <p className="whitespace-nowrap py-1">{t.footer.copyright(new Date().getFullYear())}</p>
           {/* phones: the two links spread across the full width */}
           <div className="flex w-full items-center justify-between gap-4 md:w-auto md:justify-start">
-            <Link href="#" className="ul-link whitespace-nowrap py-1 transition-colors hover:text-dark">Privacy Policy</Link>
-            <Link href="#" className="ul-link py-1 transition-colors hover:text-dark">Cookie</Link>
+            <Link href="#" className="ul-link whitespace-nowrap py-1 transition-colors hover:text-dark">{t.footer.privacy}</Link>
+            <Link href="#" className="ul-link py-1 transition-colors hover:text-dark">{t.footer.cookie}</Link>
           </div>
         </div>
       </div>

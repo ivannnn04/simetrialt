@@ -1,9 +1,10 @@
-import Link from "next/link";
+import Link from "@/components/ui/Link";
 import { cn } from "@/lib/cn";
 import { DotButton, StrokeLink } from "@/components/ui/Button";
 import { Photo } from "@/components/ui/Photo";
 import { Breadcrumbs } from "@/components/site/Breadcrumbs";
 import { ServicesStackSizer } from "@/components/site/ServicesStackSizer";
+import { getT } from "@/i18n/server";
 
 // ---------- Services list (Figma "services", node 4188:22369) ----------
 
@@ -66,14 +67,16 @@ type ServicesListProps = {
   stack?: boolean;
 };
 
-export function ServicesList({ className, stack = false }: ServicesListProps) {
+export async function ServicesList({ className, stack = false }: ServicesListProps) {
+  const t = await getT();
   const last = SERVICES.length - 1;
   const lastSlot = STACK_START + last * STACK_STEP;
   return (
     <section id="services" className={cn("w-full bg-cream pb-[120px]", className)}>
       {stack && <ServicesStackSizer start={MOBILE_STACK_START} step={MOBILE_STACK_STEP} count={SERVICES.length} />}
       <div>
-        {SERVICES.map((s, i) => {
+        {SERVICES.map((base, i) => {
+          const s = { ...base, ...t.services.items[base.slug] };
           const pinned = stack && i < last;
           const top = STACK_START + i * STACK_STEP;
           const style = pinned
@@ -120,7 +123,7 @@ export function ServicesList({ className, stack = false }: ServicesListProps) {
                 <div className="flex flex-col gap-8">
                   <p className="max-w-[562px] text-[16px] leading-[1.3] tracking-[-0.04em] text-label">{s.text}</p>
                   <div>
-                    <DotButton href={`/services/${s.slug}`}>Read more</DotButton>
+                    <DotButton href={`/services/${s.slug}`}>{t.services.readMore}</DotButton>
                   </div>
                 </div>
               </div>
@@ -190,15 +193,21 @@ export function ProjectsSection() {
 
 // ---------- "Let's talk" CTA (Figma node 4048:29445) ----------
 
-export function LetsTalk() {
+export async function LetsTalk() {
+  const t = await getT();
+  const long = t.letsTalk.join("").length > 9; // "Pakalbėkime" needs a smaller size than "Let’s Talk"
   return (
     <section className="w-full overflow-hidden bg-cream py-[120px] md:py-[244px]">
       <Link
         href="/contact"
-        className="flex items-center justify-center gap-[0.23em] whitespace-nowrap text-[clamp(64px,16.8vw,242px)] font-bold uppercase leading-none tracking-[-0.04em] text-warm-overlay/60 transition-colors hover:text-warm-overlay"
+        className={cn(
+          "flex items-center justify-center gap-[0.23em] whitespace-nowrap font-bold uppercase leading-none tracking-[-0.04em] text-warm-overlay/60 transition-colors hover:text-warm-overlay",
+          long ? "text-[clamp(48px,13.2vw,190px)]" : "text-[clamp(64px,16.8vw,242px)]"
+        )}
       >
-        <span>Let’s</span>
-        <span>Talk</span>
+        {t.letsTalk.map((part) => (
+          <span key={part}>{part}</span>
+        ))}
       </Link>
     </section>
   );
@@ -206,11 +215,7 @@ export function LetsTalk() {
 
 // ---------- Small helpers ----------
 
-export function Badge({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <p className={cn("text-[16px] font-semibold uppercase leading-none tracking-[-0.04em]", className)}>{children}</p>
-  );
-}
+export { Badge } from "@/components/ui/Badge";
 
 // ---------- CTA section (Figma "CTA section", node 4075:23492) ----------
 

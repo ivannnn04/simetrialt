@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
+import { useHref } from "@/i18n/client";
 import { createAlbum } from "@/lib/albums-store";
 import { Field } from "@/components/ui/Field";
 import { cn } from "@/lib/cn";
@@ -14,6 +15,7 @@ import { cn } from "@/lib/cn";
  */
 export function NewCollectionButton({ className }: { className?: string }) {
   const router = useRouter();
+  const href = useHref();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [error, setError] = useState<string | undefined>();
@@ -27,7 +29,7 @@ export function NewCollectionButton({ className }: { className?: string }) {
     const album = createAlbum(name);
     setOpen(false);
     setName("");
-    router.push(`/account/albums/${album.id}`);
+    router.push(href(`/account/albums/${album.id}`));
   };
 
   // Close on Escape and lock page scroll while the dialog is open.
