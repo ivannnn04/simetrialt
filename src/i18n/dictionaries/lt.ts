@@ -77,7 +77,7 @@ export const lt: Dictionary = {
       explore: "Pažinkite produktus",
       book: "Rezervuokite konsultaciją",
       badge: "Dizaino namai – įkurta architektams",
-      title: ["Baldų ir apšvietimo sprendimai architektams, kuriantys didelio masto projektus"],
+      title: ["Meistriškų idėjų, holistinių sprendimų ir intelektualaus dizaino namai."],
     },
     why: {
       badge: "Kodėl architektai bendradarbiauja su mumis",
