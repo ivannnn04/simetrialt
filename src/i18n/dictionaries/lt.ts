@@ -183,7 +183,7 @@ export const lt: Dictionary = {
       installation: {
         tags: ["Transportavimas", "Montavimas", "Nuolatinė priežiūra"],
         title: "Įrengimas ir aptarnavimas po pardavimo",
-        text: "Visapusiškas diegimas vietoje, įskaitant įrengimą, konfigūravimą, testavimą ir galutinį paleidimą, taip pat nuolatinę techninę pagalbą, techninę priežiūrą ir aptarnavimą dar ilgą laiką po projekto perdavimo.",
+        text: "Visapusiškas diegimas vietoje, įskaitant įrengimą, konfigūravimą, testavimą ir galutinį paleidimą, taip pat techninę pagalbą ir aptarnavimą po projekto perdavimo.",
       },
     },
   },
