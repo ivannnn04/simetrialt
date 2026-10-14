@@ -16,8 +16,8 @@ export const lt: Dictionary = {
     contacts: "Kontaktai",
     search: "Paieška",
     myAlbums: (n) => `Mano albumai (${n})`,
-    account: "Sąskaita",
-    signIn: "Prisijungti",
+    account: "Krepšelis",
+    signIn: "Krepšelis",
     menu: "Meniu",
     closeMenu: "Uždaryti meniu",
     home: "Simetria pradžia",
@@ -25,7 +25,7 @@ export const lt: Dictionary = {
     language: "Kalba",
     cards: {
       icons: "Dizaino ikonos",
-      outlet: "Specialios išpardavimo kainos ir archyvai",
+      outlet: "Specialios nuolaidos",
     },
   },
   // Figma 4217:49515 (placeholder), 4217:49485 (results), 4217:49500 (no results)
