@@ -8,6 +8,7 @@ import { ArrowIcon } from "@/components/ui/Icons";
 import { LetsTalk, PageHero } from "@/components/site/Sections";
 import { StagesTimeline } from "@/components/services/StagesTimeline";
 import { getServicePage, SERVICE_SLUGS } from "@/data/services";
+import { getT } from "@/i18n/server";
 
 type Params = { slug: string };
 
@@ -28,7 +29,9 @@ export default async function ServicePage({ params }: { params: Promise<Params> 
   const { slug } = await params;
   const service = getServicePage(slug);
   if (!service) notFound();
-  const { overview, recentWork } = service;
+  const t = await getT();
+  const { recentWork } = service;
+  const overview = { ...service.overview, ...t.servicePages[slug]?.overview };
 
   return (
     <>

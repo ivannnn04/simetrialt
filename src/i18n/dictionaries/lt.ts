@@ -195,6 +195,20 @@ export const lt: Dictionary = {
       button: "Slinkti",
     },
   },
+  servicePages: {
+    lighting: {
+      overview: {
+        heading: "Apšvietimo projektų rengimas",
+        text: "Mes rengiame apšvietimo projektus nuo koncepcijos iki parengtų techninių specifikacijų – bendradarbiaudami su architektų komanda, siekiame erdvės viziją paversti techniškai pagrįstu ir biudžetą atitinkančiu apšvietimo projektu.",
+        points: [
+          "Koncepcija ir atmosfera",
+          "Šviestuvų parinktys ir techniniai parametrai",
+          "Fotometriniai skaičiavimai",
+          "Dokumentacija ir sąmatos",
+        ],
+      },
+    },
+  },
   letsTalk: ["Pakalbėkime"],
   footer: {
     title: "Jūsų visapusiškas partneris kuriant erdves",

@@ -141,6 +141,8 @@ export const en = {
       button: "Scroll",
     },
   },
+  /** Per-service page overrides; English content lives in src/data/services.ts. */
+  servicePages: {} as Record<string, { overview?: { heading: string; text: string; points: string[] } }>,
   letsTalk: ["Let’s", "Talk"] as string[],
   footer: {
     title: "Your End-to-End Furnishing Partner",
