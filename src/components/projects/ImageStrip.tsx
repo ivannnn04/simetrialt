@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { Photo } from "@/components/ui/Photo";
+import { useT } from "@/i18n/client";
 
 /**
  * Figma "images" (node 4217:47574): 674×700 photos in a strip that overflows the viewport on
@@ -10,6 +11,7 @@ import { Photo } from "@/components/ui/Photo";
  * design. The pointer becomes the "Scroll to view" circle over the strip (CursorLabel).
  */
 export function ImageStrip({ images }: { images: string[] }) {
+  const t = useT();
   const ref = useRef<HTMLDivElement>(null);
   const drag = useRef<{ x: number; left: number } | null>(null);
 
@@ -20,7 +22,7 @@ export function ImageStrip({ images }: { images: string[] }) {
   }, []);
 
   return (
-    <section className="relative w-full" data-cursor="Scroll to view" data-cursor-size="lg">
+    <section className="relative w-full" data-cursor={t.casePage.scroll} data-cursor-size="lg">
       <div
         ref={ref}
         className="w-full cursor-grab overflow-x-auto [scrollbar-width:none] active:cursor-grabbing [&::-webkit-scrollbar]:hidden"
