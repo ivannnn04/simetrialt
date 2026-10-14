@@ -146,9 +146,9 @@ export const lt: Dictionary = {
       ],
     },
     about: {
-      title: "Paprasti baldų sprendimai",
+      title: "Nepaprastas dizainas. Paprastas įgyvendinimas.",
       button: "Apie mus",
-      text: "„Simetria“ – tai aukščiausios klasės dizaino salonas ir projektų partneris, siūlantis kruopščiai atrinktus baldų ir apšvietimo sprendimus, kuriuos užtikrina profesionalus tiekėjų paieška, specifikacijų parengimas, pirkimai ir sklandus projektų įgyvendinimas.",
+      text: "Nuo atrinktų baldų ir šviestuvų iki individualiai gaminamų sprendimų jūsų erdvei. Padedame išgryninti idėją, suderinti dizainą ir technines detales, organizuojame gamybą, tiekimą bei montavimą. Pasirūpiname visu procesu – nuo sumanymo iki įgyvendinimo.",
       numbers: ["Kambariai", "Projektai", "Gamintojai"],
     },
   },
