@@ -345,8 +345,8 @@ export const lt: Dictionary = {
     features: [
       { title: "Individualus požiūris", text: "Įsiklausome į jūsų viziją ir deriname estetiką, funkciją bei technines galimybes." },
       { title: "Pasitikėjimas ir partnerystė", text: "Mes kuriame ilgalaikius ryšius, grindžiamus skaidrumu, patikimumu ir partnerystės santykiais, o ne vienkartiniais sandoriais." },
-      { title: "Patikimas pristatymas", text: "Konsoliduota logistika ir koordinavimas objekte, kad kiekvienas elementas atvyktų laiku ir į savo vietą." },
-      { title: "Pagalba po perdavimo", text: "Priežiūra, atsarginės dalys ir koregavimai dar ilgai po projekto užbaigimo." },
+      { title: "Profesinė patirtis", text: "Mūsų kvalifikuota dizaino komanda kiekviename jūsų projekto etape pasitelkia gilias technines žinias ir kūrybiškumą." },
+      { title: "Kompleksinis dizaino centras", text: "Visapusiška ekosistema ir kūrybinė erdvė, skirta išskirtinėms idėjoms paversti išbaigtais, funkcionaliais sprendimais." },
     ],
     cta: {
       eyebrow: "Susipažinkite su mūsų darbų pavyzdžiais",
