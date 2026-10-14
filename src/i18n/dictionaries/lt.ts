@@ -24,7 +24,7 @@ export const lt: Dictionary = {
     category: "KATEGORIJA",
     language: "Kalba",
     cards: {
-      icons: "Dizaino ikonos ir geriausiai parduodami gaminiai",
+      icons: "Dizaino ikonos",
       outlet: "Specialios išpardavimo kainos ir archyvai",
     },
   },
@@ -59,7 +59,7 @@ export const lt: Dictionary = {
     systems: "Sistemos",
     profile: "Profiliai",
     "rechargeable lights": "Pakraunami",
-    bollards: "Atraminiai stulpeliai",
+    bollards: "Stulpeliai",
     "all furniture": "Visi baldai",
     sofas: "Sofos",
     armchairs: "Foteliai",
