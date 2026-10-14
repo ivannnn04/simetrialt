@@ -76,7 +76,7 @@ export const lt: Dictionary = {
       text: "Kuriame ir įgyvendiname integruotus, aukšto meistriškumo ir intelektualaus dizaino sprendimus, privačios ir komercinės paskirties bei biurų interjerams.",
       explore: "Pažinkite produktus",
       book: "Rezervuokite konsultaciją",
-      badge: "„Design house“ – įkurta architektams",
+      badge: "Dizaino namai – įkurta architektams",
       title: ["Baldų ir apšvietimo sprendimai architektams, kuriantys didelio masto projektus"],
     },
     why: {
