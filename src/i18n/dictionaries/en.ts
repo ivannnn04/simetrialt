@@ -165,8 +165,28 @@ export const en = {
       button: "Scroll",
     },
   },
+  /** Strings shared by every service detail page. */
+  servicePage: {
+    home: "Home",
+    services: "Services",
+    book: "Book a consultation",
+    howWeWork: "HOW WE WORK",
+    stagesHeading: "From brief to installation in the stages",
+    viewProject: "View project",
+  },
   /** Per-service page overrides; English content lives in src/data/services.ts. */
-  servicePages: {} as Record<string, { overview?: { heading: string; text: string; points: string[] } }>,
+  servicePages: {} as Record<
+    string,
+    {
+      title?: string;
+      titleLines?: [string, string];
+      breadcrumb?: string;
+      intro?: string;
+      overview?: { heading: string; text: string; points: string[] };
+      stages?: { label: string; text: string }[];
+      recentWork?: { eyebrow: string; heading: string; cards: { category: string; title: string; tag: string }[] };
+    }
+  >,
   letsTalk: ["Let’s", "Talk"] as string[],
   footer: {
     title: "Your End-to-End Furnishing Partner",

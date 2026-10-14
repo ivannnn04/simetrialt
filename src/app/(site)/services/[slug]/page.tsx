@@ -18,20 +18,27 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params;
-  const service = getServicePage(slug);
-  return service
-    ? { title: `${service.title} — Simetria LT`, description: service.intro }
-    : { title: "Service — Simetria LT" };
+  const base = getServicePage(slug);
+  if (!base) return { title: "Service — Simetria LT" };
+  const t = await getT();
+  const service = { ...base, ...t.servicePages[slug] };
+  return { title: `${service.title} — Simetria LT`, description: service.intro };
 }
 
 /** Figma "Services page: lighting" (node 4217:46064). */
 export default async function ServicePage({ params }: { params: Promise<Params> }) {
   const { slug } = await params;
-  const service = getServicePage(slug);
-  if (!service) notFound();
+  const base = getServicePage(slug);
+  if (!base) notFound();
   const t = await getT();
-  const { recentWork } = service;
-  const overview = { ...service.overview, ...t.servicePages[slug]?.overview };
+  const l = t.servicePages[slug] ?? {};
+  // Locale overrides are copy only; images and links come from the English data.
+  const service = { ...base, ...l, overview: base.overview, recentWork: base.recentWork, stages: base.stages };
+  const overview = { ...base.overview, ...l.overview };
+  const stages = l.stages ? base.stages.map((s, i) => ({ ...s, ...l.stages?.[i] })) : base.stages;
+  const recentWork = l.recentWork
+    ? { ...base.recentWork, ...l.recentWork, cards: base.recentWork.cards.map((c, i) => ({ ...c, ...l.recentWork?.cards[i] })) }
+    : base.recentWork;
 
   return (
     <>
@@ -40,7 +47,7 @@ export default async function ServicePage({ params }: { params: Promise<Params> 
         <SiteHeader variant="solid" />
         <div className="flex w-full flex-col gap-8">
           <PageHero
-            crumbs={[{ label: "Home", href: "/" }, { label: "Services", href: "/services" }, { label: service.breadcrumb }]}
+            crumbs={[{ label: t.servicePage.home, href: "/" }, { label: t.servicePage.services, href: "/services" }, { label: service.breadcrumb }]}
             title={
               <>
                 {service.titleLines[0]}
@@ -49,7 +56,7 @@ export default async function ServicePage({ params }: { params: Promise<Params> 
               </>
             }
             text={service.intro}
-            button={{ label: "Book a consultation", href: "/contact" }}
+            button={{ label: t.servicePage.book, href: "/contact" }}
           />
           <Photo src={service.heroImage} position="bottom" className="h-[360px] w-full sm:h-[420px] md:h-[480px] xl:aspect-[1440/512] xl:h-auto xl:min-h-[480px]">
             <div className="absolute inset-0 bg-black/10" />
@@ -80,7 +87,7 @@ export default async function ServicePage({ params }: { params: Promise<Params> 
                   <Photo src={overview.imageSmall} tone="light" className="h-[220px] w-[180px] shrink-0" />
                 </div>
                 <div>
-                  <DotButton href="/contact">Book a consultation</DotButton>
+                  <DotButton href="/contact">{t.servicePage.book}</DotButton>
                 </div>
               </div>
             </div>
@@ -92,13 +99,13 @@ export default async function ServicePage({ params }: { params: Promise<Params> 
       <section className="flex w-full flex-col gap-10 bg-cream pt-20 md:gap-[60px] md:pt-[120px]">
         <div className="flex w-full flex-col gap-10 md:gap-[60px]">
           <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-5 px-4 md:gap-[29px] md:px-10">
-            <p className="text-[18px] leading-[1.3] tracking-[-0.04em] text-secondary">HOW WE WORK</p>
+            <p className="text-[18px] leading-[1.3] tracking-[-0.04em] text-secondary">{t.servicePage.howWeWork}</p>
             <h2 className="max-w-[570px] text-[36px] font-medium leading-[1.1] tracking-[-0.04em] text-black md:text-[52px]">
-              From brief to installation in the stages
+              {t.servicePage.stagesHeading}
             </h2>
           </div>
           <div className="w-full px-4 md:px-10 min-[1440px]:px-0">
-            <StagesTimeline stages={service.stages} />
+            <StagesTimeline stages={stages} />
           </div>
         </div>
         <Photo src={service.stagesImage} className="h-[280px] w-full sm:h-[340px] md:h-[400px] xl:aspect-[1440/461] xl:h-auto xl:min-h-[400px]" />
@@ -112,7 +119,7 @@ export default async function ServicePage({ params }: { params: Promise<Params> 
         </div>
         <div className="flex w-full flex-col gap-4 px-4 md:px-10 lg:flex-row lg:justify-center">
           {recentWork.cards.map((card) => (
-            <Link key={card.title} href={card.href} data-cursor="View project" className="group block w-full lg:w-[672px]">
+            <Link key={card.title} href={card.href} data-cursor={t.servicePage.viewProject} className="group block w-full lg:w-[672px]">
               <Photo src={card.image} className="flex h-[480px] flex-col items-center justify-end gap-8 px-8 py-10 md:h-[700px] md:px-[100px]">
                 <div className="absolute inset-0 bg-black/20 transition-colors duration-500 group-hover:bg-black/35" />
                 <div className="relative flex flex-col items-center gap-2 text-center leading-none text-white">

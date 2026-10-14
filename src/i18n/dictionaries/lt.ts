@@ -220,8 +220,36 @@ export const lt: Dictionary = {
       button: "Slinkti",
     },
   },
+  servicePage: {
+    home: "Pagrindinis puslapis",
+    services: "Paslaugos",
+    book: "Užsisakykite konsultaciją",
+    howWeWork: "KAIP MES DIRBAME",
+    stagesHeading: "Nuo užduoties aprašymo iki įrengimo etapais",
+    viewProject: "Peržiūrėti projektą",
+  },
+  // Figma "Services page: lighting" (node 4217:48103); overview keeps the client's corrections
   servicePages: {
     lighting: {
+      title: "Apšvietimo projektavimas ir sprendimai",
+      titleLines: ["Apšvietimo projektavimas", "ir sprendimai"],
+      breadcrumb: "Apšvietimo projektavimas ir sprendimai",
+      intro: "Mes specializuojamės apšvietimo projektavime, skaičiavimuose ir individualiai pritaikytų šviestuvų gamyboje. Nuo idėjos iki projekto perdavimo – mes rūpinamės kiekviena smulkmena, kad įgyvendintume jūsų viziją.",
+      stages: [
+        { label: "Užsisakykite konsultaciją", text: "Prieš nurodydami bent vieną liukso vertę, įvertiname erdvę – lubų aukštį, dienos šviesą, medžiagas, paskirtį" },
+        { label: "Koncepcija ir projektinis planas", text: "Nuotaikos studijos, apšvietimo sluoksnių strategija ir pirmosios šviestuvų šeimos, suderintos su architektu prieš detalizavimą" },
+        { label: "Techninė specifikacija", text: "Fotometriniai skaičiavimai, šviestuvų sąrašas, valdymo zonos ir atitikties patikros" },
+        { label: "Pirkimai ir tiekimas", text: "Užsakymai atstovaujamiems gamintojams, pristatymo terminai suderinti su statybų grafiku" },
+        { label: "Įrengimas ir priėmimas", text: "Priežiūra objekte, nukreipimas ir paleidimas, o po to – galutinė apžiūra su klientu" },
+      ],
+      recentWork: {
+        eyebrow: "NAUJAUSI APŠVIETIMO DARBAI",
+        heading: "Projektai, kuriuose mes parengėme apšvietimo užduotį",
+        cards: [
+          { category: "BŪSTAI · INDIVIDUALIAI PRITAIKYTI ĮRENGINIAI", title: "„Baltic Innovation“ būstinė", tag: "NAUJAS PROJEKTAS" },
+          { category: "BŪSTAI · INDIVIDUALIAI PRITAIKYTI ĮRENGINIAI", title: "„Baltic Residence“", tag: "NAUJAS PROJEKTAS" },
+        ],
+      },
       overview: {
         heading: "Apšvietimo projektų rengimas",
         text: "Mes rengiame apšvietimo projektus nuo koncepcijos iki parengtų techninių specifikacijų – bendradarbiaudami su architektų komanda, siekiame erdvės viziją paversti techniškai pagrįstu ir biudžetą atitinkančiu apšvietimo projektu.",
