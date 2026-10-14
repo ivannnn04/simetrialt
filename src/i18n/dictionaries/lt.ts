@@ -73,7 +73,7 @@ export const lt: Dictionary = {
   },
   home: {
     hero: {
-      text: "Ilgalaikių projektų, kurių apimtis yra didelė – viešbučių, biurų, gyvenamųjų kompleksų – atveju „Simetria“ užsiima tiekėjų paieška, specifikacijų nustatymu ir pristatymu, visą atsakomybę prisiimdama iš vieno šaltinio.",
+      text: "Kuriame ir įgyvendiname integruotus, aukšto meistriškumo ir intelektualaus dizaino sprendimus, privačios ir komercinės paskirties bei biurų interjerams.",
       explore: "Pažinkite produktus",
       book: "Užsisakykite konsultaciją",
       badge: "„Design house“ – įkurta architektams",
