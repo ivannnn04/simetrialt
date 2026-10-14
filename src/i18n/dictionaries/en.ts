@@ -134,6 +134,30 @@ export const en = {
     } as Record<string, { tags: string[]; title: string; text: string; points?: string[]; cta?: string }>,
   },
   servicesPage: {
+    meta: { title: "Services — Simetria LT", description: "Professional interior solutions: lighting design, smart home systems, bespoke interiors, installation." },
+    hero: {
+      title: ["Professional", "interior solutions"],
+      text: "Bridging the gap between design vision and technical reality through expert sourcing, precise specification, and project-wide accountability.",
+      button: "Book a consultation",
+    },
+    process: [
+      {
+        title: "Consultation & Project Discovery",
+        text: "We meet on site or in the showroom, study the brief and drawings, and agree on scope, budget and timeline before anything is specified.",
+      },
+      {
+        title: "Selection & Proposal",
+        text: "Our team shortlists furniture and lighting from the brands we represent, prepares samples and a priced proposal with lead times.",
+      },
+      {
+        title: "Order & Coordination",
+        text: "We place and track every order, align deliveries with the construction schedule and keep one point of contact for the whole project.",
+      },
+      {
+        title: "Delivery & Project Completion",
+        text: "Installation, commissioning and a final walkthrough, followed by after-sales support for as long as the space is in use.",
+      },
+    ],
     cta: {
       eyebrow: "Check out our projects",
       title: "A dedicated design partner for full-cycle lighting development and interior solutions.",

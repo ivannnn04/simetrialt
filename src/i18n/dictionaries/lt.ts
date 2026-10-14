@@ -187,9 +187,34 @@ export const lt: Dictionary = {
       },
     },
   },
+  // Figma "Services page" (node 4217:49704); the CTA title keeps the client's correction
   servicesPage: {
+    meta: { title: "Paslaugos — Simetria LT", description: "Profesionalūs interjero sprendimai: apšvietimo dizainas, išmaniųjų namų sistemos, individualūs interjerai, įrengimas." },
+    hero: {
+      title: ["Profesionalūs", "interjero sprendimai"],
+      text: "Mažiname atotrūkį tarp dizaino vizijos ir techninių galimybių, pasitelkdami ekspertų pagalbą, parengdami tikslias specifikacijas ir užtikrindami atsakomybę visame projekte.",
+      button: "Užsisakykite konsultaciją",
+    },
+    process: [
+      {
+        title: "Konsultacijos ir projekto analizė",
+        text: "Susitinkame objekte arba salone, išnagrinėjame užduotį ir brėžinius ir sutariame dėl apimties, biudžeto ir terminų dar prieš rengiant specifikacijas.",
+      },
+      {
+        title: "Atranka ir pasiūlymas",
+        text: "Mūsų komanda atrenka baldus ir šviestuvus iš atstovaujamų prekių ženklų, paruošia pavyzdžius ir pasiūlymą su kainomis bei pristatymo terminais.",
+      },
+      {
+        title: "Užsakymai ir koordinavimas",
+        text: "Pateikiame ir sekame kiekvieną užsakymą, deriname pristatymus su statybų grafiku ir išliekame vienu kontaktiniu asmeniu visam projektui.",
+      },
+      {
+        title: "Pristatymas ir projekto užbaigimas",
+        text: "Montavimas, paleidimas ir galutinė apžiūra, o po to – aptarnavimas po pardavimo tol, kol erdvė naudojama.",
+      },
+    ],
     cta: {
-      eyebrow: "Peržiūrėkite mūsų projektus",
+      eyebrow: "Susipažinkite su mūsų projektais",
       title: "Meistriškų idėjų, integruotų sprendimų ir intelektualaus dizaino namai.",
       text: "Skaičiavimai, atitiktis reikalavimams, pažangi integracija ir individualiai pritaikyti įrenginiai.",
       button: "Slinkti",

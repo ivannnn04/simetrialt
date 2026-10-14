@@ -5,49 +5,26 @@ import { DotButton } from "@/components/ui/Button";
 import { Photo } from "@/components/ui/Photo";
 import { CtaSection, LetsTalk, ServicesList } from "@/components/site/Sections";
 import { ProjectsSlider } from "@/components/home/ProjectsSlider";
-import { PROJECT_SLIDES, PROJECT_SLIDES_IMAGE } from "@/data/project-slides";
+import { PROJECT_SLIDES_IMAGE } from "@/data/project-slides";
 import { cn } from "@/lib/cn";
 import { getT } from "@/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Services — Simetria LT",
-  description: "Professional interior solutions: lighting design, smart home systems, bespoke interiors, installation.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return t.servicesPage.meta;
+}
 
 // Figma "3 section" — process cards (node 4217:47508)
 const PROCESS = [
-  {
-    number: "01",
-    title: "Consultation & Project Discovery",
-    text: "We meet on site or in the showroom, study the brief and drawings, and agree on scope, budget and timeline before anything is specified.",
-    image: "/images/services/process-1.jpg",
-    href: "/contact",
-  },
-  {
-    number: "02",
-    title: "Selection & Proposal",
-    text: "Our team shortlists furniture and lighting from the brands we represent, prepares samples and a priced proposal with lead times.",
-    image: "/images/services/process-2.jpg",
-    href: "/catalogue",
-  },
-  {
-    number: "03",
-    title: "Order & Coordination",
-    text: "We place and track every order, align deliveries with the construction schedule and keep one point of contact for the whole project.",
-    image: "/images/services/process-3.jpg",
-    href: "/projects",
-  },
-  {
-    number: "04",
-    title: "Delivery & Project Completion",
-    text: "Installation, commissioning and a final walkthrough, followed by after-sales support for as long as the space is in use.",
-    image: "/images/services/process-4.jpg",
-    href: "/contact",
-  },
+  { number: "01", image: "/images/services/process-1.jpg", href: "/contact" },
+  { number: "02", image: "/images/services/process-2.jpg", href: "/catalogue" },
+  { number: "03", image: "/images/services/process-3.jpg", href: "/projects" },
+  { number: "04", image: "/images/services/process-4.jpg", href: "/contact" },
 ];
 
 export default async function ServicesPage() {
   const t = await getT();
+  const process = PROCESS.map((step, i) => ({ ...step, ...t.servicesPage.process[i] }));
   return (
     <>
       {/* Hero (Figma node 4217:47503) */}
@@ -56,17 +33,14 @@ export default async function ServicesPage() {
         <div className="flex w-full flex-col gap-8">
           <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-10 px-4 md:px-10 lg:flex-row lg:items-end">
             <h1 className="flex-1 text-[56px] font-medium leading-[0.92] tracking-[-0.04em] text-black md:text-[80px] xl:text-[105px]">
-              Professional
+              {t.servicesPage.hero.title[0]}
               <br />
-              interior solutions
+              {t.servicesPage.hero.title[1]}
             </h1>
             <div className="flex flex-col gap-6 lg:w-[382px] lg:shrink-0">
-              <p className="text-[16px] leading-[1.3] tracking-[-0.04em] text-[#2b2b2b]">
-                Bridging the gap between design vision and technical reality through expert sourcing, precise
-                specification, and project-wide accountability.
-              </p>
+              <p className="text-[16px] leading-[1.3] tracking-[-0.04em] text-[#2b2b2b]">{t.servicesPage.hero.text}</p>
               <div>
-                <DotButton href="/contact">Book a consultation</DotButton>
+                <DotButton href="/contact">{t.servicesPage.hero.button}</DotButton>
               </div>
             </div>
           </div>
@@ -78,7 +52,7 @@ export default async function ServicesPage() {
 
       {/* Process cards: each is a link; hovering one reveals its description and dims the other three */}
       <section className="group/process grid w-full grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
-        {PROCESS.map((step) => (
+        {process.map((step) => (
           <Link
             key={step.number}
             href={step.href}
@@ -113,7 +87,7 @@ export default async function ServicesPage() {
         button={{ label: t.servicesPage.cta.button, href: "#projects" }}
       />
 
-      <ProjectsSlider image={PROJECT_SLIDES_IMAGE} slides={PROJECT_SLIDES} />
+      <ProjectsSlider image={PROJECT_SLIDES_IMAGE} slides={t.home.projects.slides} cta={{ label: t.home.projects.cta, href: "/projects" }} />
       <LetsTalk />
     </>
   );
