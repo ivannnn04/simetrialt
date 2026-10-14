@@ -5,23 +5,25 @@ import { Photo } from "@/components/ui/Photo";
 import { MailIcon, PhoneIcon, PinIcon } from "@/components/ui/Icons";
 import { Breadcrumbs } from "@/components/site/Breadcrumbs";
 import { ContactSection } from "@/components/contact/ContactSection";
+import { getT } from "@/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Contact — Simetria LT",
-  description: "Connect with Simetria's team of experts in bespoke lighting and interior solutions.",
-};
+export const dynamic = "force-dynamic";
 
-const CONTACTS = [
-  { label: "Give us a call", value: "069 029 606", Icon: PhoneIcon, href: "tel:+37069029606" },
-  { label: "Send us an email", value: "info@simetria.lt", Icon: MailIcon, href: "mailto:info@simetria.lt" },
-  { label: "Simetria Showroom", value: "Vilnius, Lithuania", Icon: PinIcon, href: "https://www.google.com/maps/search/?api=1&query=Simetria+Showroom+Vilnius+Lithuania", external: true },
-];
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t.contactPage.meta.title, description: t.contactPage.meta.description };
+}
 
-const TICKER = "Let’s Collaborate • Get in Touch • Start Your Project • ";
-
-// Figma "Contact" (node 4217:46337)
+// Figma "Contact" (node 4217:46337), LT 4217:48376
 export default async function ContactPage({ searchParams }: { searchParams: Promise<{ product?: string }> }) {
-  const { product } = await searchParams;
+  const [{ product }, t] = await Promise.all([searchParams, getT()]);
+  const c = t.contactPage;
+  const CONTACTS = [
+    { label: c.call, value: "069 029 606", Icon: PhoneIcon, href: "tel:+37069029606" },
+    { label: c.email, value: "info@simetria.lt", Icon: MailIcon, href: "mailto:info@simetria.lt" },
+    { label: c.showroom, value: c.city, Icon: PinIcon, href: "https://www.google.com/maps/search/?api=1&query=Simetria+Showroom+Vilnius+Lithuania", external: true },
+  ];
+  const TICKER = c.ticker;
   return (
     <>
       <section className="flex w-full flex-col gap-16 bg-cream lg:gap-[100px]">
@@ -29,13 +31,10 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
         <div className="flex w-full flex-col gap-10">
           <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-10 px-4 md:px-10 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex flex-col gap-6 lg:w-[500px]">
-              <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Contact" }]} />
+              <Breadcrumbs items={[{ label: c.home, href: "/" }, { label: c.contact }]} />
               <div className="flex flex-col gap-4">
-                <h1 className="text-[56px] font-medium leading-[0.92] tracking-[-0.04em] text-black md:text-[80px] xl:text-[105px]">Contact</h1>
-                <p className="text-[15px] leading-[1.4] tracking-[-0.04em] text-body">
-                  Connect with Simetria’s team of experts in bespoke lighting and interior solutions. We’re eager to
-                  collaborate, share knowledge, and bring your vision to life.
-                </p>
+                <h1 className="text-[56px] font-medium leading-[0.92] tracking-[-0.04em] text-black md:text-[80px] xl:text-[105px]">{c.title}</h1>
+                <p className="text-[15px] leading-[1.4] tracking-[-0.04em] text-body">{c.text}</p>
               </div>
             </div>
             <div className="flex flex-col gap-4 md:flex-row md:items-center">
@@ -68,7 +67,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
             {TICKER}{TICKER}
           </p>
         </div>
-        <ContactSection initialMessage={product ? `Hello, I am interested in “${product}”.\n` : ""} />
+        <ContactSection initialMessage={product ? c.enquiry(product) : ""} />
       </section>
     </>
   );

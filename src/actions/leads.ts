@@ -5,14 +5,16 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
+import { getT } from "@/i18n/server";
 
-const contactSchema = z.object({
-  name: z.string().min(1, "Vardas privalomas"),
-  email: z.string().email("Neteisingas el. paštas").optional().or(z.literal("")),
-  phone: z.string().optional(),
-  company: z.string().optional(),
-  message: z.string().min(1, "Žinutė privaloma"),
-});
+const contactSchema = (m: { firstName: string; email: string; message: string }) =>
+  z.object({
+    name: z.string().min(1, m.firstName),
+    email: z.string().email(m.email).optional().or(z.literal("")),
+    phone: z.string().optional(),
+    company: z.string().optional(),
+    message: z.string().min(1, m.message),
+  });
 
 /** Public: contact form submission → creates a CRM lead. */
 export async function submitContact(
@@ -20,11 +22,12 @@ export async function submitContact(
   formData: FormData
 ): Promise<{ message?: string; error?: string }> {
   // Honeypot field — bots fill it, humans don't see it.
-  if (String(formData.get("website") ?? "")) return { message: "Ačiū!" };
+  const { form } = (await getT()).contactPage;
+  if (String(formData.get("website") ?? "")) return { message: form.success };
 
   const first = String(formData.get("firstName") ?? "").trim();
   const last = String(formData.get("lastName") ?? "").trim();
-  const parsed = contactSchema.safeParse({
+  const parsed = contactSchema(form.errors).safeParse({
     name: String(formData.get("name") ?? "").trim() || `${first} ${last}`.trim(),
     email: String(formData.get("email") ?? "").trim(),
     phone: String(formData.get("phone") ?? "").trim(),
@@ -32,7 +35,7 @@ export async function submitContact(
     message: String(formData.get("message") ?? "").trim(),
   });
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Patikrinkite formą." };
+    return { error: parsed.error.issues[0]?.message ?? form.errors.form };
   }
   const d = parsed.data;
   await db.lead.create({
@@ -45,7 +48,7 @@ export async function submitContact(
       source: "website",
     },
   });
-  return { message: "Ačiū! Susisieksime su jumis artimiausiu metu." };
+  return { message: form.success };
 }
 
 export async function createLead(formData: FormData) {
