@@ -105,7 +105,7 @@ export const lt: Dictionary = {
         text: "Atstovaujame gamintojams, kuriais pasitikime, ir rekomenduojame tik tai, kas tinka projektui – o ne tai, kas atsitiktinai yra sandėlyje.",
       },
     ],
-    productLine: { title: "Mūsų produktų asortimentas", cta: "Katalogas" },
+    productLine: { title: "Mūsų produktai", cta: "Katalogas" },
     brands: "PREKĖS ŽENKLAI, KURIUOS ATSTOVAUJAME",
     projects: {
       cta: "Susipažinkite su produktais",
@@ -176,12 +176,12 @@ export const lt: Dictionary = {
         text: "Išmanusis apšvietimas, automatinės langų užuolaidos, apsaugos, klimato kontrolės ir garso / vaizdo sistemos – pilnai suprojektuotos, integruotos ir įdiegtos nuo koncepcijos iki galutinio paleidimo, pritaikytos sklandžiam veikimui, komfortui, saugumui ir intuityviam valdymui.",
       },
       bespoke: {
-        tags: ["Individualūs baldai", "Individuali apdaila", "Medžiagų parinkimas"],
+        tags: ["Individualūs baldai", "Išskirtinė apdaila", "Medžiagų parinkimas"],
         title: "Individualūs interjero sprendimai",
         text: "Individualaus dizaino baldų projektavimas ir gamyba, pagal užsakymą gaminamos durys, grindų dizainas ir gamyba bei akmens apdailos sprendimai.",
       },
       installation: {
-        tags: ["Montavimas", "Paleidimas", "Nuolatinė priežiūra"],
+        tags: ["Transportavimas", "Montavimas", "Nuolatinė priežiūra"],
         title: "Įrengimas ir aptarnavimas po pardavimo",
         text: "Visapusiškas diegimas vietoje, įskaitant įrengimą, konfigūravimą, testavimą ir galutinį paleidimą, taip pat nuolatinę techninę pagalbą, techninę priežiūrą ir aptarnavimą dar ilgą laiką po projekto perdavimo.",
       },
