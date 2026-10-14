@@ -189,7 +189,7 @@ export const lt: Dictionary = {
   },
   letsTalk: ["Pakalbėkime"],
   footer: {
-    title: "Jūsų visapusiškas partneris baldų srityje",
+    title: "Jūsų visapusiškas partneris kuriant erdves",
     text: "Mes parenkame, suderiname, pristatome ir koordinuojame kiekvieną jūsų interjero įrengimo projekto etapą.",
     cta: "Susisiekite su mumis",
     columns: { products: "Produktai", services: "Paslaugos", company: "Įmonė", social: "Socialiniai tinklai" },
