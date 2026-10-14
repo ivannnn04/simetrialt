@@ -198,7 +198,7 @@ export const lt: Dictionary = {
     process: [
       {
         title: "Konsultacijos ir projekto analizė",
-        text: "Susitinkame objekte arba salone, išnagrinėjame užduotį ir brėžinius ir sutariame dėl apimties, biudžeto ir terminų dar prieš rengiant specifikacijas.",
+        text: "Išnagrinėdami jūsų tikslus, erdvę ir viziją, rekomenduojame jums idealiai tinkamus baldus iš mūsų kruopščiai atrinktų pasiūlymų.",
       },
       {
         title: "Atranka ir pasiūlymas",
