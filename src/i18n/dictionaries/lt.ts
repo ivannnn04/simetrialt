@@ -37,22 +37,22 @@ export const lt: Dictionary = {
   },
   terms: {
     // categories
-    lighting: "Apšvietimas",
+    lighting: "Šviestuvai",
     furniture: "Baldai",
     "decor (accessories)": "Interjero detalės (aksesuarai)",
     decor: "Dekoras",
     tables: "Stalai",
     // menu groups
-    "indoor lighting": "APŠVIETIMAS PATALPOSE",
+    "indoor lighting": "VIDAUS APŠVIETIMAS",
     "outdoor lighting": "LAUKO APŠVIETIMAS",
     living: "SVETAINĖ",
     "dining & work": "VALGOMASIS IR DARBAS",
     // typologies
-    "all lamps": "Visos lempos",
+    "all lamps": "Visi",
     "pendant lights": "Pakabinami šviestuvai",
-    "ceiling lights": "Lubų šviestuvai",
+    "ceiling lights": "Lubiniai",
     "wall lights": "Sieniniai šviestuvai",
-    "table lights": "Stalo šviestuvai",
+    "table lights": "Staliniai",
     "floor lamps": "Stovinčios lempos",
     "recessed lights": "Įleistiniai šviestuvai",
     spotlights: "Prožektoriai",
