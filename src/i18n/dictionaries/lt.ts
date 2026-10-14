@@ -350,7 +350,7 @@ export const lt: Dictionary = {
     ],
     cta: {
       eyebrow: "Susipažinkite su mūsų darbų pavyzdžiais",
-      title: "Įrodyta patirtis kuriant įkvepiančius interjerus, grindžiama kruopščiu bendradarbiavimu",
+      title: "Integralus – holistinis požiūris. Darni apšvietimo, baldų ir interjero visuma, kurioje sujungiama estetika, funkcionalumas ir technologijos, kai visi šie elementai sudaro koncepcinę visumą.",
       text: "Tiekėjų paieška, skaičiavimai, architektūrinė pagalba ir įgyvendinimas.",
       button: "Peržiūrėti darbų rinkinį",
     },
