@@ -72,7 +72,7 @@ export function ProductCard({ product, className, imageClassName, compact = fals
           </div>
           {!compact && onSale && product.discount ? (
             <span className="w-fit border border-[#fb3b30] px-2 py-1 text-[14px] leading-[1.3] tracking-[-0.04em] text-[#fb3b30]">
-              {product.discount}% off
+              {t.catalogue.off(product.discount)}
             </span>
           ) : null}
         </div>

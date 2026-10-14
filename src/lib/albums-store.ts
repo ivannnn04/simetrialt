@@ -143,12 +143,14 @@ export function updateAlbumItem(id: string, productId: string, patch: { quantity
 
 export const isSavedAnywhere = (albums: Album[], productId: string) => albums.some((a) => a.items.some((i) => i.product.id === productId));
 
-export function relativeTime(ts: number): string {
+export type RelativeTimeLabels = { now: string; min: (n: number) => string; hours: (n: number) => string; day: string; days: (n: number) => string };
+
+export function relativeTime(ts: number, l: RelativeTimeLabels): string {
   const min = Math.round((Date.now() - ts) / 60000);
-  if (min < 1) return "just now";
-  if (min < 60) return `${min} min ago`;
+  if (min < 1) return l.now;
+  if (min < 60) return l.min(min);
   const h = Math.round(min / 60);
-  if (h < 24) return `${h} h ago`;
+  if (h < 24) return l.hours(h);
   const d = Math.round(h / 24);
-  return d === 1 ? "1 day ago" : `${d} days ago`;
+  return d === 1 ? l.day : l.days(d);
 }

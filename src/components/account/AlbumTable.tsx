@@ -8,6 +8,8 @@ import {
   type ProductCardData,
 } from "@/components/catalogue/ProductCard";
 import { cn } from "@/lib/cn";
+import { useT } from "@/i18n/client";
+import { term } from "@/i18n/dictionaries";
 
 export type AlbumRow = {
   productId: string;
@@ -36,13 +38,8 @@ type Props = {
 const eur = (cents: number) =>
   `€${(cents / 100).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 
-const SORTS = [
-  { value: "category", label: "Category" },
-  { value: "name", label: "Name" },
-  { value: "price", label: "Price" },
-  { value: "brand", label: "Brand" },
-] as const;
-type Sort = (typeof SORTS)[number]["value"];
+const SORTS = ["category", "name", "price", "brand"] as const;
+type Sort = (typeof SORTS)[number];
 
 function Icon({
   d,
@@ -86,6 +83,8 @@ export function AlbumTable({
   rows: initial,
   readOnly = false,
 }: Props) {
+  const t = useT();
+  const a = t.album;
   const [localRows, setLocalRows] = useState(initial);
   // Real albums re-render from the store; sample albums keep their edits in local state only.
   const rows = readOnly ? localRows : initial;
@@ -157,18 +156,18 @@ export function AlbumTable({
       <div className="flex flex-col gap-4 md:h-[39px] md:flex-row md:items-center md:justify-between">
         <div className="flex flex-wrap items-center gap-6 md:gap-9">
           <p className="text-[18px] font-semibold leading-none tracking-[-0.04em] text-[#2b2b2b]">
-            {rows.length} {rows.length === 1 ? "product" : "products"}
+            {a.count(rows.length)}
           </p>
           <label className="flex items-center gap-2 text-[15px] leading-[1.4] tracking-[-0.04em]">
-            <span className="text-[#1a1c18]/60">Sort by</span>
+            <span className="text-[#1a1c18]/60">{a.sortBy}</span>
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as Sort)}
               className="bg-transparent text-[#1a1c18] focus:outline-none"
             >
               {SORTS.map((s) => (
-                <option key={s.value} value={s.value}>
-                  {s.label}
+                <option key={s} value={s}>
+                  {a.sorts[s]}
                 </option>
               ))}
             </select>
@@ -176,7 +175,7 @@ export function AlbumTable({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              aria-label="List view"
+              aria-label={a.listView}
               aria-pressed={view === "list"}
               onClick={() => setView("list")}
               className={cn(
@@ -188,7 +187,7 @@ export function AlbumTable({
             </button>
             <button
               type="button"
-              aria-label="Grid view"
+              aria-label={a.gridView}
               aria-pressed={view === "grid"}
               onClick={() => setView("grid")}
               className={cn(
@@ -205,7 +204,7 @@ export function AlbumTable({
           className="flex h-[39px] items-center justify-center gap-[10px] bg-dark px-8 text-[13px] font-medium text-white transition-colors duration-300 hover:bg-accent"
         >
           <Icon d={PLUS} size={16} />
-          Add products
+          {a.add}
         </Link>
       </div>
 
@@ -222,8 +221,7 @@ export function AlbumTable({
             ))}
             {sorted.length === 0 && (
               <p className="text-[16px] tracking-[-0.04em] text-secondary">
-                This collection is empty. Save products from the catalogue with
-                the heart icon.
+                {a.empty}
               </p>
             )}
           </div>
@@ -233,14 +231,14 @@ export function AlbumTable({
                 <thead>
                   <tr>
                     <th className={cn(th, "min-w-[300px] pl-5 text-left")}>
-                      PRODUCT
+                      {a.columns.product}
                     </th>
-                    <th className={cn(th, "w-[140px] text-left")}>CATEGORY</th>
-                    <th className={cn(th, "w-[140px] text-left")}>PRICE</th>
-                    <th className={cn(th, "w-[140px] text-left")}>QTY</th>
-                    <th className={cn(th, "w-[140px] text-left")}>NOTES</th>
+                    <th className={cn(th, "w-[140px] text-left")}>{a.columns.category}</th>
+                    <th className={cn(th, "w-[140px] text-left")}>{a.columns.price}</th>
+                    <th className={cn(th, "w-[140px] text-left")}>{a.columns.qty}</th>
+                    <th className={cn(th, "w-[140px] text-left")}>{a.columns.notes}</th>
                     <th className={cn(th, "w-[140px] pr-5 text-left")}>
-                      ACTIONS
+                      {a.columns.actions}
                     </th>
                   </tr>
                   <tr aria-hidden>
@@ -270,24 +268,24 @@ export function AlbumTable({
                               {r.name}
                             </span>
                             <span className="text-[13px] tracking-[-0.04em] text-[#bcbcbc]">
-                              {r.category}
+                              {term(t, r.category)}
                             </span>
                           </span>
                         </Link>
                       </td>
                       <td className={cn(td, cell)}>
                         <span className="block">{r.categoryLines[0]}</span>
-                        <span className="block">{r.categoryLines[1]}</span>
+                        <span className="block">{term(t, r.categoryLines[1])}</span>
                       </td>
                       <td className={cn(td, cell)}>
-                        <span className="block">from</span>
+                        <span className="block">{a.from}</span>
                         <span className="block">{eur(r.priceCents)}</span>
                       </td>
                       <td className={td}>
                         <div className="flex h-[45px] items-center gap-2">
                           <button
                             type="button"
-                            aria-label="Decrease quantity"
+                            aria-label={a.decrease}
                             onClick={() =>
                               patch(r.productId, {
                                 quantity: Math.max(1, r.quantity - 1),
@@ -302,7 +300,7 @@ export function AlbumTable({
                           </span>
                           <button
                             type="button"
-                            aria-label="Increase quantity"
+                            aria-label={a.increase}
                             onClick={() =>
                               patch(r.productId, { quantity: r.quantity + 1 })
                             }
@@ -315,8 +313,8 @@ export function AlbumTable({
                       <td className={td}>
                         <input
                           defaultValue={r.note}
-                          placeholder="Add a note..."
-                          aria-label={`Note for ${r.name}`}
+                          placeholder={a.note}
+                          aria-label={a.noteFor(r.name)}
                           onBlur={(e) =>
                             e.target.value !== r.note &&
                             patch(r.productId, { note: e.target.value })
@@ -330,11 +328,11 @@ export function AlbumTable({
                             href={r.href}
                             className="w-10 text-[18px] leading-[1.3] tracking-[-0.04em] text-[#1b2a41] transition-colors hover:text-accent"
                           >
-                            View
+                            {a.view}
                           </Link>
                           <button
                             type="button"
-                            aria-label={`Remove ${r.name} from collection`}
+                            aria-label={a.remove(r.name)}
                             onClick={() => remove(r.productId)}
                             className="text-ink transition-colors hover:text-[#fb3b30]"
                           >
@@ -350,8 +348,7 @@ export function AlbumTable({
                         colSpan={6}
                         className="py-10 text-[16px] tracking-[-0.04em] text-secondary"
                       >
-                        This collection is empty. Save products from the
-                        catalogue with the heart icon.
+                        {a.empty}
                       </td>
                     </tr>
                   )}
@@ -365,13 +362,13 @@ export function AlbumTable({
             <div className="flex flex-col gap-[18px]">
               <div className="flex flex-col gap-[22px] text-[#1b2a41]">
                 <p className="text-[20px] font-medium leading-[1.3] tracking-[-0.04em]">
-                  Collection summary
+                  {a.summary.title}
                 </p>
                 <dl className="flex flex-col text-[18px] tracking-[-0.04em]">
                   {[
-                    ["Products", String(rows.length)],
-                    ["Total units", String(units)],
-                    ["Brands", String(brands)],
+                    [a.summary.products, String(rows.length)],
+                    [a.summary.units, String(units)],
+                    [a.summary.brands, String(brands)],
                   ].map(([k, v], i) => (
                     <div
                       key={k}
@@ -385,16 +382,15 @@ export function AlbumTable({
                     </div>
                   ))}
                   <div className="flex items-center gap-10 py-[10px]">
-                    <dt className="flex-1 leading-[1.3]">Indicative total</dt>
+                    <dt className="flex-1 leading-[1.3]">{a.summary.total}</dt>
                     <dd className="whitespace-nowrap text-right font-semibold leading-none">
-                      from {eur(total)}
+                      {a.from} {eur(total)}
                     </dd>
                   </div>
                 </dl>
               </div>
               <p className="text-[16px] leading-[1.3] tracking-[-0.04em] text-secondary">
-                Prices are indicative and subject to confirmation. Volume
-                discounts may apply — our team will confirm on enquiry.
+                {a.summary.note}
               </p>
             </div>
             <div className="flex flex-col gap-3">
@@ -402,7 +398,7 @@ export function AlbumTable({
                 href={`/contact?collection=${encodeURIComponent(collectionId)}`}
                 className="flex h-[39px] items-center justify-center bg-dark px-8 text-[13px] font-medium text-white transition-colors duration-300 hover:bg-accent"
               >
-                Send as enquiry
+                {a.summary.enquiry}
               </Link>
               <button
                 type="button"
@@ -410,7 +406,7 @@ export function AlbumTable({
                 disabled={exporting}
                 className="flex h-[39px] items-center justify-center border border-dark px-8 text-[13px] font-medium text-black transition-colors duration-300 hover:bg-dark hover:text-white disabled:opacity-50"
               >
-                {exporting ? "Preparing PDF…" : "Download PDF"}
+                {exporting ? a.summary.preparing : a.summary.pdf}
               </button>
             </div>
           </aside>

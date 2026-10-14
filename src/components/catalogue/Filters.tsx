@@ -2,7 +2,8 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { startTransition, useOptimistic, useState } from "react";
-import { useHref } from "@/i18n/client";
+import { useHref, useT } from "@/i18n/client";
+import { term, type Dictionary } from "@/i18n/dictionaries";
 import { cn } from "@/lib/cn";
 import { CaretIcon } from "@/components/ui/Icons";
 
@@ -11,13 +12,14 @@ export type FilterGroup = { key: string; label: string; options: { value: string
 const norm = (o: { value: string; label: string } | string) => (typeof o === "string" ? { value: o, label: o } : o);
 
 function FilterSection({ group, selected, onToggle }: { group: FilterGroup; selected: string[]; onToggle: (v: string) => void }) {
+  const t = useT();
   const [open, setOpen] = useState(true);
   return (
     <div className="flex w-full flex-col gap-[15px]">
       <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full items-center justify-between gap-2">
         <span className="flex min-w-0 items-center gap-2 text-[15px] font-semibold uppercase leading-none tracking-[-0.02em] text-[#0a0a0a]">
           <span className="size-1.5 shrink-0 rounded-full bg-[#0a0a0a]" />
-          <span className="truncate whitespace-nowrap">{group.label}</span>
+          <span className="truncate whitespace-nowrap">{term(t, group.label)}</span>
         </span>
         <CaretIcon className={cn("size-6 shrink-0 transition-transform", open && "rotate-180")} />
       </button>
@@ -35,7 +37,7 @@ function FilterSection({ group, selected, onToggle }: { group: FilterGroup; sele
                   active ? "border-[#1f1f1f] bg-[#1f1f1f] text-white" : "border-[#e2e2e2] text-black hover:border-[#1f1f1f]"
                 )}
               >
-                {opt.label}
+                {term(t, opt.label)}
               </button>
             );
           })}
@@ -49,6 +51,7 @@ function FilterSection({ group, selected, onToggle }: { group: FilterGroup; sele
 export function Filters({ groups, basePath = "/catalogue" }: { groups: FilterGroup[]; basePath?: string }) {
   const router = useRouter();
   const href = useHref();
+  const t = useT();
   const routeParams = useSearchParams();
   // The selected state is shown from the URL we are navigating to, not the one the server has
   // already rendered, so a tapped option turns active at once while the products reload.
@@ -87,7 +90,7 @@ export function Filters({ groups, basePath = "/catalogue" }: { groups: FilterGro
     <div key="price" className="flex w-full flex-col gap-[15px]">
       <span className="flex items-center gap-2 text-[15px] font-semibold uppercase leading-none tracking-[-0.02em] text-[#0a0a0a]">
         <span className="size-1.5 shrink-0 rounded-full bg-[#0a0a0a]" />
-        Price
+        {t.catalogue.price}
       </span>
       <div className="flex items-center gap-[9px]">
         <input
@@ -95,7 +98,7 @@ export function Filters({ groups, basePath = "/catalogue" }: { groups: FilterGro
           onChange={(e) => setMin(e.target.value)}
           onBlur={applyPrice}
           onKeyDown={(e) => e.key === "Enter" && applyPrice()}
-          placeholder="€ Min"
+          placeholder={t.catalogue.min}
           inputMode="numeric"
           className="min-w-0 flex-1 border border-[#ddd] bg-transparent px-[10px] py-2 text-[14px] leading-none tracking-[-0.04em] placeholder:text-black focus:outline-none"
         />
@@ -105,7 +108,7 @@ export function Filters({ groups, basePath = "/catalogue" }: { groups: FilterGro
           onChange={(e) => setMax(e.target.value)}
           onBlur={applyPrice}
           onKeyDown={(e) => e.key === "Enter" && applyPrice()}
-          placeholder="€ Max"
+          placeholder={t.catalogue.max}
           inputMode="numeric"
           className="min-w-0 flex-1 border border-[#ddd] bg-transparent px-[10px] py-2 text-[14px] leading-none tracking-[-0.04em] placeholder:text-black focus:outline-none"
         />
@@ -134,25 +137,19 @@ export function Filters({ groups, basePath = "/catalogue" }: { groups: FilterGro
           onClick={() => router.push(href(basePath))}
           className="w-full bg-[#e2e2e2]/50 px-8 py-[11px] text-center text-[13px] font-medium text-black transition-colors hover:bg-[#e2e2e2]"
         >
-          Reset all filters
+          {t.catalogue.reset}
         </button>
       </div>
     </aside>
   );
 }
 
-const DEFAULT_SORTS = [
-  { value: "relevance", label: "Relevance" },
-  { value: "newest", label: "Newest" },
-  { value: "price-asc", label: "Price: low to high" },
-  { value: "price-desc", label: "Price: high to low" },
-  { value: "name", label: "Name" },
-];
+const sortOptions = (t: Dictionary) => (["relevance", "newest", "price-asc", "price-desc", "name"] as const).map((value) => ({ value, label: t.catalogue.sorts[value] }));
 
 export function SortSelect({
   value,
   basePath = "/catalogue",
-  options = DEFAULT_SORTS,
+  options: given,
 }: {
   value: string;
   basePath?: string;
@@ -160,9 +157,11 @@ export function SortSelect({
 }) {
   const router = useRouter();
   const params = useSearchParams();
+  const t = useT();
+  const options = given ?? sortOptions(t);
   return (
     <label className="flex items-center gap-2 text-[15px] leading-none">
-      <span className="text-[#1a1c18]/60">Sort by</span>
+      <span className="text-[#1a1c18]/60">{t.catalogue.sortBy}</span>
       {/* Figma 4217:47880: value, 6px gap, 8×4 caret (native select padding and arrow removed) */}
       <span className="relative inline-block">
         {/* Invisible mirror of the selected label sizes the select to its text, so the caret follows the value. */}

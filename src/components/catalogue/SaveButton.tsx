@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { HeartIcon } from "@/components/ui/Icons";
 import { cn } from "@/lib/cn";
+import { useT } from "@/i18n/client";
 import { addToAlbum, createAlbum, isSavedAnywhere, useAlbums, type SavedProduct } from "@/lib/albums-store";
 import { PRODUCT_PLACEHOLDER_IMAGE } from "@/lib/placeholder";
 
@@ -28,6 +29,7 @@ const PANEL_WIDTH = 417;
  */
 export function SaveButton({ productId, product, className, light, saved: forced }: Props) {
   const albums = useAlbums();
+  const t = useT().save;
   const anchor = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
@@ -89,7 +91,7 @@ export function SaveButton({ productId, product, className, light, saved: forced
       <button
         ref={anchor}
         type="button"
-        aria-label="Save to collection"
+        aria-label={t.button}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -112,15 +114,15 @@ export function SaveButton({ productId, product, className, light, saved: forced
             ref={panel}
             role="dialog"
             aria-modal="false"
-            aria-label="Save to"
+            aria-label={t.title}
             className="fixed z-[90] flex w-[calc(100vw-32px)] max-w-[417px] flex-col items-end gap-8 bg-white p-6 text-left shadow-[0_12px_40px_rgba(0,0,0,0.12)] sm:gap-11 sm:p-10"
             style={{ top: pos.top, right: pos.right }}
             onClick={(e) => e.stopPropagation()}
           >
             <>
               <div className="flex w-full items-center justify-between">
-                <p className="text-[24px] font-semibold leading-[1.3] tracking-[-0.04em] text-[#1a1c18]">Save to</p>
-                <button type="button" aria-label="Close" onClick={() => setOpen(false)} className="text-[#1a1c18]">
+                <p className="text-[24px] font-semibold leading-[1.3] tracking-[-0.04em] text-[#1a1c18]">{t.title}</p>
+                <button type="button" aria-label={t.close} onClick={() => setOpen(false)} className="text-[#1a1c18]">
                   <svg viewBox="0 0 24 24" className="size-6" fill="none" aria-hidden>
                     <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                   </svg>
@@ -146,13 +148,13 @@ export function SaveButton({ productId, product, className, light, saved: forced
                           </span>
                           <span className="flex flex-1 flex-col">
                             <span className="text-[18px] font-medium leading-[1.3] tracking-[-0.04em] text-[#1a1c18] sm:text-[20px]">{c.name}</span>
-                            {c.hasProduct && <span className="text-[12px] text-accent">Saved</span>}
+                            {c.hasProduct && <span className="text-[12px] text-accent">{t.saved}</span>}
                           </span>
                         </button>
                       </li>
                     ))}
                     {collections.length === 0 && !creating && (
-                      <li className="py-2 text-[14px] text-secondary">No collections yet — create your first one.</li>
+                      <li className="py-2 text-[14px] text-secondary">{t.empty}</li>
                     )}
                   </ul>
 
@@ -167,7 +169,7 @@ export function SaveButton({ productId, product, className, light, saved: forced
                       <Field
                         autoFocus
                         name="collection-name"
-                        label="Collection name"
+                        label={t.name}
                         value={newName}
                         onChange={(e) => setNewName(e.target.value)}
                       />
@@ -176,7 +178,7 @@ export function SaveButton({ productId, product, className, light, saved: forced
                         disabled={pending || !newName.trim()}
                         className="w-full bg-dark px-8 py-[11px] text-[13px] font-medium text-white transition-colors hover:bg-accent disabled:opacity-50 disabled:hover:bg-dark"
                       >
-                        Save to new collection
+                        {t.saveNew}
                       </button>
                     </form>
                   ) : (
@@ -185,10 +187,10 @@ export function SaveButton({ productId, product, className, light, saved: forced
                       onClick={() => setCreating(true)}
                       className="w-full bg-dark px-8 py-[11px] text-center text-[13px] font-medium text-white transition-colors hover:bg-accent"
                     >
-                      Create new collection
+                      {t.create}
                     </button>
                   )}
-                  {saved && <p className="w-full text-[13px] text-secondary">Saved to “{saved}”.</p>}
+                  {saved && <p className="w-full text-[13px] text-secondary">{t.savedTo(saved)}</p>}
                 </>
               )}
             </>

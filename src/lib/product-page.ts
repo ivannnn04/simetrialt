@@ -27,7 +27,7 @@ export type ProductView = {
   related: ProductCardData[];
 };
 
-const DESCRIPTION =
+export const DESCRIPTION =
   "A hand-blown glass pendant with a softly diffused silhouette, designed to anchor a dining or reception area without overwhelming it. Suited to both residential and hospitality specification.";
 
 const LOREM =

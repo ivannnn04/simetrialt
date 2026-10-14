@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { useHref } from "@/i18n/client";
+import { useHref, useT } from "@/i18n/client";
 import { createAlbum } from "@/lib/albums-store";
 import { Field } from "@/components/ui/Field";
 import { cn } from "@/lib/cn";
@@ -16,6 +16,7 @@ import { cn } from "@/lib/cn";
 export function NewCollectionButton({ className }: { className?: string }) {
   const router = useRouter();
   const href = useHref();
+  const t = useT().newCollection;
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [error, setError] = useState<string | undefined>();
@@ -23,7 +24,7 @@ export function NewCollectionButton({ className }: { className?: string }) {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      setError("Please name the collection.");
+      setError(t.error);
       return;
     }
     const album = createAlbum(name);
@@ -55,7 +56,7 @@ export function NewCollectionButton({ className }: { className?: string }) {
           className
         )}
       >
-        New collection
+        {t.button}
       </button>
 
       {open &&
@@ -74,9 +75,9 @@ export function NewCollectionButton({ className }: { className?: string }) {
               <div className="flex w-full flex-col items-center gap-8 sm:gap-11">
                 <div className="flex w-full items-center justify-between gap-6">
                   <h2 id="new-collection-title" className="text-[24px] font-semibold leading-[1.3] tracking-[-0.04em] text-[#1a1c18]">
-                    Create new collection
+                    {t.title}
                   </h2>
-                  <button type="button" aria-label="Close" onClick={() => setOpen(false)} className="shrink-0 text-[#1a1c18] transition-colors hover:text-accent">
+                  <button type="button" aria-label={t.close} onClick={() => setOpen(false)} className="shrink-0 text-[#1a1c18] transition-colors hover:text-accent">
                     <svg viewBox="0 0 24 24" className="size-6" fill="none" aria-hidden>
                       <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                     </svg>
@@ -94,7 +95,7 @@ export function NewCollectionButton({ className }: { className?: string }) {
 
                 <Field
                   name="name"
-                  label="Collection name"
+                  label={t.name}
                   autoFocus
                   maxLength={80}
                   value={name}
@@ -112,7 +113,7 @@ export function NewCollectionButton({ className }: { className?: string }) {
                 disabled={pending}
                 className="flex h-[39px] w-full items-center justify-center bg-dark px-8 text-[13px] font-medium text-white transition-colors duration-300 hover:bg-accent disabled:opacity-50"
               >
-                {pending ? "Creating…" : "Create"}
+                {pending ? t.creating : t.create}
               </button>
             </form>
           </div>,

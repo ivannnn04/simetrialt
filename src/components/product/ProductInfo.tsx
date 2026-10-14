@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "@/components/ui/Link";
 import { cn } from "@/lib/cn";
+import { useT } from "@/i18n/client";
+import { term } from "@/i18n/dictionaries";
 import { SaveButton } from "@/components/catalogue/SaveButton";
 import type { ProductView } from "@/lib/product-page";
 
@@ -24,13 +26,16 @@ function PlusIcon({ className }: { className?: string }) {
 
 /** Right column of the Figma "Product page" (node 4217:46881): title, price, options, quantity, actions, details. */
 export function ProductInfo({ product }: { product: ProductView }) {
+  const t = useT();
+  const p = t.product;
   const [variant, setVariant] = useState(0);
   const [material, setMaterial] = useState(0);
   const [qty, setQty] = useState(1);
   const [openDetail, setOpenDetail] = useState<number | null>(0);
   const [added, setAdded] = useState(false);
 
-  const colour = product.variants[variant]?.label ?? product.colorLabel;
+  const colour = term(t, product.variants[variant]?.label ?? product.colorLabel);
+  const price = product.price.replace(/^From /, `${p.from} `);
 
   return (
     <div className="flex w-full flex-col gap-11 py-10">
@@ -60,7 +65,7 @@ export function ProductInfo({ product }: { product: ProductView }) {
                 </div>
               </div>
               <p className="flex items-baseline gap-3 text-[24px] leading-[1.3] tracking-[-0.04em] text-black">
-                {product.price}
+                {price}
                 {product.oldPrice && <span className="text-[16px] text-secondary line-through">{product.oldPrice}</span>}
               </p>
             </div>
@@ -69,7 +74,7 @@ export function ProductInfo({ product }: { product: ProductView }) {
 
           <div className="flex w-full max-w-[448px] flex-col gap-7">
             <div className="flex flex-col gap-3">
-              <p className="text-[16px] uppercase leading-[1.3] tracking-[-0.04em] text-[#2b2b2b]">Color: {colour}</p>
+              <p className="text-[16px] uppercase leading-[1.3] tracking-[-0.04em] text-[#2b2b2b]">{p.color}: {colour}</p>
               <div className="flex items-center gap-2">
                 {product.variants.map((v, i) => (
                   <button
@@ -95,7 +100,7 @@ export function ProductInfo({ product }: { product: ProductView }) {
               </div>
             </div>
             <div className="flex flex-col gap-3">
-              <p className="text-[16px] uppercase leading-[1.3] tracking-[-0.04em] text-[#2b2b2b]">Material</p>
+              <p className="text-[16px] uppercase leading-[1.3] tracking-[-0.04em] text-[#2b2b2b]">{p.material}</p>
               <div className="flex flex-wrap items-center gap-2">
                 {product.materials.map((m, i) => (
                   <button
@@ -108,7 +113,7 @@ export function ProductInfo({ product }: { product: ProductView }) {
                       i === material ? "border-[#1f1f1f] bg-[#1f1f1f] text-white" : "border-[#e2e2e2] text-black hover:border-dark"
                     )}
                   >
-                    {m}
+                    {term(t, m)}
                   </button>
                 ))}
               </div>
@@ -118,7 +123,7 @@ export function ProductInfo({ product }: { product: ProductView }) {
           <div className="flex h-[45px] items-center gap-2">
             <button
               type="button"
-              aria-label="Decrease quantity"
+              aria-label={p.decrease}
               onClick={() => setQty((q) => Math.max(1, q - 1))}
               className="flex size-6 items-center justify-center text-ink transition-colors hover:text-accent"
             >
@@ -129,7 +134,7 @@ export function ProductInfo({ product }: { product: ProductView }) {
             </p>
             <button
               type="button"
-              aria-label="Increase quantity"
+              aria-label={p.increase}
               onClick={() => setQty((q) => q + 1)}
               className="flex size-6 items-center justify-center text-ink transition-colors hover:text-accent"
             >
@@ -147,13 +152,13 @@ export function ProductInfo({ product }: { product: ProductView }) {
               added && "bg-dark text-white"
             )}
           >
-            {added ? "Added to cart" : "Add to cart"}
+            {added ? p.added : p.addToCart}
           </button>
           <Link
             href={`/contact?product=${encodeURIComponent(product.name)}`}
             className="flex h-[39px] flex-1 items-center justify-center bg-dark px-8 py-[11px] text-[14px] font-semibold leading-none tracking-[-0.04em] text-white transition-colors duration-300 hover:bg-accent"
           >
-            Inquire
+            {p.inquire}
           </Link>
         </div>
       </div>
@@ -170,7 +175,7 @@ export function ProductInfo({ product }: { product: ProductView }) {
                 onClick={() => setOpenDetail(open ? null : i)}
                 className="group flex w-full items-center justify-between py-2 text-left text-[16px] leading-[1.3] tracking-[-0.04em] text-[#2b2b2b] transition-colors hover:text-accent"
               >
-                {d.title}
+                {term(t, d.title)}
                 <span className="relative size-6 shrink-0">
                   <span
                     className={cn(

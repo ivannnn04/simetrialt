@@ -4,17 +4,20 @@ import { CatalogueGrid } from "@/components/catalogue/CatalogueGrid";
 import { Pagination } from "@/components/catalogue/Pagination";
 import { loadCatalogue, type Search } from "@/lib/catalogue";
 import { pageHref } from "@/lib/page-href";
+import { getT } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = {
-  title: "Outlet — Simetria LT",
-  description: "Past-season pieces and showroom samples from the brands we represent — same products, same quality, exceptional pricing.",
-};
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return t.outlet.meta;
+}
 
 // Figma "Outlet" (node 4217:46833): hero, filters bar, 3 / 2 / 3 grid, pagination
 export default async function OutletPage({ searchParams }: { searchParams: Promise<Search> }) {
-  const sp = await searchParams;
+  const [sp, t] = await Promise.all([searchParams, getT()]);
   const { groups, cards, sort, page, pages } = await loadCatalogue(sp, { saleOnly: true });
+  const o = t.outlet;
 
   return (
     <div className="flex w-full flex-col bg-cream pb-10 md:pb-[120px]">
@@ -23,14 +26,13 @@ export default async function OutletPage({ searchParams }: { searchParams: Promi
           <SiteHeader variant="solid" />
           <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-10 px-4 py-[50px] md:px-10 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex flex-col gap-[35px] font-medium text-black">
-              <p className="text-[13px] uppercase leading-[1.5]">Outlet</p>
+              <p className="text-[13px] uppercase leading-[1.5]">{o.eyebrow}</p>
               <h1 className="max-w-[1016px] text-[56px] leading-[0.92] tracking-[-0.04em] md:text-[80px] xl:text-[106px]">
-                Considered savings, same standards
+                {o.title}
               </h1>
             </div>
             <p className="text-[16px] leading-[1.3] tracking-[-0.04em] text-[#2b2b2b] lg:w-[315px] lg:shrink-0">
-              Past-season pieces and showroom samples from the brands we represent — same products, same quality,
-              exceptional pricing.
+              {o.text}
             </p>
           </div>
         </section>

@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
+import { useT } from "@/i18n/client";
 import { CaretIcon, CloseIcon } from "@/components/ui/Icons";
 import { ProductCard, type ProductCardData } from "@/components/catalogue/ProductCard";
 import { Filters, SortSelect, type FilterGroup } from "@/components/catalogue/Filters";
@@ -25,6 +26,7 @@ const DESKTOP = "(min-width: 64rem)";
  * Below lg the sidebar becomes a drawer that slides in from the left over the page.
  */
 export function CatalogueGrid({ groups, cards, sort, defaultOpen = false, basePath = "/catalogue" }: Props) {
+  const t = useT().catalogue;
   const [open, setOpen] = useState(defaultOpen); // desktop inline sidebar
   const [drawer, setDrawer] = useState(false); // mobile / tablet drawer
 
@@ -69,7 +71,7 @@ export function CatalogueGrid({ groups, cards, sort, defaultOpen = false, basePa
             aria-controls="catalogue-filters"
             className="flex items-center gap-2 text-[18px] font-semibold uppercase leading-none text-[#1a1c18]"
           >
-            Filters
+            {t.filters}
             <CaretIcon className={cn("size-4 transition-transform duration-300", open && "lg:rotate-180")} />
           </button>
           <Suspense>
@@ -86,7 +88,7 @@ export function CatalogueGrid({ groups, cards, sort, defaultOpen = false, basePa
       >
         <button
           type="button"
-          aria-label="Close filters"
+          aria-label={t.closeFilters}
           onClick={() => setDrawer(false)}
           className={cn("absolute inset-0 bg-black/40 transition-opacity duration-300", drawer ? "opacity-100" : "opacity-0")}
         />
@@ -94,7 +96,7 @@ export function CatalogueGrid({ groups, cards, sort, defaultOpen = false, basePa
           id="catalogue-filters-drawer"
           role="dialog"
           aria-modal="true"
-          aria-label="Filters"
+          aria-label={t.filters}
           inert={!drawer}
           className={cn(
             "absolute inset-y-0 left-0 flex w-[min(360px,88vw)] flex-col bg-white shadow-xl transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
@@ -102,8 +104,8 @@ export function CatalogueGrid({ groups, cards, sort, defaultOpen = false, basePa
           )}
         >
           <div className="flex items-center justify-between border-b border-line px-5 py-4">
-            <span className="text-[18px] font-semibold uppercase leading-none text-[#1a1c18]">Filters</span>
-            <button type="button" onClick={() => setDrawer(false)} aria-label="Close filters" className="-mr-2 p-2 text-black">
+            <span className="text-[18px] font-semibold uppercase leading-none text-[#1a1c18]">{t.filters}</span>
+            <button type="button" onClick={() => setDrawer(false)} aria-label={t.closeFilters} className="-mr-2 p-2 text-black">
               <CloseIcon className="size-5" />
             </button>
           </div>
@@ -118,7 +120,7 @@ export function CatalogueGrid({ groups, cards, sort, defaultOpen = false, basePa
               onClick={() => setDrawer(false)}
               className="w-full bg-dark px-8 py-[14px] text-center text-[14px] font-medium text-white transition-colors hover:bg-black"
             >
-              Show results
+              {t.showResults}
             </button>
           </div>
         </div>
@@ -169,7 +171,7 @@ export function CatalogueGrid({ groups, cards, sort, defaultOpen = false, basePa
               ))}
             </div>
           ))}
-          {cards.length === 0 && <p className="text-secondary">No products match these filters.</p>}
+          {cards.length === 0 && <p className="text-secondary">{t.empty}</p>}
         </div>
       </div>
     </section>

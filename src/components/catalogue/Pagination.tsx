@@ -1,5 +1,6 @@
 import Link from "@/components/ui/Link";
 import { cn } from "@/lib/cn";
+import { getT } from "@/i18n/server";
 
 type Props = {
   page: number;
@@ -9,8 +10,9 @@ type Props = {
 };
 
 /** Figma "pagination" (node 4213:30257): chevrons, 13px page numbers, current in black, ellipsis. */
-export function Pagination({ page, pages, href }: Props) {
+export async function Pagination({ page, pages, href }: Props) {
   if (pages <= 1) return null;
+  const t = (await getT()).catalogue;
 
   // 1 … around current … last, collapsing long runs into "…"
   const items: (number | "…")[] = [];
@@ -28,7 +30,7 @@ export function Pagination({ page, pages, href }: Props) {
   const arrow = (dir: -1 | 1, disabled: boolean) => (
     <Link
       href={href(page + dir)}
-      aria-label={dir < 0 ? "Previous page" : "Next page"}
+      aria-label={dir < 0 ? t.prevPage : t.nextPage}
       aria-disabled={disabled}
       tabIndex={disabled ? -1 : undefined}
       className={cn("flex size-6 items-center justify-center text-black transition-colors hover:text-accent", disabled && "pointer-events-none opacity-30")}
@@ -40,7 +42,7 @@ export function Pagination({ page, pages, href }: Props) {
   );
 
   return (
-    <nav aria-label="Pagination" className="flex h-[37px] w-full items-center justify-center gap-[9px]">
+    <nav aria-label={t.pagination} className="flex h-[37px] w-full items-center justify-center gap-[9px]">
       {arrow(-1, page <= 1)}
       {items.map((it, i) =>
         it === "…" ? (

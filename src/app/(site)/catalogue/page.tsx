@@ -5,24 +5,31 @@ import { CatalogueGrid } from "@/components/catalogue/CatalogueGrid";
 import { Pagination } from "@/components/catalogue/Pagination";
 import { loadCatalogue, type Search } from "@/lib/catalogue";
 import { pageHref } from "@/lib/page-href";
+import { getT } from "@/i18n/server";
+import { term } from "@/i18n/dictionaries";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Products — Simetria LT" };
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t.catalogue.meta };
+}
 
 // Figma "Furniture Products" (node 4217:47838) / "filter-v2" closed state (node 4217:46770)
 export default async function CataloguePage({ searchParams }: { searchParams: Promise<Search> }) {
-  const sp = await searchParams;
+  const [sp, t] = await Promise.all([searchParams, getT()]);
   const { groups, cards, sort, category, activeCategory, activeTypology, page, pages } = await loadCatalogue(sp);
+  const c = t.catalogue;
 
   // A single typology from the Products menu becomes the page title (Figma: "Sofas" under Products › Furniture).
-  const title = activeTypology ?? activeCategory ?? "All products";
+  const title = term(t, activeTypology ?? activeCategory ?? c.allProducts);
   const crumbs = [
-    { label: "Home", href: "/" },
-    { label: "Products", href: "/catalogue" },
+    { label: c.home, href: "/" },
+    { label: c.products, href: "/catalogue" },
     ...(activeCategory
-      ? [{ label: activeCategory, href: activeTypology ? `/catalogue?category=${encodeURIComponent(category[0])}` : undefined }]
+      ? [{ label: term(t, activeCategory), href: activeTypology ? `/catalogue?category=${encodeURIComponent(category[0])}` : undefined }]
       : []),
-    ...(activeTypology ? [{ label: activeTypology }] : []),
+    ...(activeTypology ? [{ label: term(t, activeTypology) }] : []),
   ];
 
   return (

@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site/Header";
 import { AlbumsList } from "@/components/account/AlbumsList";
+import { getT } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "My albums — Simetria LT" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getT()).albums.meta };
+}
 
 // Figma "Wishlist-Collection" (node 4217:47160); albums are stored in the browser for now.
 export default function AlbumsPage() {

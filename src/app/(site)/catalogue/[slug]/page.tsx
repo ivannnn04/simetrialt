@@ -5,34 +5,38 @@ import { Breadcrumbs } from "@/components/site/Breadcrumbs";
 import { ProductLine } from "@/components/home/HomeSections";
 import { ProductInfo } from "@/components/product/ProductInfo";
 import { ProductGallery } from "@/components/product/ProductGallery";
-import { loadProduct } from "@/lib/product-page";
+import { DESCRIPTION, loadProduct } from "@/lib/product-page";
+import { getT } from "@/i18n/server";
+import { term } from "@/i18n/dictionaries";
 
 export const dynamic = "force-dynamic";
 
 type Params = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const { slug } = await params;
+  const [{ slug }, t] = await Promise.all([params, getT()]);
   const product = await loadProduct(slug);
-  return { title: product ? `${product.name} — Simetria LT` : "Product — Simetria LT" };
+  return { title: product ? t.product.meta(product.name) : t.product.fallback };
 }
 
 // Figma "Product page" (node 4217:46868)
 export default async function ProductPage({ params }: Params) {
-  const { slug } = await params;
-  const product = await loadProduct(slug);
-  if (!product) notFound();
+  const [{ slug }, t] = await Promise.all([params, getT()]);
+  const loaded = await loadProduct(slug);
+  if (!loaded) notFound();
+  // The placeholder description follows the locale until products carry their own translations.
+  const product = loaded.description === DESCRIPTION ? { ...loaded, description: t.product.description } : loaded;
 
   const crumbs = [
-    { label: "Home", href: "/" },
-    { label: "Products", href: "/catalogue" },
+    { label: t.product.home, href: "/" },
+    { label: t.product.products, href: "/catalogue" },
     ...(product.category
-      ? [{ label: product.category.name, href: `/catalogue?category=${encodeURIComponent(product.category.slug)}` }]
+      ? [{ label: term(t, product.category.name), href: `/catalogue?category=${encodeURIComponent(product.category.slug)}` }]
       : []),
     ...(product.typology
       ? [
           {
-            label: product.typology,
+            label: term(t, product.typology),
             href: product.category
               ? `/catalogue?category=${encodeURIComponent(product.category.slug)}&typology=${encodeURIComponent(product.typology)}`
               : undefined,
@@ -58,7 +62,7 @@ export default async function ProductPage({ params }: Params) {
         </div>
       </section>
 
-      <ProductLine products={product.related} title="Related Products" cta={null} className="pt-[120px]" />
+      <ProductLine products={product.related} title={t.product.related} cta={null} className="pt-[120px]" />
     </div>
   );
 }
