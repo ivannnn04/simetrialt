@@ -37,7 +37,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
                 <p className="text-[15px] leading-[1.4] tracking-[-0.04em] text-body">{c.text}</p>
               </div>
             </div>
-            <div className="flex flex-col gap-4 md:flex-row md:items-center">
+            <div className="flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center lg:min-w-0 lg:shrink lg:justify-end">
               {CONTACTS.map(({ label, value, Icon, href, external }) => (
                 <Link
                   key={label}
