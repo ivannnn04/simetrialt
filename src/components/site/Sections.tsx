@@ -102,9 +102,9 @@ export async function ServicesList({ className, stack = false }: ServicesListPro
               stack ? "lg:items-start" : "lg:items-center"
             )}
           >
-            <div className="flex w-full items-start justify-between gap-6 lg:w-[738px] lg:shrink-0">
+            <div className="flex w-full items-start justify-between gap-6 lg:w-[58%] lg:shrink-0 xl:w-[738px]">
               <p className="whitespace-nowrap text-[18px] leading-[1.3] tracking-[-0.04em] text-secondary">/ {s.number}</p>
-              <div className="flex w-full flex-col gap-8 lg:w-[669px]">
+              <div className="flex w-full flex-col gap-8 xl:w-[669px]">
                 <div className="flex flex-col gap-6">
                   <ul className="flex flex-wrap gap-[10px]">
                     {s.tags.map((tag) => (
