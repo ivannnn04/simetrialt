@@ -60,7 +60,7 @@ export function ProductInfo({ product }: { product: ProductView }) {
                       image: product.images[0] ?? null,
                       href: `/catalogue/${product.id}`,
                     }}
-                    className="shrink-0 [&>button]:size-9 [&_svg]:size-9"
+                    className="shrink-0 [&>button]:size-7 [&_svg]:size-7 md:[&>button]:size-9 md:[&_svg]:size-9"
                   />
                 </div>
               </div>
