@@ -110,11 +110,11 @@ export function AlbumsList() {
           <div className="flex flex-col gap-3 min-[400px]:flex-row min-[400px]:items-center md:w-[367px] md:gap-5">
             <Link
               href="/catalogue"
-              className="flex h-[39px] flex-1 items-center justify-center whitespace-nowrap border border-dark px-4 md:w-[168px] md:flex-none text-center text-[13px] font-medium text-black transition-colors duration-300 hover:bg-dark hover:text-white"
+              className="flex h-[39px] items-center justify-center whitespace-nowrap border border-dark px-4 min-[400px]:flex-1 md:w-[168px] md:flex-none text-center text-[13px] font-medium text-black transition-colors duration-300 hover:bg-dark hover:text-white"
             >
               {t.browse}
             </Link>
-            <NewCollectionButton className="flex-1" />
+            <NewCollectionButton className="min-[400px]:flex-1" />
           </div>
         </div>
 
