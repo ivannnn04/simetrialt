@@ -320,14 +320,14 @@ export function AlbumTable({
                             e.target.value !== r.note &&
                             patch(r.productId, { note: e.target.value })
                           }
-                          className="h-[45px] w-full border border-[#ddd] bg-transparent px-[10px] text-center text-[18px] tracking-[-0.04em] text-[#1b2a41] placeholder:text-secondary focus:border-dark focus:outline-none"
+                          className="h-[45px] w-full border border-[#ddd] bg-transparent px-[10px] text-center text-[18px] tracking-[-0.04em] text-[#1b2a41] placeholder:text-[16px] placeholder:text-secondary focus:border-dark focus:outline-none"
                         />
                       </td>
                       <td className={cn(td, "pl-[10px] pr-5")}>
-                        <div className="flex h-[45px] items-center justify-center gap-1">
+                        <div className="flex h-[45px] items-center justify-center gap-2">
                           <Link
                             href={r.href}
-                            className="w-10 text-[18px] leading-[1.3] tracking-[-0.04em] text-[#1b2a41] transition-colors hover:text-accent"
+                            className="whitespace-nowrap text-[18px] leading-[1.3] tracking-[-0.04em] text-[#1b2a41] transition-colors hover:text-accent"
                           >
                             {a.view}
                           </Link>

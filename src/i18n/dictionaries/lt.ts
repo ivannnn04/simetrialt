@@ -554,7 +554,7 @@ export const lt: Dictionary = {
     from: "nuo",
     decrease: "Sumažinti kiekį",
     increase: "Padidinti kiekį",
-    note: "Pridėti pastabą...",
+    note: "Pridėti pastabą…",
     noteFor: (name: string) => `Pastaba: ${name}`,
     view: "Peržiūrėti",
     remove: (name: string) => `Pašalinti „${name}“ iš kolekcijos`,
