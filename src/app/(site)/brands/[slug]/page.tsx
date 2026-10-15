@@ -65,7 +65,7 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
 
       {/* Signature collections */}
       <section className="flex w-full flex-col gap-10">
-        <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-6 px-4 md:px-10">
+        <div className="mx-auto flex w-full max-w-[1440px] flex-col items-start gap-4 px-4 min-[480px]:flex-row min-[480px]:items-center min-[480px]:justify-between min-[480px]:gap-6 md:px-10">
           <h2 className="text-[36px] font-medium leading-[1.1] tracking-[-0.04em] text-black md:text-[52px]">{d.collections}</h2>
           <SectionLink href="/catalogue">{d.seeMore}</SectionLink>
         </div>
@@ -81,7 +81,7 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
 
       {/* Projects */}
       <section className="flex w-full flex-col gap-10">
-        <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-6 px-4 md:px-10">
+        <div className="mx-auto flex w-full max-w-[1440px] flex-col items-start gap-4 px-4 min-[480px]:flex-row min-[480px]:items-center min-[480px]:justify-between min-[480px]:gap-6 md:px-10">
           <h2 className="text-[36px] font-medium leading-[1.1] tracking-[-0.04em] text-black md:text-[52px]">{d.projects}</h2>
           <SectionLink href="/projects">{d.seeMore}</SectionLink>
         </div>
@@ -120,7 +120,7 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
               <p className="text-[18px] leading-[1.3] tracking-[-0.04em] text-body">{d.ctaText}</p>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2">
-              <DotButton href="/catalogue">{d.viewProducts}</DotButton>
+              <DotButton href="/catalogue" className="max-w-full text-center max-[399px]:whitespace-normal!">{d.viewProducts}</DotButton>
               <DotButton variant="ghost" dots={false} href={`/contact?product=${encodeURIComponent(brand.name)}`}>{d.enquiry}</DotButton>
             </div>
           </div>
