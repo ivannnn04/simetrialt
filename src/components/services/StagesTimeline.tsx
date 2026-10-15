@@ -71,7 +71,7 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
         const y1 = LINE_TOP;
         const y2 = r0 && r1 ? r1.top - r0.top + LINE_TOP : y1;
         const link = Math.max(0, y2 - y1 - 2 * CORNER);
-        const along = (i: number, x: number) => (i < PER_ROW ? x : w - CORNER + ARC + link + ARC + (w - CORNER - x));
+        const along = (i: number, x: number) => (i < PER_ROW ? x : w - 0.5 - CORNER + ARC + link + ARC + (w - 0.5 - CORNER - x));
         centres = rDotRefs.current.map((d, i) => {
           if (!d) return 0;
           const c = d.getBoundingClientRect();
@@ -79,7 +79,12 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
         });
         // the grey path runs on to the left edge; the sweep still ends at the last point
         const total = centres[centres.length - 1] ?? 0;
-        const d = `M0 ${y1} H${w - CORNER} A${CORNER} ${CORNER} 0 0 1 ${w} ${y1 + CORNER} V${y2 - CORNER} A${CORNER} ${CORNER} 0 0 1 ${w - CORNER} ${y2} H0`;
+        // Lines sit on half-pixels and the right edge is inset by half the stroke, so every
+        // segment renders as one crisp 1px line instead of a blurred / half-clipped one.
+        const ty1 = y1 + 0.5;
+        const ty2 = y2 + 0.5;
+        const xr = w - 0.5;
+        const d = `M0 ${ty1} H${xr - CORNER} A${CORNER} ${CORNER} 0 0 1 ${xr} ${ty1 + CORNER} V${ty2 - CORNER} A${CORNER} ${CORNER} 0 0 1 ${xr - CORNER} ${ty2} H0`;
         setPath({ d, total, w, h: rect.height });
         extent = total;
       } else {
@@ -185,7 +190,7 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
           points 4 and 5 sit centred under the gaps (4 between 2 and 3, 5 between 1 and 2). */}
       <div ref={rowsRef} className="relative hidden w-full flex-col gap-10 md:flex xl:hidden">
         {path && (
-          <svg className="pointer-events-none absolute inset-0" width={path.w} height={path.h} viewBox={`0 0 ${path.w} ${path.h}`} aria-hidden>
+          <svg className="pointer-events-none absolute inset-0 overflow-visible" width={path.w} height={path.h} viewBox={`0 0 ${path.w} ${path.h}`} aria-hidden>
             <path d={path.d} fill="none" stroke="var(--color-line)" strokeWidth="1" />
             <path
               d={path.d}
