@@ -245,7 +245,8 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
         </nav>
 
         {/* Mobile: search and account as icons, everything else behind the burger */}
-        <div className={cn("flex items-center gap-4 lg:hidden", solid ? "text-black" : "text-white")}>
+        <div className={cn("flex items-center gap-3 min-[400px]:gap-4 lg:hidden", solid ? "text-black" : "text-white")}>
+          <LanguageSwitch light={!solid} className="mr-1" />
           <button
             type="button"
             aria-label={t.nav.search}
@@ -449,7 +450,6 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
                 </li>
               ))}
             </ul>
-            <LanguageSwitch light={false} className="mt-8 text-[18px]" />
           </nav>
         </div>
       )}
