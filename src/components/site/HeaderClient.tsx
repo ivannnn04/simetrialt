@@ -193,7 +193,7 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
       {/* The bar keeps its own background so the search backdrop never dims it */}
       <div className={cn("relative z-30 w-full transition-colors duration-300", solid ? "bg-cream" : "bg-transparent")}>
         <div className="mx-auto flex h-[76px] w-full max-w-[1440px] items-center justify-between px-4 py-6 md:px-10">
-        <nav className="hidden w-[450px] items-center gap-6 lg:flex">
+        <nav className="hidden w-[450px] items-center gap-6 min-[1200px]:flex">
           <button
             type="button"
             onMouseEnter={() => {
@@ -218,7 +218,7 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
           <Wordmark />
         </Link>
 
-        <nav className="hidden w-[450px] items-center justify-end gap-6 lg:flex">
+        <nav className="hidden w-[450px] items-center justify-end gap-6 min-[1200px]:flex">
           {RIGHT_LINKS.map((l) => (
             <Link key={l.label} href={l.href} className={link(isActive(l.href))} onMouseEnter={() => setOpen(false)}>
               {l.label}
@@ -245,7 +245,7 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
         </nav>
 
         {/* Mobile: search and account as icons, everything else behind the burger */}
-        <div className={cn("flex items-center gap-3 min-[400px]:gap-4 lg:hidden", solid ? "text-black" : "text-white")}>
+        <div className={cn("flex items-center gap-3 min-[400px]:gap-4 min-[1200px]:hidden", solid ? "text-black" : "text-white")}>
           <LanguageSwitch light={!solid} className="mr-1" />
           <button
             type="button"
@@ -281,7 +281,7 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
       {/* Products mega-menu — Figma node 4217:46020 */}
       <div
         className={cn(
-          "absolute left-0 right-0 top-[76px] z-20 hidden overflow-hidden bg-cream transition-[height,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:block",
+          "absolute left-0 right-0 top-[76px] z-20 hidden overflow-hidden bg-cream transition-[height,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] min-[1200px]:block",
           !open && "pointer-events-none"
         )}
         style={{ height: open ? panelHeight : 0, opacity: open ? 1 : 0 }}
@@ -369,7 +369,7 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
 
       {/* Mobile menu: full-screen white sheet */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-[80] flex flex-col bg-white text-black menu-fade lg:hidden" role="dialog" aria-modal="true" aria-label={t.nav.menu}>
+        <div className="fixed inset-0 z-[80] flex flex-col bg-white text-black menu-fade min-[1200px]:hidden" role="dialog" aria-modal="true" aria-label={t.nav.menu}>
           <div className="flex h-[76px] items-center justify-between px-4 md:px-10">
             <Link href="/" aria-label={t.nav.home} onClick={() => setMobileOpen(false)}>
               <Wordmark />
