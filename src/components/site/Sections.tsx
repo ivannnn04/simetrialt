@@ -246,7 +246,7 @@ export function CtaSection({ eyebrow, image, title, text, button }: CtaProps) {
         </div>
         <div className="flex w-full flex-col items-center gap-8">
           <div className="flex flex-col items-center gap-4 pb-[11px] text-center">
-            <h2 className="max-w-[880px] text-[40px] font-medium leading-none tracking-[-0.04em] text-ink md:text-[64px]">
+            <h2 className="max-w-[930px] text-[40px] font-medium leading-none tracking-[-0.04em] text-ink md:text-[64px]">
               {title}
             </h2>
             <p className="text-[14px] leading-[1.3] tracking-[-0.04em] text-secondary">{text}</p>
