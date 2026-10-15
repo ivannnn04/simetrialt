@@ -102,9 +102,9 @@ export async function ServicesList({ className, stack = false }: ServicesListPro
               stack ? "lg:items-start" : "lg:items-center"
             )}
           >
-            <div className="flex w-full items-start justify-between gap-6 lg:w-[58%] lg:shrink-0 xl:w-[738px]">
+            <div className="flex w-full flex-col items-start gap-4 min-[400px]:flex-row min-[400px]:justify-between min-[400px]:gap-6 lg:w-[58%] lg:shrink-0 xl:w-[738px]">
               <p className="whitespace-nowrap text-[18px] leading-[1.3] tracking-[-0.04em] text-secondary">/ {s.number}</p>
-              <div className="flex w-full flex-col gap-8 xl:w-[669px]">
+              <div className="flex w-full min-w-0 flex-col gap-8 xl:w-[669px]">
                 <div className="flex flex-col gap-6">
                   <ul className="flex flex-wrap gap-[10px]">
                     {s.tags.map((tag) => (
@@ -166,7 +166,7 @@ export function ProjectsSection() {
             <div className="flex flex-col gap-6 text-white">
               <div className="flex max-w-[478px] flex-col gap-4">
                 <p className="text-[18px] font-semibold leading-none tracking-[-0.04em]">/ Apartment</p>
-                <h2 className="max-w-[490px] text-[56px] font-medium leading-[0.9] tracking-[-0.04em] md:text-[80px]">
+                <h2 className="max-w-[490px] text-[44px] font-medium leading-[0.9] min-[400px]:text-[56px] tracking-[-0.04em] md:text-[80px]">
                   PRUSTA Jogailos butas
                 </h2>
                 <p className="text-[16px] leading-[1.3] tracking-[-0.04em]">
@@ -280,7 +280,7 @@ export function PageHero({ crumbs, title, text, button, titleClassName, children
         {crumbs && <Breadcrumbs items={crumbs} />}
         <h1
           className={cn(
-            "text-[56px] font-medium leading-[0.92] tracking-[-0.04em] text-black md:text-[80px] xl:text-[105px]",
+            "text-[44px] font-medium leading-[0.92] min-[400px]:text-[56px] tracking-[-0.04em] text-black md:text-[80px] xl:text-[105px]",
             titleClassName
           )}
         >

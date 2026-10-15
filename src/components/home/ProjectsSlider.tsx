@@ -56,7 +56,7 @@ export function ProjectsSlider({ slides, image, interval = 6000, cta }: Props) {
                   <div className="flex flex-col gap-6 text-white">
                     <div className="flex max-w-[478px] flex-col gap-4">
                       <p className="text-[18px] font-semibold leading-none tracking-[-0.04em]">/ {s.category}</p>
-                      <h2 className="max-w-[490px] text-[56px] font-medium leading-[0.9] tracking-[-0.04em] md:text-[80px]">
+                      <h2 className="max-w-[490px] text-[44px] font-medium leading-[0.9] min-[400px]:text-[56px] tracking-[-0.04em] md:text-[80px]">
                         {s.title}
                       </h2>
                       <p className="text-[16px] leading-[1.3] tracking-[-0.04em]">{s.text}</p>

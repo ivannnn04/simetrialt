@@ -32,7 +32,7 @@ export default async function ServicesPage() {
         <SiteHeader variant="solid" />
         <div className="flex w-full flex-col gap-8">
           <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-10 px-4 md:px-10 lg:flex-row lg:items-end">
-            <h1 className="flex-1 text-[56px] font-medium leading-[0.92] tracking-[-0.04em] text-black md:text-[80px] xl:text-[105px]">
+            <h1 className="flex-1 text-[44px] font-medium leading-[0.92] min-[400px]:text-[56px] tracking-[-0.04em] text-black md:text-[80px] xl:text-[105px]">
               {t.servicesPage.hero.title[0]}
               <br />
               {t.servicesPage.hero.title[1]}

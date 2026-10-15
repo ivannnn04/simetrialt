@@ -27,7 +27,7 @@ export default async function OutletPage({ searchParams }: { searchParams: Promi
           <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-10 px-4 py-[50px] md:px-10 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex flex-col gap-[35px] font-medium text-black">
               <p className="text-[13px] uppercase leading-[1.5]">{o.eyebrow}</p>
-              <h1 className="max-w-[1016px] text-[56px] leading-[0.92] tracking-[-0.04em] md:text-[80px] xl:text-[106px]">
+              <h1 className="max-w-[1016px] text-[44px] leading-[0.92] min-[400px]:text-[56px] tracking-[-0.04em] md:text-[80px] xl:text-[106px]">
                 {o.title}
               </h1>
             </div>

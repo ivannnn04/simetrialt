@@ -78,7 +78,7 @@ export default async function ProjectsPage({
         <section className="flex w-full flex-col gap-16 lg:gap-[100px]">
           <SiteHeader variant="solid" />
           <div className="mx-auto w-full max-w-[1440px] px-4 md:px-10">
-            <h1 className="max-w-[700px] text-[56px] font-medium leading-[0.92] tracking-[-0.04em] text-black md:text-[80px] xl:text-[106px]">
+            <h1 className="max-w-[700px] text-[44px] font-medium leading-[0.92] min-[400px]:text-[56px] tracking-[-0.04em] text-black md:text-[80px] xl:text-[106px]">
               {t.projectsPage.title}
             </h1>
           </div>

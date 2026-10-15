@@ -39,7 +39,7 @@ export default async function CataloguePage({ searchParams }: { searchParams: Pr
           <SiteHeader variant="solid" />
           <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-[35px] px-4 py-[50px] md:px-10">
             <Breadcrumbs items={crumbs} />
-            <h1 className="text-[56px] font-medium leading-[0.92] tracking-[-0.04em] text-black md:text-[80px] xl:text-[106px]">
+            <h1 className="text-[44px] font-medium leading-[0.92] min-[400px]:text-[56px] tracking-[-0.04em] text-black md:text-[80px] xl:text-[106px]">
               {title}
             </h1>
           </div>

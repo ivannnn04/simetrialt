@@ -77,7 +77,7 @@ export function AlbumsList() {
       <section className="flex w-full flex-col border-b border-line">
         <div className="mx-auto flex w-full max-w-[1440px] flex-col justify-between gap-10 px-4 py-[50px] md:px-10 lg:flex-row lg:items-start">
           <div className="flex flex-col justify-between gap-6 lg:min-h-[176px]">
-            <h1 className="text-[56px] font-medium leading-[0.92] tracking-[-0.04em] text-black md:text-[80px] xl:text-[106px]">{t.title}</h1>
+            <h1 className="text-[44px] font-medium leading-[0.92] min-[400px]:text-[56px] tracking-[-0.04em] text-black md:text-[80px] xl:text-[106px]">{t.title}</h1>
           </div>
           <div className="flex flex-col gap-6 text-[#2b2b2b] lg:w-[366px]">
             <p className="text-[16px] leading-[1.3] tracking-[-0.04em]">{t.text}</p>
@@ -107,7 +107,7 @@ export function AlbumsList() {
               ))}
             </select>
           </label>
-          <div className="flex items-center gap-3 md:w-[367px] md:gap-5">
+          <div className="flex flex-col gap-3 min-[400px]:flex-row min-[400px]:items-center md:w-[367px] md:gap-5">
             <Link
               href="/catalogue"
               className="flex h-[39px] flex-1 items-center justify-center whitespace-nowrap border border-dark px-4 md:w-[168px] md:flex-none text-center text-[13px] font-medium text-black transition-colors duration-300 hover:bg-dark hover:text-white"

@@ -22,7 +22,7 @@ export async function AuthPage({ mode, searchParams }: Props) {
         <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-12 px-4 md:px-10 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex flex-col gap-6 lg:w-[640px]">
             <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Account" }]} />
-            <h1 className="text-[56px] font-medium leading-[0.92] tracking-[-0.04em] text-black md:text-[80px] xl:text-[105px]">{title}</h1>
+            <h1 className="text-[44px] font-medium leading-[0.92] min-[400px]:text-[56px] tracking-[-0.04em] text-black md:text-[80px] xl:text-[105px]">{title}</h1>
             <p className="max-w-[420px] text-[16px] leading-[1.3] tracking-[-0.04em] text-body">{text}</p>
           </div>
           <AuthForm mode={mode} next={next} />

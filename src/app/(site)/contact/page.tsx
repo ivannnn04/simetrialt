@@ -33,7 +33,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
             <div className="flex flex-col gap-6 lg:w-[500px]">
               <Breadcrumbs items={[{ label: c.home, href: "/" }, { label: c.contact }]} />
               <div className="flex flex-col gap-4">
-                <h1 className="text-[56px] font-medium leading-[0.92] tracking-[-0.04em] text-black md:text-[80px] xl:text-[105px]">{c.title}</h1>
+                <h1 className="text-[44px] font-medium leading-[0.92] min-[400px]:text-[56px] tracking-[-0.04em] text-black md:text-[80px] xl:text-[105px]">{c.title}</h1>
                 <p className="text-[15px] leading-[1.4] tracking-[-0.04em] text-body">{c.text}</p>
               </div>
             </div>
