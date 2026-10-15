@@ -61,7 +61,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
         </div>
       </section>
 
-      <section className="flex w-full flex-col overflow-hidden pt-[120px]">
+      <section className="flex w-full flex-col overflow-hidden pt-16 md:pt-[120px]">
         <div className="flex whitespace-nowrap" aria-hidden>
           <p className="ticker text-[64px] leading-[0.92] tracking-[-0.04em] text-[#393939] md:text-[143px]">
             {TICKER}{TICKER}
