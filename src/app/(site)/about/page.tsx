@@ -42,7 +42,7 @@ export default async function AboutPage() {
       <section className="flex w-full flex-col gap-20 py-[120px]">
         <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-6 px-4 md:px-10">
           <p className="text-[18px] leading-[1.3] tracking-[-0.04em] text-secondary">{a.aboutUs}</p>
-          <p className="text-[32px] font-medium leading-none tracking-[-0.04em] text-black md:text-[46px]">{a.intro}</p>
+          <p className="text-[24px] font-medium leading-[1.1] tracking-[-0.04em] text-black md:text-[46px] md:leading-none">{a.intro}</p>
         </div>
         <div className="flex w-full flex-col">
           {YEARS.map((years, i) => (
