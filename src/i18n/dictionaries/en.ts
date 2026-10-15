@@ -102,7 +102,7 @@ export const en = {
       ],
     },
     about: {
-      title: "Furniture Solutions Without Complexity",
+      title: "Extraordinary design. Made simple.",
       button: "About Us",
       text: "From carefully selected furniture and lighting to bespoke solutions for your space. We help refine your vision, bring design and technical details together, and coordinate production, delivery and installation. We take care of the entire process—from concept to completion.",
       numbers: ["Rooms", "Projects", "Brands"],
