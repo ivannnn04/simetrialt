@@ -126,9 +126,10 @@ export function AlbumTable({
           .slice(-4)
           .toUpperCase()}`,
         customer,
+        labels: a.pdfDoc,
         rows: rows.map((r) => ({
           name: r.name,
-          category: r.category,
+          category: term(t, r.category),
           brand: r.brand,
           quantity: r.quantity,
           unitCents: r.priceCents,
