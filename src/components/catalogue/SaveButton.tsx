@@ -2,7 +2,7 @@
 
 import { Field } from "@/components/ui/Field";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { HeartIcon } from "@/components/ui/Icons";
 import { cn } from "@/lib/cn";
@@ -21,6 +21,7 @@ type Props = {
 };
 
 const PANEL_WIDTH = 417;
+const PANEL_WIDTH_SMALL = 340; // below lg
 
 /**
  * Heart button on product cards. Opens the Figma "Save to" panel (node 4217:47501) anchored to
@@ -44,16 +45,28 @@ export function SaveButton({ productId, product, className, light, saved: forced
 
   // Position the panel on the heart and keep it there on scroll / resize; close on Escape or
   // a click outside.
+  const place = useCallback(() => {
+    const r = anchor.current?.getBoundingClientRect();
+    if (!r) return;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    // right edge on the heart's right edge, kept inside the viewport with a 16px margin
+    const panelWidth = vw >= 1024 ? PANEL_WIDTH : PANEL_WIDTH_SMALL;
+    const right = Math.max(16, Math.min(vw - r.right, vw - panelWidth - 16));
+    // keep the whole panel on screen: never lower than viewport height minus its own height
+    const ph = panel.current?.offsetHeight ?? 0;
+    const top = Math.max(16, Math.min(r.top, vh - ph - 16));
+    setPos((prev) => (prev && prev.top === top && prev.right === right ? prev : { top, right }));
+  }, []);
+
+  // Re-measure once the panel has rendered (its height changes with the content); `pos` is a
+  // dependency so the first measurement, taken before the panel exists, is corrected at once.
+  useLayoutEffect(() => {
+    if (open) place();
+  }, [open, pos, creating, saved, albums.length, place]);
+
   useEffect(() => {
     if (!open) return;
-    const place = () => {
-      const r = anchor.current?.getBoundingClientRect();
-      if (!r) return;
-      const vw = window.innerWidth;
-      // right edge on the heart's right edge, kept inside the viewport with a 16px margin
-      const right = Math.max(16, Math.min(vw - r.right, vw - PANEL_WIDTH - 16));
-      setPos({ top: Math.max(16, r.top), right });
-    };
     place();
     window.addEventListener("scroll", place, true);
     window.addEventListener("resize", place);
@@ -73,7 +86,7 @@ export function SaveButton({ productId, product, className, light, saved: forced
       document.removeEventListener("keydown", onKey);
       document.removeEventListener("pointerdown", onDown);
     };
-  }, [open]);
+  }, [open, place]);
 
   const save = (collectionId: string, name?: string) => {
     const target = collectionId === "new" ? createAlbum(name ?? "") : albums.find((a) => a.id === collectionId);
@@ -115,13 +128,13 @@ export function SaveButton({ productId, product, className, light, saved: forced
             role="dialog"
             aria-modal="false"
             aria-label={t.title}
-            className="fixed z-[90] flex w-[calc(100vw-32px)] max-w-[417px] flex-col items-end gap-8 bg-white p-6 text-left shadow-[0_12px_40px_rgba(0,0,0,0.12)] sm:gap-11 sm:p-10"
+            className="fixed z-[90] flex w-[calc(100vw-32px)] max-w-[340px] flex-col items-end gap-6 bg-white p-5 text-left shadow-[0_12px_40px_rgba(0,0,0,0.12)] lg:max-w-[417px] lg:gap-11 lg:p-10"
             style={{ top: pos.top, right: pos.right }}
             onClick={(e) => e.stopPropagation()}
           >
             <>
               <div className="flex w-full items-center justify-between">
-                <p className="text-[24px] font-semibold leading-[1.3] tracking-[-0.04em] text-[#1a1c18]">{t.title}</p>
+                <p className="text-[20px] font-semibold leading-[1.3] tracking-[-0.04em] text-[#1a1c18] lg:text-[24px]">{t.title}</p>
                 <button type="button" aria-label={t.close} onClick={() => setOpen(false)} className="text-[#1a1c18]">
                   <svg viewBox="0 0 24 24" className="size-6" fill="none" aria-hidden>
                     <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -138,16 +151,16 @@ export function SaveButton({ productId, product, className, light, saved: forced
                           type="button"
                           disabled={pending}
                           onClick={() => save(c.id)}
-                          className="flex w-full items-center gap-[22px] px-2 py-2.5 text-left transition-colors hover:bg-cream sm:px-5"
+                          className="flex w-full items-center gap-4 px-2 py-2 text-left transition-colors hover:bg-cream lg:gap-[22px] lg:px-5 lg:py-2.5"
                         >
-                          <span className="flex size-[59px] shrink-0 items-center justify-center overflow-hidden bg-[#f2f2f2]">
+                          <span className="flex size-12 shrink-0 items-center justify-center overflow-hidden bg-[#f2f2f2] lg:size-[59px]">
                             {PRODUCT_PLACEHOLDER_IMAGE && (
                               // eslint-disable-next-line @next/next/no-img-element
                               <img src={PRODUCT_PLACEHOLDER_IMAGE} alt="" className="max-h-[70%] max-w-[85%] object-contain" />
                             )}
                           </span>
                           <span className="flex flex-1 flex-col">
-                            <span className="text-[18px] font-medium leading-[1.3] tracking-[-0.04em] text-[#1a1c18] sm:text-[20px]">{c.name}</span>
+                            <span className="text-[16px] font-medium leading-[1.3] tracking-[-0.04em] text-[#1a1c18] lg:text-[20px]">{c.name}</span>
                             {c.hasProduct && <span className="text-[12px] text-accent">{t.saved}</span>}
                           </span>
                         </button>
