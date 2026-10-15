@@ -161,7 +161,7 @@ export function SortSelect({
   const options = given ?? sortOptions(t);
   return (
     <label className="flex items-center gap-2 text-[15px] leading-none">
-      <span className="text-[#1a1c18]/60">{t.catalogue.sortBy}</span>
+      <span className="hidden text-[#1a1c18]/60 min-[400px]:inline">{t.catalogue.sortBy}</span>
       {/* Figma 4217:47880: value, 6px gap, 8×4 caret (native select padding and arrow removed) */}
       <span className="relative inline-block">
         {/* Invisible mirror of the selected label sizes the select to its text, so the caret follows the value. */}

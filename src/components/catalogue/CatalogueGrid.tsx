@@ -63,7 +63,7 @@ export function CatalogueGrid({ groups, cards, sort, defaultOpen = false, basePa
   return (
     <section className="mx-auto flex w-full max-w-[1440px] flex-col gap-[45px] px-4 md:px-10">
       <div className="flex flex-col gap-[11px]">
-        <div className="flex h-6 items-center justify-between">
+        <div className="flex h-6 items-center justify-between gap-4">
           <button
             type="button"
             onClick={toggle}
