@@ -5,24 +5,22 @@ import { Photo } from "@/components/ui/Photo";
 import { BackLink } from "@/components/ui/Button";
 import { LetsTalk } from "@/components/site/Sections";
 import { ImageStrip } from "@/components/projects/ImageStrip";
-import { PROJECTS, getProject } from "@/data/projects";
+import { getProjectBySlug } from "@/lib/site-content";
 import { getLocale, getT } from "@/i18n/server";
 import { DEFAULT_LOCALE } from "@/i18n/config";
 
-export function generateStaticParams() {
-  return PROJECTS.map((p) => ({ slug: p.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const project = getProject(slug);
+  const project = await getProjectBySlug(slug);
   return { title: project ? `${project.name} — Simetria LT` : "Project — Simetria LT" };
 }
 
 // Figma "Case page / ver 2 / upd 06.08" (node 4217:47559)
 export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const project = getProject(slug);
+  const project = await getProjectBySlug(slug);
   if (!project) notFound();
   const img = (n: string) => `/images/projects/${project.slug}/${n}.jpg`;
   const t = await getT();

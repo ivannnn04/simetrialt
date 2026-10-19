@@ -5,9 +5,10 @@ import { FooterLogo } from "@/components/site/FooterLogo";
 import { cn } from "@/lib/cn";
 import { getT } from "@/i18n/server";
 import type { Dictionary } from "@/i18n/dictionaries";
+import { getContacts, type SiteContacts } from "@/lib/site-content";
 
 type Item = { label: string; href: string };
-const columns = (t: Dictionary): { heading: string; items: Item[] }[] => [
+const columns = (t: Dictionary, c: SiteContacts): { heading: string; items: Item[] }[] => [
   {
     heading: t.footer.columns.products,
     items: [
@@ -38,24 +39,24 @@ const columns = (t: Dictionary): { heading: string; items: Item[] }[] => [
   {
     heading: t.footer.columns.social,
     items: [
-      { label: "Instagram", href: "#" },
-      { label: "Facebook", href: "#" },
-      { label: "LinkedIn", href: "#" },
+      { label: "Instagram", href: c.instagram || "#" },
+      { label: "Facebook", href: c.facebook || "#" },
+      { label: "LinkedIn", href: c.linkedin || "#" },
     ],
   },
 ];
 
-const contacts = (t: Dictionary) => [
-  { label: t.footer.call, value: "069 029 606", Icon: PhoneIcon, href: "tel:+37069029606" },
-  { label: t.footer.email, value: "info@simetria.lt", Icon: MailIcon, href: "mailto:info@simetria.lt" },
+const contacts = (t: Dictionary, c: SiteContacts) => [
+  { label: t.footer.call, value: c.phone, Icon: PhoneIcon, href: c.phoneHref },
+  { label: t.footer.email, value: c.email, Icon: MailIcon, href: `mailto:${c.email}` },
   { label: t.footer.showroom, value: t.footer.showroomValue, Icon: PinIcon, href: "/contact" },
 ];
 
 /** Figma "Footer" (node 4263:30197; Lithuanian variant 4263:48375). */
 export async function SiteFooter() {
-  const t = await getT();
-  const COLUMNS = columns(t);
-  const CONTACTS = contacts(t);
+  const [t, site] = await Promise.all([getT(), getContacts()]);
+  const COLUMNS = columns(t, site);
+  const CONTACTS = contacts(t, site);
   return (
     <footer className="w-full overflow-hidden bg-cream pt-[82px]">
       <div className="mx-auto flex max-w-[1440px] flex-col items-center gap-[76px]">
@@ -123,8 +124,8 @@ export async function SiteFooter() {
           <p className="whitespace-nowrap py-1">{t.footer.copyright(new Date().getFullYear())}</p>
           {/* phones: the two links spread across the full width */}
           <div className="flex w-full items-center justify-between gap-4 md:w-auto md:justify-start">
-            <Link href="#" className="ul-link whitespace-nowrap py-1 transition-colors hover:text-dark">{t.footer.privacy}</Link>
-            <Link href="#" className="ul-link py-1 transition-colors hover:text-dark">{t.footer.cookie}</Link>
+            <Link href={site.privacyUrl || "#"} className="ul-link whitespace-nowrap py-1 transition-colors hover:text-dark">{t.footer.privacy}</Link>
+            <Link href={site.cookieUrl || "#"} className="ul-link py-1 transition-colors hover:text-dark">{t.footer.cookie}</Link>
           </div>
         </div>
       </div>

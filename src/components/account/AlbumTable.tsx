@@ -8,7 +8,7 @@ import {
   type ProductCardData,
 } from "@/components/catalogue/ProductCard";
 import { cn } from "@/lib/cn";
-import { useT } from "@/i18n/client";
+import { useContacts, useT } from "@/i18n/client";
 import { term } from "@/i18n/dictionaries";
 
 export type AlbumRow = {
@@ -84,6 +84,7 @@ export function AlbumTable({
   readOnly = false,
 }: Props) {
   const t = useT();
+  const site = useContacts();
   const a = t.album;
   const [localRows, setLocalRows] = useState(initial);
   // Real albums re-render from the store; sample albums keep their edits in local state only.
@@ -126,7 +127,7 @@ export function AlbumTable({
           .slice(-4)
           .toUpperCase()}`,
         customer,
-        labels: a.pdfDoc,
+        labels: { ...a.pdfDoc, letterhead: [a.pdfDoc.letterhead[0], a.pdfDoc.letterhead[1], `${site.email}  ·  ${site.phone}`] },
         rows: rows.map((r) => ({
           name: r.name,
           category: term(t, r.category),

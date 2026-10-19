@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { LocaleProvider } from "@/i18n/client";
 import { LOCALES, DEFAULT_LOCALE, stripLocale, localizeHref } from "@/i18n/config";
-import { getDictionary } from "@/i18n/dictionaries";
-import { getLocale, getPathname } from "@/i18n/server";
+import { getLocale, getPathname, getT } from "@/i18n/server";
+import { getSiteRuntime } from "@/lib/site-content";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
-  const t = getDictionary(locale);
+  const t = await getT();
   const path = stripLocale(await getPathname());
   return {
     title: t.meta.title,
@@ -21,6 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const locale = (await getLocale()) ?? DEFAULT_LOCALE;
+  const { overrides, contacts } = await getSiteRuntime(locale);
   return (
     <html lang={locale} className="h-full antialiased">
       <head>
@@ -31,7 +32,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         />
       </head>
       <body className="min-h-full flex flex-col">
-        <LocaleProvider locale={locale}>{children}</LocaleProvider>
+        <LocaleProvider locale={locale} overrides={overrides} contacts={contacts}>
+          {children}
+        </LocaleProvider>
       </body>
     </html>
   );

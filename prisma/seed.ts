@@ -4,11 +4,13 @@ import bcrypt from "bcryptjs";
 const db = new PrismaClient();
 
 async function main() {
-  const email = process.env.SEED_ADMIN_EMAIL ?? "admin@simetria.lt";
-  const password = process.env.SEED_ADMIN_PASSWORD ?? "admin123";
+  const email = (process.env.SEED_ADMIN_EMAIL ?? "admin@simetria.lt").toLowerCase();
+  const password = process.env.SEED_ADMIN_PASSWORD ?? "Simetria-2026!";
+  // The seed is also run by the production build, so the password from the environment always
+  // wins: changing SEED_ADMIN_PASSWORD and redeploying resets the admin login.
   await db.user.upsert({
     where: { email },
-    update: {},
+    update: { passwordHash: await bcrypt.hash(password, 10) },
     create: {
       email,
       name: "Administratorius",

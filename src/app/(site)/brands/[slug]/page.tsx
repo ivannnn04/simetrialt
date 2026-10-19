@@ -8,8 +8,7 @@ import { DotButton } from "@/components/ui/Button";
 import { PageHero, SectionLink } from "@/components/site/Sections";
 import { ProductLine } from "@/components/home/HomeSections";
 import { getFeaturedProducts } from "@/lib/products";
-import { getBrand } from "@/data/brands";
-import { PROJECTS } from "@/data/projects";
+import { getBrandBySlug, getProjects } from "@/lib/site-content";
 import { getT } from "@/i18n/server";
 import { term, termParts } from "@/i18n/dictionaries";
 
@@ -17,7 +16,7 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const brand = getBrand(slug);
+  const brand = await getBrandBySlug(slug);
   return { title: brand ? `${brand.name} — Simetria LT` : "Brand — Simetria LT" };
 }
 
@@ -39,13 +38,11 @@ function CardStrip({ children }: { children: React.ReactNode }) {
 // Figma "Brand's internal page UPD" (node 4217:47603)
 export default async function BrandPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const brand = getBrand(slug);
+  const brand = await getBrandBySlug(slug);
   if (!brand) notFound();
 
-  const [cards, t] = await Promise.all([getFeaturedProducts(9), getT()]);
+  const [cards, t, projects] = await Promise.all([getFeaturedProducts(9), getT(), getProjects()]);
   const d = t.brandsPage.detail;
-
-  const projects = PROJECTS;
 
   return (
     <div className="flex w-full flex-col gap-[120px] bg-cream pb-10 md:pb-[120px]">

@@ -5,7 +5,7 @@ import { DotButton } from "@/components/ui/Button";
 import { Photo } from "@/components/ui/Photo";
 import { CtaSection, LetsTalk, ServicesList } from "@/components/site/Sections";
 import { ProjectsSlider } from "@/components/home/ProjectsSlider";
-import { PROJECT_SLIDES_IMAGE } from "@/data/project-slides";
+import { getSlides } from "@/lib/site-content";
 import { cn } from "@/lib/cn";
 import { getT } from "@/i18n/server";
 
@@ -87,7 +87,7 @@ export default async function ServicesPage() {
         button={{ label: t.servicesPage.cta.button, href: "#projects" }}
       />
 
-      <ProjectsSlider image={PROJECT_SLIDES_IMAGE} slides={t.home.projects.slides} cta={{ label: t.home.projects.cta, href: "/projects" }} />
+      <ProjectsSlider image={(await getSlides()).image} slides={t.home.projects.slides} cta={{ label: t.home.projects.cta, href: "/projects" }} />
       <LetsTalk />
     </>
   );

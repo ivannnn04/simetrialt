@@ -22,7 +22,7 @@ npm run dev
 Svetainė: http://localhost:3000 · Administravimas: http://localhost:3000/admin
 
 Numatytasis administratorius (keičiamas per `.env` prieš `db:seed`):
-`admin@simetria.lt` / `admin123` — **būtinai pakeiskite produkcijoje**.
+`admin@simetria.lt` / `Simetria-2026!` — **būtinai pakeiskite produkcijoje** (Administravimas → Vartotojai ir slaptažodžiai arba `SEED_ADMIN_PASSWORD`).
 
 ## CSV importas
 

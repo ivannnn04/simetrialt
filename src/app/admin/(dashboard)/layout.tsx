@@ -2,51 +2,63 @@ import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { logoutAction } from "@/actions/auth";
 
-export default async function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+const GROUPS: { title: string; items: { href: string; label: string }[] }[] = [
+  {
+    title: "Svetainė",
+    items: [
+      { href: "/admin", label: "Apžvalga" },
+      { href: "/admin/content", label: "Tekstai (EN / LT)" },
+      { href: "/admin/projects", label: "Projektai" },
+      { href: "/admin/brands", label: "Prekių ženklai" },
+      { href: "/admin/settings", label: "Kontaktai ir nustatymai" },
+      { href: "/admin/pages", label: "Papildomi puslapiai" },
+    ],
+  },
+  {
+    title: "Katalogas",
+    items: [{ href: "/admin/products", label: "Produktai ir kategorijos" }],
+  },
+  {
+    title: "Klientai",
+    items: [{ href: "/admin/leads", label: "Užklausos (CRM)" }],
+  },
+  {
+    title: "Sistema",
+    items: [{ href: "/admin/users", label: "Vartotojai ir slaptažodžiai" }],
+  },
+];
+
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
-  const nav = [
-    { href: "/admin", label: "Apžvalga" },
-    { href: "/admin/pages", label: "Puslapiai (CMS)" },
-    { href: "/admin/products", label: "Katalogas" },
-    { href: "/admin/leads", label: "Užklausos (CRM)" },
-  ];
   return (
-    <div className="flex min-h-screen bg-zinc-100">
-      <aside className="flex w-60 shrink-0 flex-col border-r border-zinc-200 bg-white">
+    <div className="flex min-h-screen bg-zinc-100 text-zinc-900">
+      <aside className="flex w-64 shrink-0 flex-col border-r border-zinc-200 bg-white">
         <div className="border-b border-zinc-200 p-4">
-          <p className="font-semibold">Simetria LT</p>
-          <p className="text-xs text-zinc-500">{user.email}</p>
+          <p className="text-lg font-semibold tracking-tight">simetria</p>
+          <p className="text-xs text-zinc-500">Administravimas · {user.email}</p>
         </div>
-        <nav className="flex-1 space-y-1 p-3">
-          {nav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="block rounded-md px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100"
-            >
-              {item.label}
-            </Link>
+        <nav className="flex-1 space-y-5 p-3">
+          {GROUPS.map((g) => (
+            <div key={g.title}>
+              <p className="mb-1 px-3 text-[11px] font-semibold uppercase tracking-wide text-zinc-400">{g.title}</p>
+              {g.items.map((item) => (
+                <Link key={item.href} href={item.href} className="block rounded-md px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100">
+                  {item.label}
+                </Link>
+              ))}
+            </div>
           ))}
         </nav>
         <div className="border-t border-zinc-200 p-3">
-          <Link
-            href="/"
-            className="block rounded-md px-3 py-2 text-sm text-zinc-500 hover:bg-zinc-100"
-          >
-            ← Į svetainę
+          <Link href="/" target="_blank" className="block rounded-md px-3 py-2 text-sm text-zinc-500 hover:bg-zinc-100">
+            ↗ Atidaryti svetainę
           </Link>
           <form action={logoutAction}>
-            <button className="w-full rounded-md px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50">
-              Atsijungti
-            </button>
+            <button className="w-full rounded-md px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50">Atsijungti</button>
           </form>
         </div>
       </aside>
-      <main className="flex-1 p-8">{children}</main>
+      <main className="min-w-0 flex-1 p-8">{children}</main>
     </div>
   );
 }

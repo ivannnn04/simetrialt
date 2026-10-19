@@ -4,7 +4,8 @@ import { cn } from "@/lib/cn";
 import { SiteHeader } from "@/components/site/Header";
 import { Photo } from "@/components/ui/Photo";
 import { StrokeLink } from "@/components/ui/Button";
-import { PROJECTS, type Project, type ProjectType } from "@/data/projects";
+import type { Project, ProjectType } from "@/data/projects";
+import { getProjects } from "@/lib/site-content";
 import { getT } from "@/i18n/server";
 import { termParts, type Dictionary } from "@/i18n/dictionaries";
 
@@ -68,7 +69,8 @@ export default async function ProjectsPage({
   const t = await getT();
   const TABS = TAB_VALUES.map((value) => ({ value, label: t.projectsPage.tabs[value] }));
   const active = TABS.some((tab) => tab.value === type) ? (type as ProjectType | "all") : "all";
-  const projects = active === "all" ? PROJECTS : PROJECTS.filter((p) => p.type === active);
+  const all = await getProjects();
+  const projects = active === "all" ? all : all.filter((p) => p.type === active);
   const rows = buildRows(projects);
 
   return (

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "@/components/ui/Link";
 import { SiteHeader } from "@/components/site/Header";
 import { PageHero } from "@/components/site/Sections";
-import { BRANDS } from "@/data/brands";
+import { getBrands } from "@/lib/site-content";
 import { BrandMark } from "@/components/site/BrandMark";
 import { PLACEHOLDER_IMAGE } from "@/lib/placeholder";
 import { getT } from "@/i18n/server";
@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 // Figma "Brands page" (node 4217:46278; Lithuanian 4217:48317)
 export default async function BrandsPage() {
-  const t = await getT();
+  const [t, BRANDS] = await Promise.all([getT(), getBrands()]);
   const b = t.brandsPage;
   return (
     <div className="flex w-full flex-col gap-[120px] bg-cream">

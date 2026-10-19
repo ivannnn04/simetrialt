@@ -6,6 +6,7 @@ import { MailIcon, PhoneIcon, PinIcon } from "@/components/ui/Icons";
 import { Breadcrumbs } from "@/components/site/Breadcrumbs";
 import { ContactSection } from "@/components/contact/ContactSection";
 import { getT } from "@/i18n/server";
+import { getContacts } from "@/lib/site-content";
 
 export const dynamic = "force-dynamic";
 
@@ -16,12 +17,12 @@ export async function generateMetadata(): Promise<Metadata> {
 
 // Figma "Contact" (node 4217:46337), LT 4217:48376
 export default async function ContactPage({ searchParams }: { searchParams: Promise<{ product?: string }> }) {
-  const [{ product }, t] = await Promise.all([searchParams, getT()]);
+  const [{ product }, t, site] = await Promise.all([searchParams, getT(), getContacts()]);
   const c = t.contactPage;
   const CONTACTS = [
-    { label: c.call, value: "069 029 606", Icon: PhoneIcon, href: "tel:+37069029606" },
-    { label: c.email, value: "info@simetria.lt", Icon: MailIcon, href: "mailto:info@simetria.lt" },
-    { label: c.showroom, value: c.city, Icon: PinIcon, href: "https://www.google.com/maps/search/?api=1&query=Simetria+Showroom+Vilnius+Lithuania", external: true },
+    { label: c.call, value: site.phone, Icon: PhoneIcon, href: site.phoneHref },
+    { label: c.email, value: site.email, Icon: MailIcon, href: `mailto:${site.email}` },
+    { label: c.showroom, value: c.city, Icon: PinIcon, href: site.mapUrl, external: true },
   ];
   const TICKER = c.ticker;
   return (

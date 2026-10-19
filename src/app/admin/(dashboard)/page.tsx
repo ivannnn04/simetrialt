@@ -1,55 +1,71 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { getBrands, getProjects } from "@/lib/site-content";
+import { Card, PageTitle } from "@/components/admin/ui";
 
 export default async function AdminDashboard() {
-  const [pages, products, leads, newLeads] = await Promise.all([
+  const [pages, products, leads, newLeads, users, projects, brands, recent] = await Promise.all([
     db.page.count(),
     db.product.count(),
     db.lead.count(),
     db.lead.count({ where: { status: "NEW" } }),
+    db.user.count(),
+    getProjects(),
+    getBrands(),
+    db.lead.findMany({ orderBy: { createdAt: "desc" }, take: 5 }),
   ]);
-  const recent = await db.lead.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 5,
-  });
   const cards = [
-    { label: "Puslapiai", value: pages, href: "/admin/pages" },
-    { label: "Produktai", value: products, href: "/admin/products" },
-    { label: "Užklausos", value: leads, href: "/admin/leads" },
     { label: "Naujos užklausos", value: newLeads, href: "/admin/leads?status=NEW" },
+    { label: "Visos užklausos", value: leads, href: "/admin/leads" },
+    { label: "Produktai", value: products, href: "/admin/products" },
+    { label: "Projektai", value: projects.length, href: "/admin/projects" },
+    { label: "Prekių ženklai", value: brands.length, href: "/admin/brands" },
+    { label: "Papildomi puslapiai", value: pages, href: "/admin/pages" },
+    { label: "Vartotojai", value: users, href: "/admin/users" },
+  ];
+  const shortcuts = [
+    { href: "/admin/content/home?locale=lt", label: "Redaguoti pagrindinio puslapio tekstus (LT)" },
+    { href: "/admin/content/home?locale=en", label: "Redaguoti pagrindinio puslapio tekstus (EN)" },
+    { href: "/admin/projects/new", label: "Pridėti projektą" },
+    { href: "/admin/products/new", label: "Pridėti produktą" },
+    { href: "/admin/settings", label: "Keisti telefoną, el. paštą, socialinius tinklus" },
   ];
   return (
-    <div>
-      <h1 className="mb-6 text-2xl font-semibold">Apžvalga</h1>
-      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div className="space-y-8">
+      <PageTitle>Apžvalga</PageTitle>
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {cards.map((c) => (
-          <Link
-            key={c.label}
-            href={c.href}
-            className="rounded-xl bg-white p-5 shadow-sm hover:shadow"
-          >
+          <Link key={c.label} href={c.href} className="rounded-xl bg-white p-5 shadow-sm hover:shadow">
             <p className="text-sm text-zinc-500">{c.label}</p>
             <p className="text-3xl font-semibold">{c.value}</p>
           </Link>
         ))}
       </div>
-      <h2 className="mb-3 text-lg font-medium">Naujausios užklausos</h2>
-      <div className="overflow-hidden rounded-xl bg-white shadow-sm">
-        {recent.length === 0 && (
-          <p className="p-5 text-sm text-zinc-500">Užklausų dar nėra.</p>
-        )}
-        {recent.map((lead) => (
-          <Link
-            key={lead.id}
-            href={`/admin/leads/${lead.id}`}
-            className="flex items-center justify-between border-b border-zinc-100 p-4 text-sm last:border-0 hover:bg-zinc-50"
-          >
-            <span className="font-medium">{lead.name}</span>
-            <span className="text-zinc-500">
-              {lead.createdAt.toLocaleDateString("lt-LT")}
-            </span>
-          </Link>
-        ))}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card title="Greiti veiksmai">
+          <ul className="space-y-1">
+            {shortcuts.map((s) => (
+              <li key={s.href}>
+                <Link href={s.href} className="block rounded-md px-3 py-2 text-sm hover:bg-zinc-50">
+                  → {s.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Card>
+        <Card title="Naujausios užklausos">
+          {recent.length === 0 && <p className="text-sm text-zinc-500">Užklausų dar nėra.</p>}
+          {recent.map((lead) => (
+            <Link
+              key={lead.id}
+              href={`/admin/leads/${lead.id}`}
+              className="flex items-center justify-between border-b border-zinc-100 py-3 text-sm last:border-0 hover:bg-zinc-50"
+            >
+              <span className="font-medium">{lead.name}</span>
+              <span className="text-zinc-500">{lead.createdAt.toLocaleDateString("lt-LT")}</span>
+            </Link>
+          ))}
+        </Card>
       </div>
     </div>
   );
