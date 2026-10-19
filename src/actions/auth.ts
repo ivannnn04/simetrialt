@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { login, logout } from "@/lib/auth";
+import { firstLine } from "@/lib/db";
 
 export async function loginAction(
   _prev: { error?: string } | undefined,
@@ -14,7 +15,7 @@ export async function loginAction(
   try {
     ok = await login(email, password);
   } catch (e) {
-    const detail = e instanceof Error ? e.message.split("\n")[0] : String(e);
+    const detail = firstLine(e);
     console.error("login failed", e);
     return {
       error: `Prisijungti nepavyko: duomenų bazė arba SESSION_SECRET nesukonfigūruoti (${detail}). Patikrinkite aplinkos kintamuosius Vercel nustatymuose.`,

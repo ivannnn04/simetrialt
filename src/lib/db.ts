@@ -10,6 +10,13 @@ const TIMEOUT_MS = 1500;
 
 export type DbStatus = { ok: boolean; error?: string };
 
+/** First meaningful line of an error (Prisma messages start with blank lines and the invocation). */
+export function firstLine(e: unknown): string {
+  const text = e instanceof Error ? e.message : String(e);
+  const lines = text.split("\n").map((l) => l.trim()).filter((l) => l && !l.startsWith("Invalid `"));
+  return lines[0] ?? text;
+}
+
 /** Connectivity check for the admin: resolves instead of throwing when the database is not configured. */
 export async function dbStatus(timeoutMs = 8000): Promise<DbStatus> {
   if (!process.env.DATABASE_URL) return { ok: false, error: "DATABASE_URL nenustatytas" };
@@ -23,7 +30,7 @@ export async function dbStatus(timeoutMs = 8000): Promise<DbStatus> {
     ]);
     return { ok: true };
   } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message.split("\n")[0] : String(e) };
+    return { ok: false, error: firstLine(e) };
   } finally {
     clearTimeout(timer);
   }
