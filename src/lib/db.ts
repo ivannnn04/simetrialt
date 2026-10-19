@@ -7,6 +7,27 @@ export const db = globalForPrisma.prisma ?? new PrismaClient();
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;
 
 const TIMEOUT_MS = 1500;
+
+export type DbStatus = { ok: boolean; error?: string };
+
+/** Connectivity check for the admin: resolves instead of throwing when the database is not configured. */
+export async function dbStatus(timeoutMs = 8000): Promise<DbStatus> {
+  if (!process.env.DATABASE_URL) return { ok: false, error: "DATABASE_URL nenustatytas" };
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await Promise.race([
+      db.$queryRaw`SELECT 1`,
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`nepavyko prisijungti per ${timeoutMs} ms`)), timeoutMs);
+      }),
+    ]);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message.split("\n")[0] : String(e) };
+  } finally {
+    clearTimeout(timer);
+  }
+}
 const RETRY_AFTER_MS = 60_000;
 
 /**

@@ -10,7 +10,16 @@ export async function loginAction(
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   if (!email || !password) return { error: "Įveskite el. paštą ir slaptažodį." };
-  const ok = await login(email, password);
+  let ok = false;
+  try {
+    ok = await login(email, password);
+  } catch (e) {
+    const detail = e instanceof Error ? e.message.split("\n")[0] : String(e);
+    console.error("login failed", e);
+    return {
+      error: `Prisijungti nepavyko: duomenų bazė arba SESSION_SECRET nesukonfigūruoti (${detail}). Patikrinkite aplinkos kintamuosius Vercel nustatymuose.`,
+    };
+  }
   if (!ok) return { error: "Neteisingi prisijungimo duomenys." };
   redirect("/admin");
 }

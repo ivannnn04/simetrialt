@@ -8,7 +8,7 @@ const COOKIE_NAME = "simetria_session";
 const MAX_AGE_S = 60 * 60 * 24 * 7; // 7 days
 
 export async function login(email: string, password: string): Promise<boolean> {
-  const user = await db.user.findUnique({ where: { email } });
+  const user = await db.user.findUnique({ where: { email: email.toLowerCase() } });
   if (!user) return false;
   const ok = await bcrypt.compare(password, user.passwordHash);
   if (!ok) return false;
@@ -28,7 +28,12 @@ export async function currentUser() {
   if (!token) return null;
   const userId = verifyToken(token);
   if (!userId) return null;
-  return db.user.findUnique({ where: { id: userId } });
+  try {
+    return await db.user.findUnique({ where: { id: userId } });
+  } catch (e) {
+    console.error("currentUser: database unavailable", e instanceof Error ? e.message : e);
+    return null;
+  }
 }
 
 /** Guard for admin pages/actions — redirects to the login page when not signed in. */

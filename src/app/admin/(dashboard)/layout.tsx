@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { logoutAction } from "@/actions/auth";
+import { dbStatus } from "@/lib/db";
+import { SetupNotice } from "@/components/admin/SetupNotice";
 
 const GROUPS: { title: string; items: { href: string; label: string }[] }[] = [
   {
@@ -29,6 +31,14 @@ const GROUPS: { title: string; items: { href: string; label: string }[] }[] = [
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const status = await dbStatus();
+  if (!status.ok || !process.env.SESSION_SECRET) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-zinc-100 px-4 py-10">
+        <SetupNotice status={status} />
+      </main>
+    );
+  }
   const user = await requireUser();
   return (
     <div className="flex min-h-screen bg-zinc-100 text-zinc-900">
