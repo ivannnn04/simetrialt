@@ -2,7 +2,8 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { formatPrice } from "@/lib/slug";
 import { saveCategory, deleteCategory } from "@/actions/products";
-import { CsvImportForm } from "@/components/CsvImportForm";
+import { CatalogueImport } from "@/components/admin/CatalogueImport";
+import { BulkImagesForm } from "@/components/admin/BulkImagesForm";
 
 export default async function ProductsList() {
   const [products, categories] = await Promise.all([
@@ -24,7 +25,8 @@ export default async function ProductsList() {
         </Link>
       </div>
 
-      <CsvImportForm />
+      <CatalogueImport />
+      <BulkImagesForm />
 
       <div className="rounded-xl bg-white p-5 shadow-sm">
         <h2 className="mb-3 text-lg font-medium">Kategorijos</h2>
