@@ -2,7 +2,7 @@
 
 import Link from "@/components/ui/Link";
 import { useEffect, useRef, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useLocale, useT } from "@/i18n/client";
 import { LOCALES, LOCALE_LABELS, stripLocale, switchLocale } from "@/i18n/config";
 import { term, type Dictionary } from "@/i18n/dictionaries";
@@ -73,7 +73,6 @@ function LanguageSwitch({ className, light }: { className?: string; light: boole
   const locale = useLocale();
   const t = useT();
   const pathname = usePathname();
-  const router = useRouter();
   return (
     <div className={cn("flex items-center gap-1.5 text-[14px] leading-none tracking-[-0.04em]", className)} aria-label={t.nav.language}>
       {LOCALES.map((l, i) => (
@@ -85,8 +84,10 @@ function LanguageSwitch({ className, light }: { className?: string; light: boole
             lang={l}
             aria-current={l === locale ? "true" : undefined}
             onClick={(e) => {
+              // Full navigation: "/lt/x" and "/x" share the same route tree, so a client-side push
+              // keeps the already-rendered layouts (and their locale) instead of re-rendering them.
               e.preventDefault();
-              router.push(switchLocale(pathname, l, window.location.search + window.location.hash));
+              window.location.assign(switchLocale(pathname, l, window.location.search + window.location.hash));
             }}
             className={cn(
               "ul-link transition-colors",
