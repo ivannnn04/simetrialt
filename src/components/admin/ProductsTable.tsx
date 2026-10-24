@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
 import { deleteProducts } from "@/actions/products";
+import { Notice } from "@/components/admin/ui";
 import { formatPrice } from "@/lib/slug";
 
 export type ProductRow = {
@@ -18,6 +19,7 @@ export type ProductRow = {
 
 /** Products list with row selection, "delete selected" and "delete all". */
 export function ProductsTable({ products }: { products: ProductRow[] }) {
+  const [result, remove, removing] = useActionState(deleteProducts, null);
   const [picked, setSelected] = useState<Set<string>>(new Set());
   // ignore ids of rows that are gone (deleted meanwhile)
   const selected = new Set([...picked].filter((id) => products.some((p) => p.id === id)));
@@ -35,20 +37,22 @@ export function ProductsTable({ products }: { products: ProductRow[] }) {
           Produktų: <b>{products.length}</b>{selected.size > 0 && <> · pažymėta <b>{selected.size}</b></>}
         </p>
         <div className="flex gap-2">
-          <form action={deleteProducts} onSubmit={confirmDelete(`Ištrinti pažymėtus produktus (${selected.size})? Veiksmo atšaukti negalima.`)}>
+          <form action={remove} onSubmit={confirmDelete(`Ištrinti pažymėtus produktus (${selected.size})? Veiksmo atšaukti negalima.`)}>
             {[...selected].map((id) => <input key={id} type="hidden" name="ids" value={id} />)}
-            <button disabled={selected.size === 0} className="rounded-md border border-red-200 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 disabled:opacity-40">
+            <button disabled={selected.size === 0 || removing} className="rounded-md border border-red-200 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 disabled:opacity-40">
               Ištrinti pažymėtus
             </button>
           </form>
-          <form action={deleteProducts} onSubmit={confirmDelete(`Ištrinti VISUS produktus (${products.length}) kartu su nuotraukomis? Veiksmo atšaukti negalima.`)}>
+          <form action={remove} onSubmit={confirmDelete(`Ištrinti VISUS produktus (${products.length}) kartu su nuotraukomis? Veiksmo atšaukti negalima.`)}>
             <input type="hidden" name="all" value="on" />
-            <button disabled={products.length === 0} className="rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-40">
-              Ištrinti visus
+            <button disabled={products.length === 0 || removing} className="rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-40">
+              {removing ? "Trinama…" : "Ištrinti visus"}
             </button>
           </form>
         </div>
       </div>
+      {result?.error && <div className="px-4 pt-3"><Notice tone="red">Nepavyko ištrinti: {result.error}</Notice></div>}
+      {result && !result.error && <div className="px-4 pt-3"><Notice tone="green">Ištrinta produktų: {result.deleted}.</Notice></div>}
       <table className="w-full text-sm">
         <thead className="bg-zinc-50 text-left text-zinc-500">
           <tr>

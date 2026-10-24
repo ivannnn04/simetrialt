@@ -71,18 +71,36 @@ export async function deleteProduct(id: string) {
   redirect("/admin/products");
 }
 
+export type BulkDeleteResult = { deleted: number; error?: string } | null;
+
 /** Bulk delete from the products table: the selected ids, or every product when `all` is on. */
-export async function deleteProducts(formData: FormData) {
+export async function deleteProducts(_prev: BulkDeleteResult, formData: FormData): Promise<BulkDeleteResult> {
   await requireUser();
   const all = formData.get("all") === "on";
   const ids = formData.getAll("ids").map(String).filter(Boolean);
-  if (all) await db.product.deleteMany({});
-  else if (ids.length) await db.product.deleteMany({ where: { id: { in: ids } } });
-  // categories left without products are removed too, so the list stays tidy after an import test
-  await db.category.deleteMany({ where: { products: { none: {} } } });
-  revalidatePath("/catalogue");
-  revalidatePath("/outlet");
-  revalidatePath("/admin/products");
+  try {
+    let deleted = 0;
+    if (all) {
+      // in batches, so one request never has to remove thousands of rows (and their cascades) at once
+      for (;;) {
+        const batch = await db.product.findMany({ select: { id: true }, take: 200 });
+        if (batch.length === 0) break;
+        deleted += (await db.product.deleteMany({ where: { id: { in: batch.map((b) => b.id) } } })).count;
+      }
+    } else if (ids.length) {
+      for (let i = 0; i < ids.length; i += 200) {
+        deleted += (await db.product.deleteMany({ where: { id: { in: ids.slice(i, i + 200) } } })).count;
+      }
+    }
+    // categories left without products are removed too, so the list stays tidy after an import test
+    await db.category.deleteMany({ where: { products: { none: {} } } });
+    revalidatePath("/catalogue");
+    revalidatePath("/outlet");
+    revalidatePath("/admin/products");
+    return { deleted };
+  } catch (e) {
+    return { deleted: 0, error: e instanceof Error ? e.message.split("\n").filter(Boolean)[0] : "Nepavyko ištrinti." };
+  }
 }
 
 export async function deleteProductImage(imageId: string, productId: string) {

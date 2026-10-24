@@ -3,6 +3,9 @@ import { db } from "@/lib/db";
 import { saveCategory, deleteCategory } from "@/actions/products";
 import { ProductsTable } from "@/components/admin/ProductsTable";
 
+// bulk deletes and large lists can take a while on a busy database
+export const maxDuration = 120;
+
 export default async function ProductsList() {
   const [products, categories] = await Promise.all([
     db.product.findMany({
