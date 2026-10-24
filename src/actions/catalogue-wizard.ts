@@ -295,7 +295,7 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
     const noPhoto = items.filter((it) => it.images.length === 0);
     if (noPhoto.length > 0) {
       if (!imageSearchEnabled()) {
-        warnings.push(`${noPhoto.length} produktai be nuotraukų. Automatinė paieška internete neįjungta – nustatykite GOOGLE_CSE_KEY ir GOOGLE_CSE_CX (žr. .env.example).`);
+        warnings.push(`${noPhoto.length} produktai be nuotraukų. Automatinė paieška internete neįjungta – nustatykite SERPER_API_KEY (žr. .env.example).`);
       } else if (autoSearch) {
         const LIMIT = 80; // Google's free tier is 100 queries a day
         const batch = noPhoto.slice(0, LIMIT);

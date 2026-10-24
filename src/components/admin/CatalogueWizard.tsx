@@ -139,7 +139,7 @@ export function CatalogueWizard({ blobUploads }: { blobUploads: boolean }) {
                 Taip produktai atrodys svetainėje. Pataisykite tekstus, pažymėkite nuotraukas (pirma pažymėta – pagrindinė) ir nuimkite
                 varnelę nuo tų, kurių įtraukti nereikia.
                 {draft.aiUsed ? " Laukus sutvarkė AI." : " AI analizė išjungta (nėra ANTHROPIC_API_KEY) – laukai nuskaityti pagal taisykles."}
-                {!draft.imageSearch && " Nuotraukų paieška internete išjungta (nėra GOOGLE_CSE_KEY / GOOGLE_CSE_CX)."}
+                {!draft.imageSearch && " Nuotraukų paieška internete išjungta (nėra SERPER_API_KEY)."}
               </p>
               {draft.warnings.map((w, i) => (
                 <Notice key={i} tone="zinc">{w}</Notice>
@@ -320,7 +320,7 @@ function ItemEditor({ item, token, included, canSearch, pool, onInclude, onChang
                 {pool.length > 0 && (
                   <SecondaryButton type="button" onClick={() => setShowPool((v) => !v)}>Iš dokumentų ({pool.length})</SecondaryButton>
                 )}
-                <SecondaryButton type="button" onClick={search} disabled={searching || !canSearch} title={canSearch ? "" : "Reikia GOOGLE_CSE_KEY ir GOOGLE_CSE_CX"}>
+                <SecondaryButton type="button" onClick={search} disabled={searching || !canSearch} title={canSearch ? "" : "Reikia SERPER_API_KEY"}>
                   {searching ? "Ieškoma…" : "Rasti daugiau nuotraukų (AI)"}
                 </SecondaryButton>
               </div>
