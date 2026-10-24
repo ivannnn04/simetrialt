@@ -16,6 +16,7 @@ export const FIELDS = [
   "brand",
   "typology",
   "material",
+  "colour",
   "description",
   "in_showroom",
   "published",
@@ -33,6 +34,7 @@ export const FIELD_LABELS: Record<Field, string> = {
   brand: "Prekės ženklas",
   typology: "Tipologija",
   material: "Medžiaga",
+  colour: "Spalva",
   description: "Aprašymas",
   in_showroom: "Yra salone",
   published: "Paskelbti",
@@ -49,7 +51,8 @@ const SYNONYMS: Record<Field, string[]> = {
   category: ["category", "kategorija", "group", "grupe", "product group", "categoria", "family"],
   brand: ["brand", "prekes zenklas", "gamintojas", "manufacturer", "supplier", "tiekejas", "marca", "producer"],
   typology: ["typology", "tipologija", "type", "tipas", "product type", "collection", "kolekcija", "series", "serija"],
-  material: ["material", "medziaga", "finish", "apdaila", "materiale", "colour", "color", "spalva"],
+  material: ["material", "materials", "medziaga", "finish", "apdaila", "materiale"],
+  colour: ["colour", "color", "spalva", "colore", "farbe"],
   description: ["description", "aprasymas", "long description", "details", "notes", "pastabos", "descrizione lunga"],
   in_showroom: ["in showroom", "in_showroom", "showroom", "salone", "eksponuojama", "on display"],
   published: ["published", "paskelbta", "publish", "active", "aktyvus", "visible", "rodyti"],
@@ -75,6 +78,32 @@ export function guessField(header: string): Field | null {
     if (SYNONYMS[field].some((s) => h.includes(s) || s.includes(h))) return field;
   }
   return null;
+}
+
+/**
+ * Field per header, each field used once. When two headers compete for a field the exact synonym
+ * wins (a "Materials" column beats "Finish"), otherwise the first column.
+ */
+export function guessMapping(headers: string[]): (Field | "")[] {
+  const exact = headers.map((h) => {
+    const n = norm(h);
+    return FIELDS.find((f) => SYNONYMS[f].includes(n)) ?? null;
+  });
+  const guess = headers.map((h) => guessField(h) ?? "");
+  const taken = new Map<string, number>();
+  for (let i = 0; i < guess.length; i++) {
+    const f = guess[i];
+    if (!f) continue;
+    const prev = taken.get(f);
+    if (prev === undefined) taken.set(f, i);
+    else if (exact[i] === f && exact[prev] !== f) {
+      guess[prev] = "";
+      taken.set(f, i);
+    } else guess[i] = "";
+  }
+  // supplier lists often call the product name "Description": without a name column, use it as the name
+  if (!taken.has("name") && taken.has("description")) guess[taken.get("description")!] = "name";
+  return guess;
 }
 
 export type ParsedSheet = { headers: string[]; rows: string[][]; sheet?: string };

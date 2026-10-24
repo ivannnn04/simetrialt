@@ -8,7 +8,7 @@ import { slugify } from "@/lib/slug";
 import { saveImage } from "@/lib/uploads";
 import {
   FIELDS,
-  guessField,
+  guessMapping,
   imageKeyCandidates,
   parsePriceCents,
   parseSpreadsheet,
@@ -54,16 +54,7 @@ export async function analyzeImport(_prev: Analysis | null | undefined, formData
   if (parsed.headers.length === 0 || parsed.rows.length === 0) {
     return { token: "", filename: file.name, headers: [], guess: [], sample: [], totalRows: 0, existingBySku: 0, withoutSku: 0, error: "Faile nerasta lentelės su antrašte ir bent viena eilute." };
   }
-  const guess = parsed.headers.map((h) => guessField(h) ?? "");
-  // de-duplicate: the first column wins for each field
-  const seen = new Set<string>();
-  for (let i = 0; i < guess.length; i++) {
-    if (!guess[i]) continue;
-    if (seen.has(guess[i])) guess[i] = "";
-    else seen.add(guess[i]);
-  }
-  // supplier lists often call the product name "Description": without a name column, use it as the name
-  if (!seen.has("name") && seen.has("description")) guess[guess.indexOf("description")] = "name";
+  const guess = guessMapping(parsed.headers);
   const skuCol = guess.indexOf("sku");
   const skus = skuCol >= 0 ? parsed.rows.map((r) => (r[skuCol] ?? "").trim()).filter(Boolean) : [];
   const existing = skus.length ? await db.product.count({ where: { sku: { in: skus } } }) : 0;
@@ -164,7 +155,9 @@ export async function runImport(_prev: ImportResult | null | undefined, formData
         ...(brandName ? { brand: brandName } : {}),
         ...(get(r, "typology") ? { typology: get(r, "typology") } : {}),
         ...(get(r, "material") ? { material: get(r, "material") } : {}),
-        ...(get(r, "description") ? { description: get(r, "description") } : {}),
+        ...(get(r, "description") || get(r, "colour")
+          ? { description: [get(r, "description"), get(r, "colour") && `Colour: ${get(r, "colour")}`].filter(Boolean).join("\n\n") }
+          : {}),
         ...(col("in_showroom") >= 0 ? { inShowroom: truthy(get(r, "in_showroom")) } : {}),
         ...(col("published") >= 0 ? { published: truthy(get(r, "published")) } : publish ? { published: true } : {}),
         ...(catName ? { categoryId: await categoryId(catName) } : {}),

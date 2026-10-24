@@ -18,7 +18,10 @@ const GROUPS: { title: string; items: { href: string; label: string }[] }[] = [
   },
   {
     title: "Katalogas",
-    items: [{ href: "/admin/products", label: "Produktai ir kategorijos" }],
+    items: [
+      { href: "/admin/products", label: "Produktai ir kategorijos" },
+      { href: "/admin/products/import", label: "Importas iš katalogų" },
+    ],
   },
   {
     title: "Klientai",
