@@ -15,7 +15,7 @@ export default function ImportPage() {
           tada įrašysite į katalogą.
         </p>
       </div>
-      <CatalogueWizard />
+      <CatalogueWizard blobUploads={Boolean(process.env.BLOB_READ_WRITE_TOKEN)} />
       <details className="rounded-xl border border-zinc-200 p-5">
         <summary className="cursor-pointer text-sm font-medium text-zinc-700">Papildomai: greitasis kainoraščio importas be peržiūros ir nuotraukos pagal SKU</summary>
         <div className="mt-5 space-y-6">

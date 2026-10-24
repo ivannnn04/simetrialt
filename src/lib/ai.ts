@@ -77,6 +77,35 @@ export async function extractProductsFromText(text: string, brand: string): Prom
   return out;
 }
 
+/**
+ * Which product does each photo show? Returns photo index → product key (index into `products`).
+ * Photos that match no product are left out.
+ */
+export async function matchPhotosToProducts(photos: string[], products: { key: number; label: string }[]): Promise<Map<number, number>> {
+  const out = new Map<number, number>();
+  if (!aiEnabled() || photos.length === 0 || products.length === 0) return out;
+  const Match = z.object({ matches: z.array(z.object({ photo: z.number().int(), product: z.number().int().describe("index in the product list, or -1 if none") })) });
+  const list = products.map((p, i) => `${i}: ${p.label}`).join("\n");
+  const BATCH = 20;
+  for (let i = 0; i < photos.length; i += BATCH) {
+    const content: Anthropic.ContentBlockParam[] = [{ type: "text", text: `Products:\n${list}\n\nFor each photo below say which product it shows (index), or -1 if none of them.` }];
+    photos.slice(i, i + BATCH).forEach((src, n) => {
+      content.push({ type: "text", text: `Photo ${i + n}` });
+      content.push(toImageBlock(src));
+    });
+    const response = await getClient().messages.parse({
+      model: MODEL,
+      max_tokens: 4000,
+      output_config: { effort: "low", format: zodOutputFormat(Match) },
+      messages: [{ role: "user", content }],
+    });
+    for (const m of response.parsed_output?.matches ?? []) {
+      if (m.product >= 0 && m.product < products.length && m.photo >= 0 && m.photo < photos.length && !out.has(m.photo)) out.set(m.photo, products[m.product].key);
+    }
+  }
+  return out;
+}
+
 export type ImageCandidate = { src: string; thumb: string; source: string; title: string };
 
 /**

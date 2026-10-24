@@ -2,6 +2,7 @@
 
 import { useActionState, useState, useTransition } from "react";
 import Link from "next/link";
+import { upload } from "@vercel/blob/client";
 import { analyzeCatalogue, findMoreImages, publishDraft } from "@/actions/catalogue-wizard";
 import type { DraftImage, DraftItem, PublishResult, SubmitItem } from "@/lib/catalogue-wizard";
 import { cn } from "@/lib/cn";
@@ -11,8 +12,43 @@ import { Card, Field, Input, Notice, PrimaryButton, SecondaryButton, Textarea } 
  * Catalogue import wizard: upload the supplier PDF and price list, review each product as it will
  * appear on the website (editable), pick the photos, then submit to the catalogue.
  */
-export function CatalogueWizard() {
+export function CatalogueWizard({ blobUploads }: { blobUploads: boolean }) {
   const [draft, analyze, analyzing] = useActionState(analyzeCatalogue, null);
+  const [uploading, startUpload] = useTransition();
+  const [progress, setProgress] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  /** With Blob storage the browser uploads the files itself (no 4.5 MB request limit), then the server reads them by URL. */
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    if (!blobUploads) return;
+    e.preventDefault();
+    const form = e.currentTarget;
+    const fd = new FormData(form);
+    const files = fd.getAll("documents").filter((f): f is File => f instanceof File && f.size > 0);
+    fd.delete("documents");
+    startUpload(async () => {
+      setUploadError(null);
+      try {
+        const urls: string[] = [];
+        for (const [n, file] of files.entries()) {
+          setProgress(`Įkeliama ${n + 1} / ${files.length}: ${file.name}`);
+          const blob = await upload(`imports/${file.name}`, file, {
+            access: "public",
+            handleUploadUrl: "/api/admin/upload",
+            multipart: file.size > 20 * 1024 * 1024,
+            onUploadProgress: (p) => setProgress(`Įkeliama ${n + 1} / ${files.length}: ${file.name} – ${p.percentage}%`),
+          });
+          urls.push(blob.url);
+        }
+        fd.set("urls", [String(fd.get("urls") ?? ""), ...urls].join("\n"));
+        setProgress(files.length ? "Analizuojama…" : null);
+        analyze(fd);
+      } catch (err) {
+        setUploadError(err instanceof Error ? err.message : "Įkėlimas nepavyko.");
+        setProgress(null);
+      }
+    });
+  };
   const [result, publish, publishing] = useActionState(publishDraft, null);
   const [items, setItems] = useState<DraftItem[]>([]);
   const [included, setIncluded] = useState<Set<number>>(new Set());
@@ -50,7 +86,9 @@ export function CatalogueWizard() {
           .map((im) =>
             im.kind === "catalogue"
               ? { kind: "catalogue" as const, index: stored?.images.findIndex((s) => s.src === im.src) ?? -1 }
-              : { kind: "web" as const, src: im.src }
+              : im.kind === "pool"
+                ? { kind: "pool" as const, index: draft?.pool.findIndex((p) => p.src === im.src) ?? -1 }
+                : { kind: "web" as const, src: im.src }
           )
           .filter((ref) => ref.kind === "web" || ref.index >= 0),
       };
@@ -61,14 +99,14 @@ export function CatalogueWizard() {
   return (
     <div className="space-y-6">
       <Card title="1. Tiekėjo dokumentai">
-        <form action={analyze} className="space-y-4">
+        <form action={analyze} onSubmit={onSubmit} className="space-y-4">
           <p className="text-sm text-zinc-600">
             Įkelkite viską, ką atsiuntė tiekėjas: PDF katalogus, kainoraščius (Excel / CSV), Word dokumentus, nuotraukas. Sistema
             pati atpažįsta, kas kuriame faile yra, sujungia produktus pagal SKU ir sudaro korteles su nuotraukomis, aprašymais,
             techniniais duomenimis ir kainomis.
           </p>
           <div className="grid gap-4 md:grid-cols-[1fr_1fr_260px]">
-            <Field label="Dokumentai" hint="Galima pažymėti kelis failus iš karto. Iki 4 MB vienam įkėlimui; didesniems naudokite nuorodas.">
+            <Field label="Dokumentai" hint={blobUploads ? "Galima pažymėti kelis failus iš karto, iki 300 MB kiekvienas." : "Galima pažymėti kelis failus iš karto. Iki 4 MB vienam įkėlimui; didesniems naudokite nuorodas."}>
               <input type="file" name="documents" multiple accept=".pdf,.xlsx,.xls,.csv,.docx,.doc,.txt,.md,image/*,application/pdf" className="text-sm" />
             </Field>
             <Field label="Nuorodos į failus" hint="Po vieną eilutėje: tiesioginės nuorodos į PDF, Excel ar nuotraukas">
@@ -78,8 +116,12 @@ export function CatalogueWizard() {
               <Input name="brand" placeholder="pvz. Marset" />
             </Field>
           </div>
-          <PrimaryButton type="submit" disabled={analyzing}>{analyzing ? "Skaitoma… (gali užtrukti iki minutės)" : "Analizuoti dokumentus"}</PrimaryButton>
+          <div className="flex flex-wrap items-center gap-3">
+            <PrimaryButton type="submit" disabled={analyzing || uploading}>{analyzing || uploading ? "Skaitoma… (gali užtrukti kelias minutes)" : "Analizuoti dokumentus"}</PrimaryButton>
+            {(uploading || analyzing) && progress && <span className="text-sm text-zinc-500">{progress}</span>}
+          </div>
         </form>
+        {uploadError && <div className="mt-3"><Notice tone="red">{uploadError}</Notice></div>}
         {draft?.error && <div className="mt-3"><Notice tone="red">{draft.error}</Notice></div>}
       </Card>
 
@@ -106,6 +148,7 @@ export function CatalogueWizard() {
               token={draft.token}
               included={included.has(item.idx)}
               canSearch={draft.imageSearch}
+              pool={draft.pool}
               onInclude={(v) => setIncluded((s) => { const n = new Set(s); if (v) n.add(item.idx); else n.delete(item.idx); return n; })}
               onChange={(patch) => update(item.idx, patch)}
             />
@@ -159,12 +202,19 @@ type EditorProps = {
   token: string;
   included: boolean;
   canSearch: boolean;
+  pool: { name: string; src: string }[];
   onInclude: (v: boolean) => void;
   onChange: (patch: Partial<DraftItem>) => void;
 };
 
-function ItemEditor({ item, token, included, canSearch, onInclude, onChange }: EditorProps) {
+function ItemEditor({ item, token, included, canSearch, pool, onInclude, onChange }: EditorProps) {
   const [searching, startSearch] = useTransition();
+  const [showPool, setShowPool] = useState(false);
+  const addFromPool = (src: string) => {
+    if (item.images.some((im) => im.src === src)) return;
+    onChange({ images: [...item.images, { kind: "pool", src, selected: true }] });
+    setShowPool(false);
+  };
   const [searchError, setSearchError] = useState<string | null>(null);
   const main = item.images.find((im) => im.selected) ?? item.images[0];
   const price = Number.parseFloat(item.price.replace(",", ".")) || 0;
@@ -260,10 +310,25 @@ function ItemEditor({ item, token, included, canSearch, onInclude, onChange }: E
           <div>
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <p className="text-sm font-medium text-zinc-800">Nuotraukos <span className="font-normal text-zinc-500">(spustelėkite, kad pažymėtumėte)</span></p>
-              <SecondaryButton type="button" onClick={search} disabled={searching || !canSearch} title={canSearch ? "" : "Reikia GOOGLE_CSE_KEY ir GOOGLE_CSE_CX"}>
-                {searching ? "Ieškoma…" : "Rasti daugiau nuotraukų (AI)"}
-              </SecondaryButton>
+              <div className="flex gap-2">
+                {pool.length > 0 && (
+                  <SecondaryButton type="button" onClick={() => setShowPool((v) => !v)}>Iš dokumentų ({pool.length})</SecondaryButton>
+                )}
+                <SecondaryButton type="button" onClick={search} disabled={searching || !canSearch} title={canSearch ? "" : "Reikia GOOGLE_CSE_KEY ir GOOGLE_CSE_CX"}>
+                  {searching ? "Ieškoma…" : "Rasti daugiau nuotraukų (AI)"}
+                </SecondaryButton>
+              </div>
             </div>
+            {showPool && (
+              <div className="mb-3 flex flex-wrap gap-2 rounded-md border border-dashed border-zinc-300 p-2">
+                {pool.map((p) => (
+                  <button key={p.src} type="button" onClick={() => addFromPool(p.src)} title={p.name} className="h-16 w-16 overflow-hidden rounded bg-zinc-50 hover:ring-2 hover:ring-zinc-900">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={p.src} alt="" className="h-full w-full object-contain" />
+                  </button>
+                ))}
+              </div>
+            )}
             {searchError && <p className="mb-2 text-xs text-red-600">{searchError}</p>}
             <div className="flex flex-wrap gap-2">
               {item.images.map((im, n) => (
@@ -276,7 +341,7 @@ function ItemEditor({ item, token, included, canSearch, onInclude, onChange }: E
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={im.thumb ?? im.src} alt="" className="h-full w-full object-contain" />
-                  <span className="absolute bottom-0 left-0 right-0 bg-black/50 px-1 text-[10px] text-white">{im.kind === "catalogue" ? "katalogas" : im.source}</span>
+                  <span className="absolute bottom-0 left-0 right-0 bg-black/50 px-1 text-[10px] text-white">{im.kind === "web" ? im.source : "dokumentas"}</span>
                   {im.selected && <span className="absolute right-1 top-1 rounded-full bg-zinc-900 px-1.5 text-[10px] text-white">✓</span>}
                 </button>
               ))}

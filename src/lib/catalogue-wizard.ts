@@ -1,8 +1,8 @@
 /** Types shared by the catalogue import wizard (server actions and the admin UI). */
 
 export type DraftImage = {
-  /** "catalogue": extracted from the PDF (data URL); "web": found online (remote URL) */
-  kind: "catalogue" | "web";
+  /** "catalogue": extracted from the documents (data URL); "pool": picked from the unassigned pool; "web": found online */
+  kind: "catalogue" | "pool" | "web";
   src: string;
   thumb?: string;
   source?: string;
@@ -39,6 +39,8 @@ export type Draft = {
   imageSearch: boolean;
   warnings: string[];
   items: DraftItem[];
+  /** Photos from the documents that no product claimed; can be added to any item in the preview. */
+  pool: { name: string; src: string }[];
   error?: string;
 };
 
@@ -58,8 +60,8 @@ export type SubmitItem = {
   weight: string;
   price: string;
   salePrice: string;
-  /** catalogue images by index into the stored draft, web images by URL */
-  images: ({ kind: "catalogue"; index: number } | { kind: "web"; src: string })[];
+  /** catalogue / pool images by index into the stored draft, web images by URL */
+  images: ({ kind: "catalogue"; index: number } | { kind: "pool"; index: number } | { kind: "web"; src: string })[];
 };
 
 export type PublishResult = {

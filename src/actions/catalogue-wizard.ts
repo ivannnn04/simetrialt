@@ -7,10 +7,11 @@ import { requireUser } from "@/lib/auth";
 import { slugify } from "@/lib/slug";
 import { saveImage } from "@/lib/uploads";
 import mammoth from "mammoth";
+import { del } from "@vercel/blob";
 import sharp from "sharp";
 import { guessMapping, imageKeyCandidates, parsePriceCents, parseSpreadsheet, type Field } from "@/lib/catalogue-import";
 import { extractPdfPages, parseFields, splitProducts, type PdfImage, type PdfLine, type PdfProduct } from "@/lib/catalogue-pdf";
-import { aiEnabled, extractProductsFromText, rankImageCandidates, structureProducts, type AiProductFields, type ImageCandidate } from "@/lib/ai";
+import { aiEnabled, extractProductsFromText, matchPhotosToProducts, rankImageCandidates, structureProducts, type AiProductFields, type ImageCandidate } from "@/lib/ai";
 import { imageSearchEnabled, searchImages } from "@/lib/image-search";
 import { composeDescription, type Draft, type DraftItem, type PublishResult, type SubmitItem } from "@/lib/catalogue-wizard";
 
@@ -27,7 +28,7 @@ const MAX_FETCH_BYTES = 40 * 1024 * 1024;
 const cents = (n: number | null | undefined) => (n == null ? "" : (n / 100).toFixed(2));
 
 function fail(message: string): Draft {
-  return { token: "", filename: "", createdAt: Date.now(), aiUsed: false, imageSearch: false, warnings: [], items: [], error: message };
+  return { token: "", filename: "", createdAt: Date.now(), aiUsed: false, imageSearch: false, warnings: [], items: [], pool: [], error: message };
 }
 
 type PriceRow = Partial<Record<Field, string>>;
@@ -107,9 +108,13 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
     for (const f of formData.getAll("documents")) {
       if (f instanceof File && f.size > 0) docs.push({ buffer: await f.arrayBuffer(), name: f.name });
     }
+    const tempBlobs: string[] = [];
     for (const url of String(formData.get("urls") ?? "").split(/\s+/).filter((u) => /^https?:\/\//.test(u))) {
       docs.push(await fetchDocument(url));
+      // files the browser uploaded straight to our Blob store are temporary
+      if (/\.blob\.vercel-storage\.com$/.test(new URL(url).hostname) && /\/imports\//.test(url)) tempBlobs.push(url);
     }
+    if (tempBlobs.length && process.env.BLOB_READ_WRITE_TOKEN) del(tempBlobs).catch(() => undefined);
     if (docs.length === 0) return fail("Įkelkite bent vieną dokumentą (PDF, Excel, CSV, Word, nuotraukas).");
 
     // --- read each document by type ---
@@ -249,15 +254,41 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
     if (items.length === 0) return fail("Nepavyko sudaryti nė vieno produkto. Patikrinkite failus.");
 
     // --- loose photos: matched to products by file name (SKU or product name) ---
-    const unmatchedPhotos: string[] = [];
+    const pool: { name: string; src: string }[] = [];
     for (const ph of photos) {
       const keys = imageKeyCandidates(ph.name).map((k) => k.toLowerCase());
       const target = items.find((it) => keys.includes(it.sku.toLowerCase()) || keys.map(slugify).includes(slugify(it.name)));
       // a photo deliberately named after the product is wanted: select it
       if (target) target.images.push({ kind: "catalogue", src: ph.dataUrl, selected: true });
-      else unmatchedPhotos.push(ph.name);
+      else pool.push({ name: ph.name, src: ph.dataUrl });
     }
-    if (unmatchedPhotos.length) warnings.push(`Nepriskirtos nuotraukos (pavadinkite failus pagal SKU): ${unmatchedPhotos.slice(0, 8).join(", ")}${unmatchedPhotos.length > 8 ? "…" : ""}`);
+    // document images that no product block claimed (photo-only PDF, image catalogue)
+    const claimed = new Set(pdfProducts.flatMap((p) => p.images.map((im) => im.dataUrl)));
+    for (const [n, im] of images.filter((im) => !claimed.has(im.dataUrl)).entries()) pool.push({ name: `dokumentas, psl. ${im.page} #${n + 1}`, src: im.dataUrl });
+
+    if (pool.length > 0) {
+      const withoutPhoto = items.filter((it) => it.images.length === 0);
+      let assigned = 0;
+      if (withoutPhoto.length > 0 && aiEnabled()) {
+        // AI looks at each photo and names the product it shows
+        const map = await matchPhotosToProducts(pool.map((p) => p.src), withoutPhoto.map((it) => ({ key: it.idx, label: [it.brand, it.name, it.description].filter(Boolean).join(" – ") }))).catch(() => new Map<number, number>());
+        for (const [photoIdx, itemIdx] of map) {
+          const it = items[itemIdx];
+          if (!it || !pool[photoIdx]) continue;
+          it.images.push({ kind: "catalogue", src: pool[photoIdx].src, selected: it.images.length === 0 });
+          assigned++;
+        }
+        if (assigned) warnings.push(`AI priskyrė ${assigned} nuotraukas produktams pagal vaizdą – patikrinkite peržiūroje.`);
+      } else if (withoutPhoto.length > 0 && pool.length === withoutPhoto.length) {
+        // same count: assume the photos follow the product order
+        withoutPhoto.forEach((it, n) => it.images.push({ kind: "catalogue", src: pool[n].src, selected: true }));
+        assigned = pool.length;
+        warnings.push(`${assigned} nuotraukos priskirtos produktams pagal eiliškumą – patikrinkite peržiūroje.`);
+      }
+      if (assigned < pool.length) {
+        warnings.push(`${pool.length - assigned} nuotraukų liko nepriskirtos: pridėkite jas produktams peržiūroje mygtuku „Iš dokumentų“ (arba pavadinkite failus pagal SKU).`);
+      }
+    }
 
     // --- already in the catalogue? ---
     const existing = await db.product.findMany({ where: { sku: { in: items.map((i) => i.sku).filter(Boolean) } }, select: { id: true, sku: true, name: true } });
@@ -275,6 +306,7 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
       imageSearch: imageSearchEnabled(),
       warnings,
       items,
+      pool: pool.map((p) => ({ name: p.name, src: p.src })),
     };
     await db.setting.upsert({ where: { key: draftKey(token) }, create: { key: draftKey(token), value: JSON.stringify(draft) }, update: { value: JSON.stringify(draft) } });
     // housekeeping: drop stale drafts
@@ -403,6 +435,9 @@ export async function publishDraft(_prev: PublishResult | null | undefined, form
         try {
           if (ref.kind === "catalogue") {
             const src = stored?.images[ref.index]?.src;
+            if (src) files.push(dataUrlToFile(src, `${sku ?? slugify(name)}-${n + 1}.jpg`));
+          } else if (ref.kind === "pool") {
+            const src = draft.pool[ref.index]?.src;
             if (src) files.push(dataUrlToFile(src, `${sku ?? slugify(name)}-${n + 1}.jpg`));
           } else if (/^https?:\/\//.test(ref.src)) {
             files.push(await fetchImageAsFile(ref.src, `${sku ?? slugify(name)}-${n + 1}.jpg`));
