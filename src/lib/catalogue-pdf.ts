@@ -156,7 +156,7 @@ export function splitProducts(lines: PdfLine[], images: PdfImage[], knownSkus: s
     const page = lines[a.idx].page;
     // header: up to 4 non-specification lines directly above the SKU line, same page
     const headerLines: PdfLine[] = [];
-    for (let i = a.idx - 1; i > prevEnd && headerLines.length < 4; i--) {
+    for (let i = a.idx - 1; i > prevEnd && headerLines.length < 6; i--) {
       const l = lines[i];
       if (l.page !== page || isLabel(l.text)) break;
       headerLines.unshift(l);
@@ -164,12 +164,11 @@ export function splitProducts(lines: PdfLine[], images: PdfImage[], knownSkus: s
     // A section heading ("Sofas") is set larger than the product name below it. Names are also
     // larger than descriptions, so a bigger first line counts as a heading only when a name and
     // a description follow it, or when it reads like a category.
-    if (
-      headerLines.length >= 2 &&
-      headerLines[0].size > headerLines[1].size * 1.25 &&
-      (headerLines.length >= 3 || CATEGORY_WORD_RE.test(headerLines[0].text))
-    ) {
-      lastHeading = headerLines.shift()!.text;
+    if (headerLines.length >= 2 && headerLines[0].size > headerLines[1].size * 1.25) {
+      // is there still a name-sized line among the rest (larger than the description lines)?
+      const rest = headerLines.slice(1).map((l) => l.size).sort((x, y) => y - x);
+      const nameBelow = rest.length >= 2 && rest[0] > rest[1] * 1.25;
+      if (nameBelow || CATEGORY_WORD_RE.test(headerLines[0].text)) lastHeading = headerLines.shift()!.text;
     }
     const header = headerLines.map((l) => l.text);
     // body: from the SKU line to the line before the next product's header
