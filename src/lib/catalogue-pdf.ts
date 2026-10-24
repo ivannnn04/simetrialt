@@ -136,11 +136,9 @@ export function splitProducts(lines: PdfLine[], images: PdfImage[], knownSkus: s
   const anchors: { idx: number; sku: string }[] = [];
   const seen = new Set<string>();
   for (const [i, l] of lines.entries()) {
-    let sku: string | null = null;
-    if (known.length) {
-      const hit = known.find((s) => l.text.includes(s));
-      if (hit) sku = hit;
-    } else {
+    // a known SKU from the price list, else a labelled article number ("Art. no. …")
+    let sku: string | null = known.find((s) => l.text.includes(s)) ?? null;
+    if (!sku) {
       const m = l.text.match(SKU_LABEL_RE);
       if (m) sku = m[2];
     }

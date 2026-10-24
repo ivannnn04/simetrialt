@@ -11,19 +11,18 @@ export default function ImportPage() {
       <div>
         <h1 className="text-2xl font-semibold">Importas iš tiekėjų katalogų</h1>
         <p className="mt-1 text-sm text-zinc-600">
-          Įkelkite PDF katalogą ir kainoraštį – produktai bus sudaryti automatiškai, peržiūrėsite juos taip, kaip atrodys svetainėje,
-          ir tik tada įrašysite į katalogą.
+          Įkelkite tiekėjo dokumentus – produktai bus sudaryti automatiškai, peržiūrėsite juos taip, kaip atrodys svetainėje, ir tik
+          tada įrašysite į katalogą.
         </p>
       </div>
       <CatalogueWizard />
-      <div>
-        <h2 className="mb-1 text-lg font-semibold">Greitasis importas be peržiūros</h2>
-        <p className="mb-4 text-sm text-zinc-600">Tik kainoraštis (CSV / Excel) ir nuotraukos pagal SKU – be PDF ir be peržiūros.</p>
-        <div className="space-y-6">
+      <details className="rounded-xl border border-zinc-200 p-5">
+        <summary className="cursor-pointer text-sm font-medium text-zinc-700">Papildomai: greitasis kainoraščio importas be peržiūros ir nuotraukos pagal SKU</summary>
+        <div className="mt-5 space-y-6">
           <CatalogueImport />
           <BulkImagesForm />
         </div>
-      </div>
+      </details>
     </div>
   );
 }

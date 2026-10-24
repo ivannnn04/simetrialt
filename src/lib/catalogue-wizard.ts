@@ -25,7 +25,7 @@ export type DraftItem = {
   price: string;
   salePrice: string;
   /** where the data came from, for the badge in the UI */
-  from: ("pdf" | "pricelist")[];
+  from: ("pdf" | "pricelist" | "ai")[];
   page: number | null;
   existing: { id: string; name: string } | null;
   images: DraftImage[];

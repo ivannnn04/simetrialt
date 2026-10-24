@@ -24,6 +24,7 @@ const ProductFields = z.object({
   weight: z.string(),
   material: z.string().describe("Materials / finish exactly as printed"),
   category: z.string().describe("Catalogue section such as 'Sofas', 'Lighting', 'Tables'; empty if unknown"),
+  price: z.string().describe("Price as printed, e.g. '699.00'; empty if none"),
 });
 const Extraction = z.object({ products: z.array(ProductFields) });
 export type AiProductFields = z.infer<typeof ProductFields>;
@@ -51,6 +52,27 @@ export async function structureProducts(blocks: ProductBlock[], brand: string): 
       messages: [{ role: "user", content: input }],
     });
     for (const p of response.parsed_output?.products ?? []) out.set(p.sku, p);
+  }
+  return out;
+}
+
+/** Finds every product in free-form document text (catalogue without SKUs, Word offer, e-mail). */
+export async function extractProductsFromText(text: string, brand: string): Promise<AiProductFields[]> {
+  if (!aiEnabled() || !text.trim()) return [];
+  const out: AiProductFields[] = [];
+  const CHUNK = 60000;
+  for (let i = 0; i < text.length; i += CHUNK) {
+    const response = await getClient().messages.parse({
+      model: MODEL,
+      max_tokens: 32000,
+      output_config: { effort: "medium", format: zodOutputFormat(Extraction) },
+      system:
+        "You read documents from a furniture or lighting supplier (catalogue pages, offers, product sheets) and list every " +
+        "distinct product in them with its details. One entry per product; use the supplier's article number as sku when " +
+        `printed, otherwise leave sku empty. Copy values as printed; never invent specifications. The brand is ${brand || "unknown"}.`,
+      messages: [{ role: "user", content: text.slice(i, i + CHUNK) }],
+    });
+    out.push(...(response.parsed_output?.products ?? []));
   }
   return out;
 }

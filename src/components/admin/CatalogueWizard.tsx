@@ -17,7 +17,6 @@ export function CatalogueWizard() {
   const [items, setItems] = useState<DraftItem[]>([]);
   const [included, setIncluded] = useState<Set<number>>(new Set());
   const [publishNow, setPublishNow] = useState(true);
-  const [source, setSource] = useState<"file" | "url">("file");
   // A new analysis replaces the editable copy (state adjusted during render, no effect needed).
   const [loadedToken, setLoadedToken] = useState("");
   if (draft && !draft.error && draft.token !== loadedToken) {
@@ -61,32 +60,25 @@ export function CatalogueWizard() {
 
   return (
     <div className="space-y-6">
-      <Card title="1. Tiekėjo katalogas ir kainoraštis">
+      <Card title="1. Tiekėjo dokumentai">
         <form action={analyze} className="space-y-4">
           <p className="text-sm text-zinc-600">
-            PDF katalogas duoda nuotraukas, aprašymus ir techninius duomenis, kainoraštis (Excel / CSV) – SKU ir kainas. Produktai
-            sutapdinami pagal SKU. Galima įkelti ir tik vieną iš failų.
+            Įkelkite viską, ką atsiuntė tiekėjas: PDF katalogus, kainoraščius (Excel / CSV), Word dokumentus, nuotraukas. Sistema
+            pati atpažįsta, kas kuriame faile yra, sujungia produktus pagal SKU ir sudaro korteles su nuotraukomis, aprašymais,
+            techniniais duomenimis ir kainomis.
           </p>
-          <div className="grid gap-4 md:grid-cols-3">
-            <Field label="PDF katalogas" hint={source === "file" ? "Iki 4 MB; didesniam naudokite nuorodą" : "Tiesioginė nuoroda į PDF failą"}>
-              <div className="mb-2 flex gap-3 text-xs">
-                <label className="flex items-center gap-1"><input type="radio" name="source" checked={source === "file"} onChange={() => setSource("file")} /> failas</label>
-                <label className="flex items-center gap-1"><input type="radio" name="source" checked={source === "url"} onChange={() => setSource("url")} /> nuoroda</label>
-              </div>
-              {source === "file" ? (
-                <input type="file" name="catalogue" accept="application/pdf,.pdf" className="text-sm" />
-              ) : (
-                <Input name="catalogueUrl" placeholder="https://…/catalogue.pdf" />
-              )}
+          <div className="grid gap-4 md:grid-cols-[1fr_1fr_260px]">
+            <Field label="Dokumentai" hint="Galima pažymėti kelis failus iš karto. Iki 4 MB vienam įkėlimui; didesniems naudokite nuorodas.">
+              <input type="file" name="documents" multiple accept=".pdf,.xlsx,.xls,.csv,.docx,.doc,.txt,.md,image/*,application/pdf" className="text-sm" />
             </Field>
-            <Field label="Kainoraštis (Excel / CSV)" hint="Stulpeliai atpažįstami automatiškai">
-              <input type="file" name="pricelist" accept=".csv,.txt,.xlsx,.xls" className="text-sm" />
+            <Field label="Nuorodos į failus" hint="Po vieną eilutėje: tiesioginės nuorodos į PDF, Excel ar nuotraukas">
+              <Textarea name="urls" rows={2} placeholder={"https://…/catalogue.pdf\nhttps://…/pricelist.xlsx"} />
             </Field>
-            <Field label="Prekės ženklas" hint="Naudojamas, jei failuose jo nėra, ir nuotraukų paieškai">
+            <Field label="Prekės ženklas" hint="Jei dokumentuose jo nėra; naudojamas ir nuotraukų paieškai">
               <Input name="brand" placeholder="pvz. Marset" />
             </Field>
           </div>
-          <PrimaryButton type="submit" disabled={analyzing}>{analyzing ? "Skaitoma… (gali užtrukti iki minutės)" : "Analizuoti"}</PrimaryButton>
+          <PrimaryButton type="submit" disabled={analyzing}>{analyzing ? "Skaitoma… (gali užtrukti iki minutės)" : "Analizuoti dokumentus"}</PrimaryButton>
         </form>
         {draft?.error && <div className="mt-3"><Notice tone="red">{draft.error}</Notice></div>}
       </Card>
@@ -202,7 +194,8 @@ function ItemEditor({ item, token, included, canSearch, onInclude, onChange }: E
           #{item.idx + 1} · {item.name || item.sku}
         </label>
         <div className="flex flex-wrap gap-2 text-[11px]">
-          {item.from.includes("pdf") && <span className="rounded-full bg-zinc-100 px-2 py-0.5">PDF{item.page ? ` psl. ${item.page}` : ""}</span>}
+          {item.from.includes("pdf") && <span className="rounded-full bg-zinc-100 px-2 py-0.5">dokumentas{item.page ? `, psl. ${item.page}` : ""}</span>}
+          {item.from.includes("ai") && <span className="rounded-full bg-violet-100 px-2 py-0.5 text-violet-800">išskyrė AI</span>}
           {item.from.includes("pricelist") && <span className="rounded-full bg-zinc-100 px-2 py-0.5">kainoraštis</span>}
           {item.existing ? (
             <span className="rounded-full bg-amber-100 px-2 py-0.5 text-amber-800">jau yra: {item.existing.name} → bus atnaujintas</span>

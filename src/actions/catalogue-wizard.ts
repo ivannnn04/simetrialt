@@ -6,9 +6,11 @@ import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { slugify } from "@/lib/slug";
 import { saveImage } from "@/lib/uploads";
-import { guessMapping, parsePriceCents, parseSpreadsheet, type Field } from "@/lib/catalogue-import";
-import { extractPdfPages, parseFields, splitProducts, type PdfProduct } from "@/lib/catalogue-pdf";
-import { aiEnabled, rankImageCandidates, structureProducts, type ImageCandidate } from "@/lib/ai";
+import mammoth from "mammoth";
+import sharp from "sharp";
+import { guessMapping, imageKeyCandidates, parsePriceCents, parseSpreadsheet, type Field } from "@/lib/catalogue-import";
+import { extractPdfPages, parseFields, splitProducts, type PdfImage, type PdfLine, type PdfProduct } from "@/lib/catalogue-pdf";
+import { aiEnabled, extractProductsFromText, rankImageCandidates, structureProducts, type AiProductFields, type ImageCandidate } from "@/lib/ai";
 import { imageSearchEnabled, searchImages } from "@/lib/image-search";
 import { composeDescription, type Draft, type DraftItem, type PublishResult, type SubmitItem } from "@/lib/catalogue-wizard";
 
@@ -51,54 +53,130 @@ function readPriceList(buffer: ArrayBuffer, filename: string): { rows: Map<strin
   return { rows, order };
 }
 
-async function fetchPdf(url: string): Promise<{ buffer: ArrayBuffer; name: string }> {
+async function fetchDocument(url: string): Promise<{ buffer: ArrayBuffer; name: string }> {
   const res = await fetch(url, { redirect: "follow" });
-  if (!res.ok) throw new Error(`Nepavyko atsisiųsti PDF (${res.status}).`);
+  if (!res.ok) throw new Error(`Nepavyko atsisiųsti ${url} (${res.status}).`);
   const len = Number(res.headers.get("content-length") ?? 0);
-  if (len > MAX_FETCH_BYTES) throw new Error("PDF per didelis (daugiau nei 40 MB).");
+  if (len > MAX_FETCH_BYTES) throw new Error(`${url}: failas per didelis (daugiau nei 40 MB).`);
   const buffer = await res.arrayBuffer();
-  const name = decodeURIComponent(new URL(url).pathname.split("/").pop() || "catalogue.pdf");
+  let name = decodeURIComponent(new URL(url).pathname.split("/").pop() || "document");
+  if (!/\.[a-z0-9]{2,5}$/i.test(name)) {
+    const type = (res.headers.get("content-type") ?? "").split(";")[0];
+    const ext = { "application/pdf": ".pdf", "text/csv": ".csv", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx", "image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp" }[type];
+    if (ext) name += ext;
+  }
   return { buffer, name };
 }
 
-/** Step 1: read the files, build the draft items and stage them. */
+type Doc = { buffer: ArrayBuffer; name: string };
+
+function textLines(text: string, page: number): PdfLine[] {
+  return text
+    .split(/\r?\n/)
+    .map((t, i) => ({ text: t.replace(/\s+/g, " ").trim(), y: i, page, size: 1 }))
+    .filter((l) => l.text);
+}
+
+/** Word paragraphs as lines; headings get a larger "size" so the section-heading rule applies. */
+async function docxLines(buffer: ArrayBuffer, page: number): Promise<PdfLine[]> {
+  const html = (await mammoth.convertToHtml({ buffer: Buffer.from(buffer) })).value;
+  const out: PdfLine[] = [];
+  const re = /<(h[1-6]|p|li|td|th)\b[^>]*>([\s\S]*?)<\/\1>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html))) {
+    const text = m[2].replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/\s+/g, " ").trim();
+    if (text) out.push({ text, y: out.length, page, size: /^h/i.test(m[1]) ? 2 : 1 });
+  }
+  return out.length ? out : textLines((await mammoth.extractRawText({ buffer: Buffer.from(buffer) })).value, page);
+}
+const extOf = (name: string) => (name.toLowerCase().match(/\.([a-z0-9]+)$/)?.[1] ?? "");
+
+async function photoDataUrl(buffer: ArrayBuffer): Promise<string> {
+  const buf = await sharp(Buffer.from(buffer)).flatten({ background: "#ffffff" }).resize({ width: 640, height: 640, fit: "inside", withoutEnlargement: true }).jpeg({ quality: 82 }).toBuffer();
+  return `data:image/jpeg;base64,${buf.toString("base64")}`;
+}
+
+/** Step 1: read every document, build the draft items and stage them. */
 export async function analyzeCatalogue(_prev: Draft | null | undefined, formData: FormData): Promise<Draft | null> {
   await requireUser();
   const brand = String(formData.get("brand") ?? "").trim();
-  const pdfFile = formData.get("catalogue");
-  const pdfUrl = String(formData.get("catalogueUrl") ?? "").trim();
-  const priceFile = formData.get("pricelist");
   const warnings: string[] = [];
 
   try {
-    let pdf: { buffer: ArrayBuffer; name: string } | null = null;
-    if (pdfFile instanceof File && pdfFile.size > 0) pdf = { buffer: await pdfFile.arrayBuffer(), name: pdfFile.name };
-    else if (/^https?:\/\//.test(pdfUrl)) pdf = await fetchPdf(pdfUrl);
-
-    let prices: ReturnType<typeof readPriceList> | null = null;
-    if (priceFile instanceof File && priceFile.size > 0) {
-      prices = readPriceList(await priceFile.arrayBuffer(), priceFile.name);
-      if (prices.warning) warnings.push(prices.warning);
+    const docs: Doc[] = [];
+    for (const f of formData.getAll("documents")) {
+      if (f instanceof File && f.size > 0) docs.push({ buffer: await f.arrayBuffer(), name: f.name });
     }
-    if (!pdf && !prices) return fail("Įkelkite PDF katalogą ir/arba kainoraštį.");
+    for (const url of String(formData.get("urls") ?? "").split(/\s+/).filter((u) => /^https?:\/\//.test(u))) {
+      docs.push(await fetchDocument(url));
+    }
+    if (docs.length === 0) return fail("Įkelkite bent vieną dokumentą (PDF, Excel, CSV, Word, nuotraukas).");
 
-    // --- PDF → product blocks ---
-    let pdfProducts: PdfProduct[] = [];
-    if (pdf) {
-      const { lines, images, pages } = await extractPdfPages(pdf.buffer);
-      pdfProducts = splitProducts(lines, images, prices ? prices.order : []);
-      if (pdfProducts.length === 0) {
-        warnings.push(
-          prices
-            ? `PDF (${pages} psl.) tekste nerasta nė vieno kainoraščio SKU – patikrinkite, ar kodai sutampa.`
-            : `PDF (${pages} psl.) nerasta produktų kodų („Art. no.“, „SKU“, „Kodas“…). Įkelkite kainoraštį su SKU stulpeliu.`
-        );
+    // --- read each document by type ---
+    const lines: PdfLine[] = [];
+    const images: PdfImage[] = [];
+    const photos: { name: string; dataUrl: string }[] = [];
+    const prices = { rows: new Map<string, PriceRow>(), order: [] as string[] };
+    let pageOffset = 0;
+    let textPages = 0;
+    for (const doc of docs) {
+      const ext = extOf(doc.name);
+      try {
+        if (ext === "pdf") {
+          const r = await extractPdfPages(doc.buffer);
+          lines.push(...r.lines.map((l) => ({ ...l, page: l.page + pageOffset })));
+          images.push(...r.images.map((im) => ({ ...im, page: im.page + pageOffset })));
+          pageOffset += r.pages;
+          textPages += r.pages;
+          if (r.images.length === 0 && r.pages > 0) warnings.push(`${doc.name}: PDF be įterptų nuotraukų (gali būti skenuotas).`);
+        } else if (["xlsx", "xls", "csv"].includes(ext)) {
+          const r = readPriceList(doc.buffer, doc.name);
+          if (r.warning) warnings.push(`${doc.name}: ${r.warning}`);
+          for (const sku of r.order) {
+            if (!prices.rows.has(sku)) prices.order.push(sku);
+            prices.rows.set(sku, { ...(prices.rows.get(sku) ?? {}), ...r.rows.get(sku)! });
+          }
+        } else if (ext === "docx" || ext === "txt" || ext === "md") {
+          pageOffset++;
+          textPages++;
+          lines.push(...(ext === "docx" ? await docxLines(doc.buffer, pageOffset) : textLines(new TextDecoder().decode(doc.buffer), pageOffset)));
+        } else if (["jpg", "jpeg", "png", "webp", "gif"].includes(ext)) {
+          photos.push({ name: doc.name, dataUrl: await photoDataUrl(doc.buffer) });
+        } else if (ext === "doc") {
+          warnings.push(`${doc.name}: senas .doc formatas nepalaikomas – išsaugokite kaip .docx arba PDF.`);
+        } else {
+          warnings.push(`${doc.name}: nepalaikomas failo tipas.`);
+        }
+      } catch (e) {
+        warnings.push(`${doc.name}: ${e instanceof Error ? e.message.split("\n")[0] : "nepavyko perskaityti"}`);
       }
-      if (images.length === 0 && pages > 0) warnings.push("PDF neturi įterptų nuotraukų (gali būti skenuotas) – nuotraukas reikės rasti internete.");
     }
 
-    // --- optional AI pass over the PDF text ---
+    // --- text documents → product blocks anchored on SKUs ---
+    let pdfProducts: PdfProduct[] = splitProducts(lines, images, prices.order);
+    const hasPrices = prices.order.length > 0;
+    if (textPages > 0 && pdfProducts.length === 0) {
+      warnings.push(
+        hasPrices
+          ? "Dokumentų tekste nerasta nė vieno kainoraščio SKU – patikrinkite, ar kodai sutampa."
+          : "Dokumentuose nerasta produktų kodų („Art. no.“, „SKU“, „Kodas“…)." + (aiEnabled() ? " Produktus išskyrė AI." : " Įkelkite kainoraštį su SKU stulpeliu arba įjunkite AI (ANTHROPIC_API_KEY).")
+      );
+    }
+
+    // --- optional AI pass: structure each block, or extract products from free text ---
     let aiUsed = false;
+    let aiFree: AiProductFields[] = [];
+    if (pdfProducts.length === 0 && lines.length > 0 && aiEnabled()) {
+      aiFree = await extractProductsFromText(lines.map((l) => l.text).join("\n"), brand).catch((e: unknown) => {
+        warnings.push(`AI analizė nepavyko: ${e instanceof Error ? e.message.split("\n")[0] : "klaida"}`);
+        return [];
+      });
+      if (aiFree.length) {
+        aiUsed = true;
+        // images follow document order when nothing anchors them
+        pdfProducts = aiFree.map((a, n) => ({ sku: a.sku || "", page: 0, header: [a.name], heading: a.category, body: [], images: images[n] ? [images[n]] : [] }));
+      }
+    }
     const ai = await structureProducts(
       pdfProducts.map((p) => ({ sku: p.sku, heading: p.heading, text: [...p.header, ...p.body].join("\n") })),
       brand
@@ -111,10 +189,10 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
     // --- merge into draft items (price list is the source of truth for price / SKU) ---
     const items: DraftItem[] = [];
     const bySku = new Map<string, DraftItem>();
-    for (const p of pdfProducts) {
+    for (const [n, p] of pdfProducts.entries()) {
       const f = parseFields(p);
-      const a = ai.get(p.sku);
-      const row = prices?.rows.get(p.sku) ?? {};
+      const a = ai.get(p.sku) ?? aiFree[n];
+      const row = prices.rows.get(p.sku) ?? {};
       const item: DraftItem = {
         idx: items.length,
         sku: p.sku,
@@ -127,18 +205,18 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
         colour: row.colour || a?.colour || f.colour,
         dimensions: a?.dimensions || f.dimensions,
         weight: a?.weight || f.weight,
-        price: row.price ? cents(parsePriceCents(row.price)) : cents(f.priceCents),
+        price: row.price ? cents(parsePriceCents(row.price)) : a?.price ? cents(parsePriceCents(a.price)) : cents(f.priceCents),
         salePrice: row.sale_price ? cents(parsePriceCents(row.sale_price)) : "",
-        from: prices?.rows.has(p.sku) ? ["pdf", "pricelist"] : ["pdf"],
-        page: p.page,
+        from: [...(aiFree.length ? ["ai" as const] : ["pdf" as const]), ...(prices.rows.has(p.sku) ? ["pricelist" as const] : [])],
+        page: p.page || null,
         existing: null,
         images: p.images.map((im, n) => ({ kind: "catalogue", src: im.dataUrl, selected: n === 0 })),
       };
       items.push(item);
-      bySku.set(p.sku, item);
+      if (p.sku) bySku.set(p.sku, item);
     }
-    // price-list rows that were not found in the PDF
-    if (prices) {
+    // price-list rows that were not found in the documents
+    if (hasPrices) {
       for (const sku of prices.order) {
         if (bySku.has(sku)) continue;
         const row = prices.rows.get(sku)!;
@@ -166,12 +244,23 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
         bySku.set(sku, item);
       }
       const missing = prices.order.filter((s) => !pdfProducts.some((p) => p.sku === s)).length;
-      if (pdf && missing > 0) warnings.push(`${missing} kainoraščio pozicijų nerasta PDF kataloge – jos įtrauktos be nuotraukų.`);
+      if (textPages > 0 && missing > 0) warnings.push(`${missing} kainoraščio pozicijų nerasta kataloge – jos įtrauktos be nuotraukų.`);
     }
     if (items.length === 0) return fail("Nepavyko sudaryti nė vieno produkto. Patikrinkite failus.");
 
+    // --- loose photos: matched to products by file name (SKU or product name) ---
+    const unmatchedPhotos: string[] = [];
+    for (const ph of photos) {
+      const keys = imageKeyCandidates(ph.name).map((k) => k.toLowerCase());
+      const target = items.find((it) => keys.includes(it.sku.toLowerCase()) || keys.map(slugify).includes(slugify(it.name)));
+      // a photo deliberately named after the product is wanted: select it
+      if (target) target.images.push({ kind: "catalogue", src: ph.dataUrl, selected: true });
+      else unmatchedPhotos.push(ph.name);
+    }
+    if (unmatchedPhotos.length) warnings.push(`Nepriskirtos nuotraukos (pavadinkite failus pagal SKU): ${unmatchedPhotos.slice(0, 8).join(", ")}${unmatchedPhotos.length > 8 ? "…" : ""}`);
+
     // --- already in the catalogue? ---
-    const existing = await db.product.findMany({ where: { sku: { in: items.map((i) => i.sku) } }, select: { id: true, sku: true, name: true } });
+    const existing = await db.product.findMany({ where: { sku: { in: items.map((i) => i.sku).filter(Boolean) } }, select: { id: true, sku: true, name: true } });
     for (const e of existing) {
       const it = e.sku ? bySku.get(e.sku) : undefined;
       if (it) it.existing = { id: e.id, name: e.name };
@@ -180,7 +269,7 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
     const token = randomBytes(8).toString("hex");
     const draft: Draft = {
       token,
-      filename: pdf?.name ?? (priceFile instanceof File ? priceFile.name : ""),
+      filename: docs.map((d) => d.name).join(", "),
       createdAt: Date.now(),
       aiUsed,
       imageSearch: imageSearchEnabled(),
