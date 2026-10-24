@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { formatPrice } from "@/lib/slug";
 import { saveCategory, deleteCategory } from "@/actions/products";
+import { ProductsTable } from "@/components/admin/ProductsTable";
 
 export default async function ProductsList() {
   const [products, categories] = await Promise.all([
@@ -55,51 +55,18 @@ export default async function ProductsList() {
         </form>
       </div>
 
-      <div className="overflow-hidden rounded-xl bg-white shadow-sm">
-        <table className="w-full text-sm">
-          <thead className="bg-zinc-50 text-left text-zinc-500">
-            <tr>
-              <th className="p-4 font-medium">Produktas</th>
-              <th className="p-4 font-medium">SKU</th>
-              <th className="p-4 font-medium">Kategorija</th>
-              <th className="p-4 font-medium">Kaina</th>
-              <th className="p-4 font-medium">Būsena</th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.map((p) => (
-              <tr key={p.id} className="border-t border-zinc-100 hover:bg-zinc-50">
-                <td className="p-4">
-                  <Link href={`/admin/products/${p.id}`} className="flex items-center gap-3 font-medium hover:underline">
-                    {p.images[0] ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={p.images[0].url} alt="" className="h-10 w-10 rounded object-cover" />
-                    ) : (
-                      <span className="flex h-10 w-10 items-center justify-center rounded bg-zinc-100 text-zinc-400">—</span>
-                    )}
-                    <span translate="no">{p.name}</span>
-                  </Link>
-                </td>
-                <td className="p-4 text-zinc-500">{p.sku ?? "—"}</td>
-                <td className="p-4 text-zinc-500">{p.category?.name ?? "—"}</td>
-                <td className="p-4">{formatPrice(p.priceCents, p.currency)}</td>
-                <td className="p-4">
-                  {p.published ? (
-                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700">Paskelbtas</span>
-                  ) : (
-                    <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600">Juodraštis</span>
-                  )}
-                </td>
-              </tr>
-            ))}
-            {products.length === 0 && (
-              <tr>
-                <td colSpan={5} className="p-6 text-center text-zinc-500">Produktų dar nėra.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <ProductsTable
+        products={products.map((p) => ({
+          id: p.id,
+          name: p.name,
+          sku: p.sku,
+          category: p.category?.name ?? null,
+          priceCents: p.priceCents,
+          currency: p.currency,
+          published: p.published,
+          image: p.images[0]?.url ?? null,
+        }))}
+      />
     </div>
   );
 }

@@ -71,6 +71,20 @@ export async function deleteProduct(id: string) {
   redirect("/admin/products");
 }
 
+/** Bulk delete from the products table: the selected ids, or every product when `all` is on. */
+export async function deleteProducts(formData: FormData) {
+  await requireUser();
+  const all = formData.get("all") === "on";
+  const ids = formData.getAll("ids").map(String).filter(Boolean);
+  if (all) await db.product.deleteMany({});
+  else if (ids.length) await db.product.deleteMany({ where: { id: { in: ids } } });
+  // categories left without products are removed too, so the list stays tidy after an import test
+  await db.category.deleteMany({ where: { products: { none: {} } } });
+  revalidatePath("/catalogue");
+  revalidatePath("/outlet");
+  revalidatePath("/admin/products");
+}
+
 export async function deleteProductImage(imageId: string, productId: string) {
   await requireUser();
   await db.productImage.delete({ where: { id: imageId } });
