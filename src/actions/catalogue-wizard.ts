@@ -290,6 +290,39 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
       }
     }
 
+    // --- products still without a photo: look for one on the web ---
+    const autoSearch = formData.get("webPhotos") !== "off";
+    const noPhoto = items.filter((it) => it.images.length === 0);
+    if (noPhoto.length > 0) {
+      if (!imageSearchEnabled()) {
+        warnings.push(`${noPhoto.length} produktai be nuotraukų. Automatinė paieška internete neįjungta – nustatykite GOOGLE_CSE_KEY ir GOOGLE_CSE_CX (žr. .env.example).`);
+      } else if (autoSearch) {
+        const LIMIT = 80; // Google's free tier is 100 queries a day
+        const batch = noPhoto.slice(0, LIMIT);
+        let found = 0;
+        const failures: string[] = [];
+        const worker = async (it: DraftItem) => {
+          const q = [it.brand, it.name, it.description.split(/[,.\n]/)[0]].filter(Boolean).join(" ").slice(0, 120);
+          try {
+            const results = await searchImages(q, 6);
+            if (results.length === 0) return;
+            let matching: number[] | null = null;
+            if (aiEnabled()) matching = await rankImageCandidates(results[0].thumb || results[0].src, results, q).catch(() => null);
+            const keep = matching && matching.length ? matching.slice(0, 3) : [0];
+            it.images.push(...results.map((c, i) => ({ kind: "web" as const, src: c.src, thumb: c.thumb, source: c.source, selected: keep.includes(i) })));
+            found++;
+          } catch (e) {
+            failures.push(e instanceof Error ? e.message : "paieška nepavyko");
+          }
+        };
+        // a few searches at a time
+        for (let i = 0; i < batch.length; i += 4) await Promise.all(batch.slice(i, i + 4).map(worker));
+        warnings.push(`Internete rasta nuotraukų ${found} iš ${batch.length} produktų be nuotraukų${aiEnabled() ? " (AI pažymėjo tinkamiausias)" : " (pažymėta pirma rasta – patikrinkite)"}.`);
+        if (failures.length) warnings.push(`Paieška nepavyko ${failures.length} produktams: ${failures[0]}`);
+        if (noPhoto.length > LIMIT) warnings.push(`Paieška atlikta tik pirmiems ${LIMIT} produktams be nuotraukų; likusiems spauskite „Rasti daugiau nuotraukų“.`);
+      }
+    }
+
     // --- already in the catalogue? ---
     const existing = await db.product.findMany({ where: { sku: { in: items.map((i) => i.sku).filter(Boolean) } }, select: { id: true, sku: true, name: true } });
     for (const e of existing) {

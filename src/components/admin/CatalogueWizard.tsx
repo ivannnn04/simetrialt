@@ -17,6 +17,7 @@ export function CatalogueWizard({ blobUploads }: { blobUploads: boolean }) {
   const [uploading, startUpload] = useTransition();
   const [progress, setProgress] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [webPhotos, setWebPhotos] = useState(true);
 
   /** With Blob storage the browser uploads the files itself (no 4.5 MB request limit), then the server reads them by URL. */
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -103,7 +104,7 @@ export function CatalogueWizard({ blobUploads }: { blobUploads: boolean }) {
           <p className="text-sm text-zinc-600">
             Įkelkite viską, ką atsiuntė tiekėjas: PDF katalogus, kainoraščius (Excel / CSV), Word dokumentus, nuotraukas. Sistema
             pati atpažįsta, kas kuriame faile yra, sujungia produktus pagal SKU ir sudaro korteles su nuotraukomis, aprašymais,
-            techniniais duomenimis ir kainomis.
+            techniniais duomenimis ir kainomis. Jei kataloge nuotraukų nėra, jos surandamos internete.
           </p>
           <div className="grid gap-4 md:grid-cols-[1fr_1fr_260px]">
             <Field label="Dokumentai" hint={blobUploads ? "Galima pažymėti kelis failus iš karto, iki 300 MB kiekvienas." : "Galima pažymėti kelis failus iš karto. Iki 4 MB vienam įkėlimui; didesniems naudokite nuorodas."}>
@@ -116,6 +117,11 @@ export function CatalogueWizard({ blobUploads }: { blobUploads: boolean }) {
               <Input name="brand" placeholder="pvz. Marset" />
             </Field>
           </div>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={webPhotos} onChange={(e) => setWebPhotos(e.target.checked)} />
+            <input type="hidden" name="webPhotos" value={webPhotos ? "on" : "off"} />
+            Produktams be nuotraukų automatiškai ieškoti nuotraukų internete (AI atrenka tinkamas)
+          </label>
           <div className="flex flex-wrap items-center gap-3">
             <PrimaryButton type="submit" disabled={analyzing || uploading}>{analyzing || uploading ? "Skaitoma… (gali užtrukti kelias minutes)" : "Analizuoti dokumentus"}</PrimaryButton>
             {(uploading || analyzing) && progress && <span className="text-sm text-zinc-500">{progress}</span>}

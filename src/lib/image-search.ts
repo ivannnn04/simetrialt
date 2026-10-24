@@ -22,7 +22,13 @@ export async function searchImages(query: string, count = 10): Promise<ImageCand
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) {
     const body = await res.text().catch(() => "");
-    throw new Error(`Google paieška nepavyko (${res.status}): ${body.slice(0, 200)}`);
+    let reason = body.slice(0, 160);
+    try {
+      reason = (JSON.parse(body) as { error?: { message?: string } }).error?.message ?? reason;
+    } catch {
+      /* not JSON */
+    }
+    throw new Error(`Google paieška nepavyko (${res.status}): ${reason}`);
   }
   const json = (await res.json()) as { items?: CseItem[] };
   return (json.items ?? [])
