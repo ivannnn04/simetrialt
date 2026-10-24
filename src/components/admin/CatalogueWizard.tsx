@@ -18,15 +18,18 @@ export function CatalogueWizard({ blobUploads }: { blobUploads: boolean }) {
   const [progress, setProgress] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [webPhotos, setWebPhotos] = useState(true);
+  const [files, setFiles] = useState<File[]>([]);
 
   /** With Blob storage the browser uploads the files itself (no 4.5 MB request limit), then the server reads them by URL. */
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    if (!blobUploads) return;
     e.preventDefault();
-    const form = e.currentTarget;
-    const fd = new FormData(form);
-    const files = fd.getAll("documents").filter((f): f is File => f instanceof File && f.size > 0);
+    const fd = new FormData(e.currentTarget);
     fd.delete("documents");
+    if (!blobUploads) {
+      for (const f of files) fd.append("documents", f);
+      startUpload(() => analyze(fd));
+      return;
+    }
     startUpload(async () => {
       setUploadError(null);
       try {
@@ -108,7 +111,7 @@ export function CatalogueWizard({ blobUploads }: { blobUploads: boolean }) {
           </p>
           <div className="grid gap-4 md:grid-cols-[1fr_1fr_260px]">
             <Field label="Dokumentai" hint={blobUploads ? "Galima pažymėti kelis failus iš karto, iki 300 MB kiekvienas." : "Galima pažymėti kelis failus iš karto. Iki 4 MB vienam įkėlimui; didesniems naudokite nuorodas."}>
-              <input type="file" name="documents" multiple accept=".pdf,.xlsx,.xls,.csv,.docx,.doc,.txt,.md,image/*,application/pdf" className="text-sm" />
+              <DropZone files={files} onFiles={setFiles} />
             </Field>
             <Field label="Nuorodos į failus" hint="Po vieną eilutėje: tiesioginės nuorodos į PDF, Excel ar nuotraukas">
               <Textarea name="urls" rows={2} placeholder={"https://…/catalogue.pdf\nhttps://…/pricelist.xlsx"} />
@@ -357,5 +360,41 @@ function ItemEditor({ item, token, included, canSearch, pool, onInclude, onChang
         </div>
       </div>
     </section>
+  );
+}
+
+/** File picker that looks like one: a dashed drop area with a button and the list of chosen files. */
+function DropZone({ files, onFiles }: { files: File[]; onFiles: (f: File[]) => void }) {
+  const [over, setOver] = useState(false);
+  const add = (list: FileList | null) => {
+    if (!list) return;
+    const next = [...files];
+    for (const f of Array.from(list)) if (!next.some((x) => x.name === f.name && x.size === f.size)) next.push(f);
+    onFiles(next);
+  };
+  const fmt = (n: number) => (n > 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.ceil(n / 1024)} KB`);
+  return (
+    <div
+      onDragOver={(e) => { e.preventDefault(); setOver(true); }}
+      onDragLeave={() => setOver(false)}
+      onDrop={(e) => { e.preventDefault(); setOver(false); add(e.dataTransfer.files); }}
+      className={cn("rounded-lg border-2 border-dashed p-4 text-center transition-colors", over ? "border-zinc-900 bg-zinc-50" : "border-zinc-300")}
+    >
+      <label className="inline-block cursor-pointer rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700">
+        Pasirinkti failus
+        <input type="file" multiple accept=".pdf,.xlsx,.xls,.csv,.docx,.doc,.txt,.md,image/*,application/pdf" className="sr-only" onChange={(e) => { add(e.target.files); e.target.value = ""; }} />
+      </label>
+      <p className="mt-2 text-xs text-zinc-500">arba nutempkite failus čia · PDF, Excel, CSV, Word, nuotraukos</p>
+      {files.length > 0 && (
+        <ul className="mt-3 space-y-1 text-left text-sm">
+          {files.map((f) => (
+            <li key={f.name + f.size} className="flex items-center justify-between gap-3 rounded bg-zinc-50 px-3 py-1.5">
+              <span className="truncate">{f.name} <span className="text-xs text-zinc-400">{fmt(f.size)}</span></span>
+              <button type="button" onClick={() => onFiles(files.filter((x) => x !== f))} className="text-zinc-400 hover:text-red-600" aria-label="Pašalinti">×</button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
