@@ -6,7 +6,8 @@ import { upload } from "@vercel/blob/client";
 import { analyzeCatalogue, findMoreImages, publishDraft } from "@/actions/catalogue-wizard";
 import type { DraftImage, DraftItem, PublishResult, SubmitItem } from "@/lib/catalogue-wizard";
 import { cn } from "@/lib/cn";
-import { Card, Field, Input, Notice, PrimaryButton, SecondaryButton, Textarea } from "@/components/admin/ui";
+import { Card, Field, Input, Notice, PrimaryButton, SecondaryButton, Select, Textarea } from "@/components/admin/ui";
+import { SITE_CATEGORIES, TYPOLOGIES, type SiteCategory } from "@/lib/taxonomy";
 
 /**
  * Catalogue import wizard: upload the supplier PDF and price list, review each product as it will
@@ -277,7 +278,7 @@ function ItemEditor({ item, token, included, canSearch, pool, onInclude, onChang
             )}
             <div className="relative flex flex-col gap-[5px] leading-none">
               <p className="text-[14px] tracking-[-0.04em] text-black">{item.name || "—"}</p>
-              <p className="text-[13px] tracking-[-0.04em] text-zinc-500">{item.category || item.typology || "—"}</p>
+              <p className="text-[13px] tracking-[-0.04em] text-zinc-500">{item.typology || item.category || "—"}</p>
             </div>
             <div className="relative flex items-center gap-1.5">
               {sale > 0 ? (
@@ -306,9 +307,19 @@ function ItemEditor({ item, token, included, canSearch, pool, onInclude, onChang
             <Field label="SKU"><Input value={item.sku} onChange={(e) => onChange({ sku: e.target.value })} /></Field>
             <Field label="Kaina, EUR"><Input inputMode="decimal" value={item.price} onChange={(e) => onChange({ price: e.target.value })} /></Field>
             <Field label="Akcijos kaina, EUR"><Input inputMode="decimal" value={item.salePrice} onChange={(e) => onChange({ salePrice: e.target.value })} /></Field>
-            <Field label="Kategorija"><Input value={item.category} onChange={(e) => onChange({ category: e.target.value })} /></Field>
+            <Field label="Kategorija (svetainės skiltis)">
+              <Select value={item.category} onChange={(e) => onChange({ category: e.target.value })}>
+                {!SITE_CATEGORIES.includes(item.category as SiteCategory) && <option value={item.category}>{item.category || "—"}</option>}
+                {SITE_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              </Select>
+            </Field>
             <Field label="Prekės ženklas"><Input value={item.brand} onChange={(e) => onChange({ brand: e.target.value })} /></Field>
-            <Field label="Tipologija"><Input value={item.typology} onChange={(e) => onChange({ typology: e.target.value })} /></Field>
+            <Field label="Tipologija (meniu punktas)">
+              <Input list={`typologies-${item.idx}`} value={item.typology} onChange={(e) => onChange({ typology: e.target.value })} />
+              <datalist id={`typologies-${item.idx}`}>
+                {(TYPOLOGIES[item.category as SiteCategory] ?? Object.values(TYPOLOGIES).flat()).map((t) => <option key={t} value={t} />)}
+              </datalist>
+            </Field>
             <Field label="Medžiaga"><Input value={item.material} onChange={(e) => onChange({ material: e.target.value })} /></Field>
             <Field label="Spalva"><Input value={item.colour} onChange={(e) => onChange({ colour: e.target.value })} /></Field>
             <Field label="Matmenys"><Input value={item.dimensions} onChange={(e) => onChange({ dimensions: e.target.value })} /></Field>

@@ -14,6 +14,7 @@ import { extractPdfPages, parseFields, splitProducts, type PdfImage, type PdfLin
 import { aiEnabled, extractProductsFromText, matchPhotosToProducts, rankImageCandidates, structureProducts, type AiProductFields, type ImageCandidate } from "@/lib/ai";
 import { imageSearchEnabled, searchImages } from "@/lib/image-search";
 import { composeDescription, type Draft, type DraftItem, type PublishResult, type SubmitItem } from "@/lib/catalogue-wizard";
+import { classify, SITE_CATEGORY_RE, siteCategorySlug } from "@/lib/taxonomy";
 
 /**
  * Catalogue import wizard: a supplier PDF catalogue (photos, descriptions, specifications) plus
@@ -198,14 +199,19 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
       const f = parseFields(p);
       const a = ai.get(p.sku) ?? aiFree[n];
       const row = prices.rows.get(p.sku) ?? {};
+      // the website has fixed categories (Furniture / Lighting / Decor) and typologies (Sofas, Dining tables…):
+      // supplier sections and types are mapped onto them so the product appears under the menu links
+      const section = row.category || a?.category || p.heading;
+      const type = row.typology || a?.typology || f.typology;
+      const taxonomy = classify({ section, type, name: row.name || a?.name || f.name, description: a?.description || row.description });
       const item: DraftItem = {
         idx: items.length,
         sku: p.sku,
         name: row.name || a?.name || f.name,
         description: a?.description || row.description || f.description,
-        category: row.category || a?.category || p.heading,
+        category: SITE_CATEGORY_RE.test(section) ? section : taxonomy.category,
         brand: row.brand || brand,
-        typology: row.typology || a?.typology || f.typology,
+        typology: taxonomy.typology || type,
         material: row.material || a?.material || f.material,
         colour: row.colour || a?.colour || f.colour,
         dimensions: a?.dimensions || f.dimensions,
@@ -226,14 +232,15 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
         if (bySku.has(sku)) continue;
         const row = prices.rows.get(sku)!;
         if (!row.name && !row.description) continue;
+        const taxonomy = classify({ section: row.category, type: row.typology, name: row.name, description: row.description });
         const item: DraftItem = {
           idx: items.length,
           sku,
           name: row.name || sku,
           description: row.description || "",
-          category: row.category || "",
+          category: row.category && SITE_CATEGORY_RE.test(row.category) ? row.category : taxonomy.category,
           brand: row.brand || brand,
-          typology: row.typology || "",
+          typology: taxonomy.typology || row.typology || "",
           material: row.material || "",
           colour: row.colour || "",
           dimensions: "",
@@ -418,7 +425,7 @@ export async function publishDraft(_prev: PublishResult | null | undefined, form
   const result: PublishResult = { created: 0, updated: 0, errors: [], products: [] };
   const categoryCache = new Map<string, string>();
   const categoryId = async (name: string) => {
-    const slug = slugify(name);
+    const slug = siteCategorySlug(name) || slugify(name);
     if (!slug) return null;
     if (!categoryCache.has(slug)) {
       const cat = await db.category.upsert({ where: { slug }, create: { name, slug }, update: {} });

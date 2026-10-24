@@ -77,7 +77,7 @@ export default async function ProductsList() {
                     ) : (
                       <span className="flex h-10 w-10 items-center justify-center rounded bg-zinc-100 text-zinc-400">—</span>
                     )}
-                    {p.name}
+                    <span translate="no">{p.name}</span>
                   </Link>
                 </td>
                 <td className="p-4 text-zinc-500">{p.sku ?? "—"}</td>
