@@ -72,6 +72,14 @@ async function fetchDocument(url: string): Promise<{ buffer: ArrayBuffer; name: 
 
 type Doc = { buffer: ArrayBuffer; name: string };
 
+/** A price-list "image" cell may hold several URLs separated by spaces, new lines, commas, semicolons or pipes. */
+function imageUrls(cell: string | undefined): string[] {
+  return (cell ?? "")
+    .split(/[\s,;|]+/)
+    .map((u) => u.trim())
+    .filter((u) => /^https?:\/\/\S+$/.test(u));
+}
+
 function textLines(text: string, page: number): PdfLine[] {
   return text
     .split(/\r?\n/)
@@ -221,7 +229,10 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
         from: [...(aiFree.length ? ["ai" as const] : ["pdf" as const]), ...(prices.rows.has(p.sku) ? ["pricelist" as const] : [])],
         page: p.page || null,
         existing: null,
-        images: p.images.map((im, n) => ({ kind: "catalogue", src: im.dataUrl, selected: n === 0 })),
+        images: [
+          ...p.images.map((im, n) => ({ kind: "catalogue" as const, src: im.dataUrl, selected: n === 0 })),
+          ...imageUrls(row.image_url).map((src) => ({ kind: "web" as const, src, source: new URL(src).hostname.replace(/^www\./, ""), selected: p.images.length === 0 })),
+        ],
       };
       items.push(item);
       if (p.sku) bySku.set(p.sku, item);
@@ -250,7 +261,7 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
           from: ["pricelist"],
           page: null,
           existing: null,
-          images: row.image_url && /^https?:\/\//.test(row.image_url) ? [{ kind: "web", src: row.image_url, selected: true }] : [],
+          images: imageUrls(row.image_url).map((src) => ({ kind: "web" as const, src, source: new URL(src).hostname.replace(/^www\./, ""), selected: true })),
         };
         items.push(item);
         bySku.set(sku, item);
