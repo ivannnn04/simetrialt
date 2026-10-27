@@ -96,6 +96,21 @@ export function ProductForm({
             <label className="mb-1 block text-sm font-medium">Medžiaga</label>
             <input name="material" defaultValue={product?.material ?? ""} className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" />
           </div>
+          <div className="md:col-span-2 grid gap-4 md:grid-cols-3 rounded-md border border-dashed border-zinc-300 p-3">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-zinc-800">Variantų grupė</label>
+              <input name="groupKey" defaultValue={product?.groupKey ?? ""} placeholder="automatiškai pagal pavadinimą" className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" />
+              <p className="mt-1 text-xs text-zinc-500">Produktai su tuo pačiu raktu rodomi kaip viena kortelė su pasirinkimais.</p>
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-zinc-800">Varianto žymė</label>
+              <input name="variantLabel" defaultValue={product?.variantLabel ?? ""} placeholder="pvz. black, 2700K" className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-zinc-800">Varianto savybės</label>
+              <input name="variantAttrs" defaultValue={Object.entries((product?.variantAttrs as Record<string, string> | null) ?? {}).map(([k, v]) => `${k}=${v}`).join("; ")} placeholder="Colour=black; Colour temperature=2700K" className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" />
+            </div>
+          </div>
           <label className="flex items-center gap-2 self-end pb-2 text-sm">
             <input type="checkbox" name="inShowroom" defaultChecked={product?.inShowroom} />
             Yra salone

@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { db, tryDb } from "@/lib/db";
-import { toCard } from "@/lib/products";
+import { groupCards } from "@/lib/products";
 import type { FilterGroup } from "@/components/catalogue/Filters";
 import type { ProductCardData } from "@/components/catalogue/ProductCard";
 import { filterSamples, sampleCategoryName, sampleGroups, sampleToCard } from "@/data/sample-catalogue";
@@ -67,15 +67,14 @@ export async function loadCatalogue(sp: Search, opts: { saleOnly?: boolean; perP
   let activeCategory: string | undefined;
 
   if (hasProducts) {
-    const [products, count, categories, typologies, brands, materials] = await Promise.all([
+    // every matching variant is loaded, then collapsed to one card per group (the first match
+    // represents the group, so a colour filter shows the matching colour's photo)
+    const [products, categories, typologies, brands, materials] = await Promise.all([
       db.product.findMany({
         where,
         orderBy: SORTS[sort],
-        skip: (page - 1) * perPage,
-        take: perPage,
         include: { category: true, images: { orderBy: { sort: "asc" }, take: 2 } },
       }),
-      db.product.count({ where }),
       db.category.findMany({ orderBy: { sort: "asc" }, where: { products: { some: { published: true } } } }),
       db.product.findMany({ where: { ...scope, typology: { not: null } }, distinct: ["typology"], select: { typology: true } }),
       db.product.findMany({ where: { ...scope, brand: { not: null } }, distinct: ["brand"], select: { brand: true } }),
@@ -89,8 +88,9 @@ export async function loadCatalogue(sp: Search, opts: { saleOnly?: boolean; perP
     ].filter((g) => g.options.length > 0);
     const categoryLabel = new Map(categories.map((c) => [c.slug, c.name]));
     activeCategory = category.length === 1 ? categoryLabel.get(category[0]) : undefined;
-    cards = products.map(toCard);
-    total = count;
+    const grouped = groupCards(products);
+    total = grouped.length;
+    cards = grouped.slice((page - 1) * perPage, page * perPage);
   } else {
     // No published products yet: static catalogue so the filters, grid and pagination can be exercised.
     groups = sampleGroups(category, opts.saleOnly);

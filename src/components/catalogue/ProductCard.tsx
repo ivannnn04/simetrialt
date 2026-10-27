@@ -21,6 +21,10 @@ export type ProductCardData = {
   hoverImage?: string | null;
   /** force the filled heart (product is in the album being viewed) */
   saved?: boolean;
+  /** number of variants (colours, finishes…) behind this card */
+  options?: number;
+  /** the price shown is the lowest of the variants */
+  fromPrice?: boolean;
 };
 
 type Props = {
@@ -68,7 +72,10 @@ export function ProductCard({ product, className, imageClassName, compact = fals
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-[5px] leading-none">
             <p className={cn("text-[14px] tracking-[-0.04em] text-black transition-colors duration-300", hoverImage && "group-hover:text-white")}>{product.name}</p>
-            <p className="text-[13px] tracking-[-0.04em] text-tertiary">{term(t, product.category)}</p>
+            <p className="text-[13px] tracking-[-0.04em] text-tertiary">
+              {term(t, product.category)}
+              {product.options && product.options > 1 ? ` · ${t.catalogue.options(product.options)}` : ""}
+            </p>
           </div>
           {!compact && onSale && product.discount ? (
             <span className="w-fit border border-[#fb3b30] px-2 py-1 text-[14px] leading-[1.3] tracking-[-0.04em] text-[#fb3b30]">
@@ -88,7 +95,7 @@ export function ProductCard({ product, className, imageClassName, compact = fals
           </>
         ) : (
           <span className={cn("text-black transition-colors duration-300", compact ? "text-[13px] font-light leading-none" : "text-[16px] leading-[1.3] tracking-[-0.04em]", hoverImage && "group-hover:text-white")}>
-            {product.price}
+            {product.fromPrice ? `${t.product.from} ${product.price}` : product.price}
           </span>
         )}
       </div>

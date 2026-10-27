@@ -1,6 +1,7 @@
 import type { Category, Product, ProductImage } from "@prisma/client";
 import { db, tryDb } from "@/lib/db";
 import { formatPrice } from "@/lib/slug";
+import { deriveVariant } from "@/lib/variants";
 import type { ProductCardData } from "@/components/catalogue/ProductCard";
 
 export type ProductWithRelations = Product & { category: Category | null; images: ProductImage[] };
@@ -10,7 +11,7 @@ export function toCard(p: ProductWithRelations): ProductCardData {
   return {
     id: p.id,
     name: p.name,
-    category: p.category?.name ?? "",
+    category: p.typology || (p.category?.name ?? ""),
     price: formatPrice(p.priceCents, p.currency),
     salePrice: onSale ? formatPrice(p.salePriceCents!, p.currency) : null,
     discount: onSale && p.priceCents > 0 ? Math.round((1 - p.salePriceCents! / p.priceCents) * 100) : null,
@@ -18,6 +19,34 @@ export function toCard(p: ProductWithRelations): ProductCardData {
     image: p.images[0]?.url ?? null,
     hoverImage: p.images[1]?.url ?? null,
   };
+}
+
+/**
+ * One card per variant group, keeping the list order: the first product of a group represents
+ * it, the card shows the group's base name, "from" the lowest price, and how many options exist.
+ */
+export function groupCards(products: ProductWithRelations[]): ProductCardData[] {
+  const groups = new Map<string, ProductWithRelations[]>();
+  for (const p of products) {
+    const key = p.groupKey ?? p.id;
+    groups.set(key, [...(groups.get(key) ?? []), p]);
+  }
+  return [...groups.values()].map((members) => {
+    const first = members[0];
+    const card = toCard(first);
+    if (members.length === 1) return card;
+    const effective = (m: ProductWithRelations) => (m.salePriceCents != null && m.salePriceCents < m.priceCents ? m.salePriceCents : m.priceCents);
+    const cheapest = members.reduce((a, b) => (effective(b) < effective(a) ? b : a));
+    const samePrice = members.every((m) => effective(m) === effective(cheapest));
+    return {
+      ...card,
+      name: deriveVariant(first).baseName || first.name,
+      options: members.length,
+      fromPrice: !samePrice,
+      price: formatPrice(cheapest.priceCents, cheapest.currency),
+      salePrice: cheapest.salePriceCents != null && cheapest.salePriceCents < cheapest.priceCents ? formatPrice(cheapest.salePriceCents, cheapest.currency) : null,
+    };
+  });
 }
 
 // Placeholder cards (Figma mock names) shown until the catalogue has enough published products.

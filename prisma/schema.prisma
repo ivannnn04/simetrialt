@@ -63,12 +63,20 @@ model Product {
   material    String?
   inShowroom  Boolean        @default(false)
   published   Boolean        @default(false)
+  /** Variants of one design share a group key; the catalogue shows one card per group. */
+  groupKey    String?
+  /** e.g. {"Colour":"black","Colour temperature":"2700K"} — the axes shown as selectors on the product page */
+  variantAttrs Json?
+  /** short label of this variant, e.g. "black, 2700K" */
+  variantLabel String?
   category    Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   categoryId  String?
   images      ProductImage[]
   savedIn     CollectionItem[]
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
+
+  @@index([groupKey])
 }
 
 model ProductImage {

@@ -345,6 +345,7 @@ export const en = {
     reset: "Reset all filters",
     empty: "No products match these filters.",
     off: (n: number) => `${n}% off`,
+    options: (n: number) => `${n} options`,
     prevPage: "Previous page",
     nextPage: "Next page",
     pagination: "Pagination",

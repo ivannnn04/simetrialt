@@ -6,7 +6,7 @@ import { cn } from "@/lib/cn";
 import { useT } from "@/i18n/client";
 import { term } from "@/i18n/dictionaries";
 import { SaveButton } from "@/components/catalogue/SaveButton";
-import type { ProductView } from "@/lib/product-page";
+import type { ProductVariant, ProductView } from "@/lib/product-page";
 
 function MinusIcon({ className }: { className?: string }) {
   return (
@@ -24,18 +24,29 @@ function PlusIcon({ className }: { className?: string }) {
   );
 }
 
+type Props = {
+  product: ProductView;
+  /** the variant currently shown (photos, price, SKU, details follow it) */
+  variant: ProductVariant;
+  onSelect: (axis: string, value: string) => void;
+};
+
 /** Right column of the Figma "Product page" (node 4217:46881): title, price, options, quantity, actions, details. */
-export function ProductInfo({ product }: { product: ProductView }) {
+export function ProductInfo({ product, variant, onSelect }: Props) {
   const t = useT();
   const p = t.product;
-  const [variant, setVariant] = useState(0);
-  const [material, setMaterial] = useState(0);
   const [qty, setQty] = useState(1);
   const [openDetail, setOpenDetail] = useState<number | null>(0);
   const [added, setAdded] = useState(false);
 
-  const colour = term(t, product.variants[variant]?.label ?? product.colorLabel);
-  const price = product.price.replace(/^From /, `${p.from} `);
+  const price = variant.price;
+  const details = variant.details.length ? variant.details : product.details;
+  /** a swatch shows the photo of the variant that has this value (keeping the other choices where possible) */
+  const swatchFor = (axis: string, value: string) => {
+    const wanted = { ...variant.attrs, [axis]: value };
+    const exact = product.variants.find((v) => Object.entries(wanted).every(([k, val]) => v.attrs[k] === val));
+    return (exact ?? product.variants.find((v) => v.attrs[axis] === value))?.image ?? null;
+  };
 
   return (
     <div className="flex w-full flex-col gap-11 py-10">
@@ -48,17 +59,17 @@ export function ProductInfo({ product }: { product: ProductView }) {
                 <div className="flex w-full items-center justify-between gap-4">
                   <h1 className="text-[36px] leading-none tracking-[-0.04em] text-black">{product.name}</h1>
                   <SaveButton
-                    productId={product.id}
+                    productId={variant.id}
                     product={{
-                      id: product.id,
-                      name: product.name,
+                      id: variant.id,
+                      name: `${product.name}${variant.label && product.variants.length > 1 ? ` – ${variant.label}` : ""}`,
                       category: product.typology ?? product.category?.name ?? "",
                       brand: product.brand,
-                      price: product.price.replace(/^From /, ""),
+                      price: variant.price,
                       salePrice: null,
-                      priceCents: Math.round(Number(product.price.replace(/[^0-9.]/g, "")) * 100) || 0,
-                      image: product.images[0] ?? null,
-                      href: `/catalogue/${product.id}`,
+                      priceCents: variant.priceCents,
+                      image: variant.image ?? null,
+                      href: `/catalogue/${variant.slug}`,
                     }}
                     className="shrink-0 [&>button]:size-7 [&_svg]:size-7 md:[&>button]:size-9 md:[&_svg]:size-9"
                   />
@@ -66,59 +77,61 @@ export function ProductInfo({ product }: { product: ProductView }) {
               </div>
               <p className="flex items-baseline gap-3 text-[24px] leading-[1.3] tracking-[-0.04em] text-black">
                 {price}
-                {product.oldPrice && <span className="text-[16px] text-secondary line-through">{product.oldPrice}</span>}
+                {variant.oldPrice && <span className="text-[16px] text-secondary line-through">{variant.oldPrice}</span>}
               </p>
+              {variant.sku && <p className="text-[13px] leading-[1.3] tracking-[-0.04em] text-secondary">SKU {variant.sku}</p>}
             </div>
-            <p className="max-w-[448px] text-[16px] leading-[1.3] tracking-[-0.04em] text-[#2b2b2b]">{product.description}</p>
+            <p className="max-w-[448px] whitespace-pre-line text-[16px] leading-[1.3] tracking-[-0.04em] text-[#2b2b2b]">{variant.description}</p>
           </div>
 
-          <div className="flex w-full max-w-[448px] flex-col gap-7">
-            <div className="flex flex-col gap-3">
-              <p className="text-[16px] uppercase leading-[1.3] tracking-[-0.04em] text-[#2b2b2b]">{p.color}: {colour}</p>
-              <div className="flex items-center gap-2">
-                {product.variants.map((v, i) => (
-                  <button
-                    key={v.label}
-                    type="button"
-                    aria-label={v.label}
-                    aria-pressed={i === variant}
-                    onClick={() => setVariant(i)}
-                    className={cn(
-                      "flex h-[81px] w-[61px] items-center justify-center bg-[#f2f2f2] p-2 transition-[border-color,filter] duration-300",
-                      "border-b-2",
-                      i === variant ? "border-dark" : "border-transparent hover:border-line"
-                    )}
-                  >
-                    {v.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={v.image} alt="" className="size-full object-contain" />
-                    ) : (
-                      <span className="size-full bg-[#e2e2e2]" />
-                    )}
-                  </button>
-                ))}
-              </div>
+          {product.axes.length > 0 && (
+            <div className="flex w-full max-w-[448px] flex-col gap-7">
+              {product.axes.map((axis) => (
+                <div key={axis.key} className="flex flex-col gap-3">
+                  <p className="text-[16px] uppercase leading-[1.3] tracking-[-0.04em] text-[#2b2b2b]">
+                    {term(t, axis.key)}: <span className="normal-case">{variant.attrs[axis.key] ?? "—"}</span>
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {axis.values.map((value) => {
+                      const active = variant.attrs[axis.key] === value;
+                      const swatch = axis.key === "Colour" ? swatchFor(axis.key, value) : null;
+                      return swatch ? (
+                        <button
+                          key={value}
+                          type="button"
+                          title={value}
+                          aria-label={value}
+                          aria-pressed={active}
+                          onClick={() => onSelect(axis.key, value)}
+                          className={cn(
+                            "flex h-[81px] w-[61px] items-center justify-center bg-[#f2f2f2] p-2 transition-[border-color,filter] duration-300",
+                            "border-b-2",
+                            active ? "border-dark" : "border-transparent hover:border-line"
+                          )}
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={swatch} alt="" className="size-full object-contain" />
+                        </button>
+                      ) : (
+                        <button
+                          key={value}
+                          type="button"
+                          aria-pressed={active}
+                          onClick={() => onSelect(axis.key, value)}
+                          className={cn(
+                            "flex items-center justify-center border p-[10px] text-[14px] leading-none tracking-[-0.04em] transition-colors duration-300",
+                            active ? "border-[#1f1f1f] bg-[#1f1f1f] text-white" : "border-[#e2e2e2] text-black hover:border-dark"
+                          )}
+                        >
+                          {value}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
-            <div className="flex flex-col gap-3">
-              <p className="text-[16px] uppercase leading-[1.3] tracking-[-0.04em] text-[#2b2b2b]">{p.material}</p>
-              <div className="flex flex-wrap items-center gap-2">
-                {product.materials.map((m, i) => (
-                  <button
-                    key={m}
-                    type="button"
-                    aria-pressed={i === material}
-                    onClick={() => setMaterial(i)}
-                    className={cn(
-                      "flex items-center justify-center border p-[10px] text-[14px] leading-none tracking-[-0.04em] transition-colors duration-300",
-                      i === material ? "border-[#1f1f1f] bg-[#1f1f1f] text-white" : "border-[#e2e2e2] text-black hover:border-dark"
-                    )}
-                  >
-                    {term(t, m)}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
+          )}
 
           <div className="flex h-[45px] items-center gap-2">
             <button
@@ -155,7 +168,7 @@ export function ProductInfo({ product }: { product: ProductView }) {
             {added ? p.added : p.addToCart}
           </button>
           <Link
-            href={`/contact?product=${encodeURIComponent(product.name)}`}
+            href={`/contact?product=${encodeURIComponent(variant.sku ? `${product.name} (${variant.sku})` : product.name)}`}
             className="flex h-[39px] flex-1 items-center justify-center bg-dark px-8 py-[11px] text-[14px] font-semibold leading-none tracking-[-0.04em] text-white transition-colors duration-300 hover:bg-accent"
           >
             {p.inquire}
@@ -165,7 +178,7 @@ export function ProductInfo({ product }: { product: ProductView }) {
 
       {/* Details accordion (node 4217:46921): first row open by default */}
       <div className="flex w-full max-w-[504px] flex-col">
-        {product.details.map((d, i) => {
+        {details.map((d, i) => {
           const open = openDetail === i;
           return (
             <div key={d.title} className="border-b border-[#ddd]">
@@ -195,7 +208,7 @@ export function ProductInfo({ product }: { product: ProductView }) {
                 style={{ gridTemplateRows: open ? "1fr" : "0fr" }}
               >
                 <div className="overflow-hidden">
-                  <p className="max-w-[351px] pb-4 text-[14px] leading-[1.3] tracking-[-0.04em] text-[#2b2b2b]">{d.body}</p>
+                  <p className="max-w-[351px] whitespace-pre-line pb-4 text-[14px] leading-[1.3] tracking-[-0.04em] text-[#2b2b2b]">{d.body}</p>
                 </div>
               </div>
             </div>

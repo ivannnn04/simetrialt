@@ -15,6 +15,7 @@ import { aiEnabled, extractProductsFromText, matchPhotosToProducts, rankImageCan
 import { imageSearchEnabled, searchImages } from "@/lib/image-search";
 import { composeDescription, type Draft, type DraftItem, type PublishResult, type SubmitItem } from "@/lib/catalogue-wizard";
 import { classify, SITE_CATEGORY_RE, siteCategorySlug } from "@/lib/taxonomy";
+import { deriveVariant } from "@/lib/variants";
 
 /**
  * Catalogue import wizard: a supplier PDF catalogue (photos, descriptions, specifications) plus
@@ -481,6 +482,9 @@ export async function publishDraft(_prev: PublishResult | null | undefined, form
         categoryId: it.category.trim() ? await categoryId(it.category.trim()) : null,
         published: publish,
       };
+      // variant group: same design in another colour / finish / colour temperature shares a card
+      const derived = deriveVariant({ name, brand: data.brand, typology: data.typology, colour: it.colour, description: data.description, sku });
+      Object.assign(data, { groupKey: derived.groupKey, variantAttrs: derived.attrs, variantLabel: derived.label || null });
       const existing = sku ? await db.product.findUnique({ where: { sku } }) : null;
       let product;
       if (existing) {

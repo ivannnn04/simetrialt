@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { slugify } from "@/lib/slug";
 import { saveImage } from "@/lib/uploads";
+import { deriveVariant } from "@/lib/variants";
 
 function parsePriceCents(raw: string): number {
   const n = Number.parseFloat(raw.replace(",", "."));
@@ -42,6 +43,15 @@ export async function saveProduct(id: string | null, formData: FormData) {
     published: formData.get("published") === "on",
     categoryId,
   };
+  // variant group: an explicit key from the form wins, else it is derived from the name
+  const derived = deriveVariant({ name, brand: data.brand, typology: data.typology, description: data.description, sku });
+  const groupKey = String(formData.get("groupKey") ?? "").trim() || derived.groupKey;
+  const variantLabel = String(formData.get("variantLabel") ?? "").trim() || derived.label || null;
+  const attrsText = String(formData.get("variantAttrs") ?? "").trim();
+  const variantAttrs = attrsText
+    ? Object.fromEntries(attrsText.split(/[;\n]+/).map((pair) => pair.split("=").map((x) => x.trim())).filter(([k, v]) => k && v))
+    : derived.attrs;
+  Object.assign(data, { groupKey, variantLabel, variantAttrs });
 
   const product = id
     ? await db.product.update({ where: { id }, data })
@@ -101,6 +111,22 @@ export async function deleteProducts(_prev: BulkDeleteResult, formData: FormData
   } catch (e) {
     return { deleted: 0, error: e instanceof Error ? e.message.split("\n").filter(Boolean)[0] : "Nepavyko ištrinti." };
   }
+}
+
+/** Recomputes the variant group of every product from its name (used once after the variants feature shipped, or after bulk edits). */
+export async function regroupProducts(): Promise<{ products: number; groups: number }> {
+  await requireUser();
+  const products = await db.product.findMany({ select: { id: true, name: true, brand: true, typology: true, description: true, sku: true } });
+  const keys = new Set<string>();
+  for (const p of products) {
+    const d = deriveVariant(p);
+    keys.add(d.groupKey);
+    await db.product.update({ where: { id: p.id }, data: { groupKey: d.groupKey, variantAttrs: d.attrs, variantLabel: d.label || null } });
+  }
+  revalidatePath("/catalogue");
+  revalidatePath("/outlet");
+  revalidatePath("/admin/products");
+  return { products: products.length, groups: keys.size };
 }
 
 export async function deleteProductImage(imageId: string, productId: string) {

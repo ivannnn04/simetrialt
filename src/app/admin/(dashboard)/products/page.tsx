@@ -2,6 +2,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { saveCategory, deleteCategory } from "@/actions/products";
 import { ProductsTable } from "@/components/admin/ProductsTable";
+import { RegroupButton } from "@/components/admin/RegroupButton";
 
 // bulk deletes and large lists can take a while on a busy database
 export const maxDuration = 120;
@@ -18,7 +19,8 @@ export default async function ProductsList() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Katalogas</h1>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <RegroupButton />
           <Link href="/admin/products/import" className="rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm hover:bg-zinc-50">
             Importas iš katalogo (PDF + kainoraštis)
           </Link>

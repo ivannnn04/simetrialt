@@ -500,6 +500,7 @@ export const lt: Dictionary = {
     reset: "Atstatyti visus filtrus",
     empty: "Pagal šiuos filtrus produktų nerasta.",
     off: (n: number) => `-${n}%`,
+    options: (n: number) => `${n} variantai`,
     prevPage: "Ankstesnis puslapis",
     nextPage: "Kitas puslapis",
     pagination: "Puslapiai",
