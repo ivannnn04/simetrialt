@@ -157,11 +157,16 @@ export async function loadProduct(slug: string): Promise<ProductView | null> {
       const price = (c: number) => formatPrice(c, product.currency);
       // the group: this product plus every published sibling with the same key (derived on the fly for older rows)
       const groupKey = product.groupKey ?? deriveVariant(product).groupKey;
-      const siblings = await db.product.findMany({
-        where: { published: true, OR: [{ groupKey }, { id: product.id }] },
+      // siblings by stored key, plus older rows (no key yet) whose derived key matches: same brand and typology narrows them down
+      const candidates = await db.product.findMany({
+        where: {
+          published: true,
+          OR: [{ groupKey }, { id: product.id }, { groupKey: null, brand: product.brand, typology: product.typology }],
+        },
         orderBy: [{ createdAt: "asc" }],
         include: { images: { orderBy: { sort: "asc" } } },
       });
+      const siblings = candidates.filter((c) => c.id === product.id || (c.groupKey ?? deriveVariant(c).groupKey) === groupKey);
       const toVariant = (v: (typeof siblings)[number]): ProductVariant => {
         const onSale = v.salePriceCents != null && v.salePriceCents < v.priceCents;
         const attrs = Object.keys(attrsOf(v.variantAttrs)).length ? attrsOf(v.variantAttrs) : deriveVariant(v).attrs;

@@ -41,6 +41,8 @@ export function ProductInfo({ product, variant, onSelect }: Props) {
 
   const price = variant.price;
   const details = variant.details.length ? variant.details : product.details;
+  /** photo swatches only make sense when the variants actually have different photos */
+  const distinctPhotos = new Set(product.variants.map((v) => v.image ?? "")).size > 1;
   /** a swatch shows the photo of the variant that has this value (keeping the other choices where possible) */
   const swatchFor = (axis: string, value: string) => {
     const wanted = { ...variant.attrs, [axis]: value };
@@ -94,7 +96,7 @@ export function ProductInfo({ product, variant, onSelect }: Props) {
                   <div className="flex flex-wrap items-center gap-2">
                     {axis.values.map((value) => {
                       const active = variant.attrs[axis.key] === value;
-                      const swatch = axis.key === "Colour" ? swatchFor(axis.key, value) : null;
+                      const swatch = axis.key === "Colour" && distinctPhotos ? swatchFor(axis.key, value) : null;
                       return swatch ? (
                         <button
                           key={value}

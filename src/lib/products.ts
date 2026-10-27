@@ -28,7 +28,8 @@ export function toCard(p: ProductWithRelations): ProductCardData {
 export function groupCards(products: ProductWithRelations[]): ProductCardData[] {
   const groups = new Map<string, ProductWithRelations[]>();
   for (const p of products) {
-    const key = p.groupKey ?? p.id;
+    // rows saved before the variants feature have no key yet: derive it from the name on the fly
+    const key = p.groupKey ?? deriveVariant(p).groupKey;
     groups.set(key, [...(groups.get(key) ?? []), p]);
   }
   return [...groups.values()].map((members) => {
