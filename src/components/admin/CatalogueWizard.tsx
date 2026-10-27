@@ -54,7 +54,11 @@ export function CatalogueWizard({ blobUploads }: { blobUploads: boolean }) {
       }
     });
   };
-  const [result, publish, publishing] = useActionState(publishDraft, null);
+  const [result, setResult] = useState<PublishResult | null>(null);
+  const [publishing, startPublish] = useTransition();
+  const [saveProgress, setProgressText] = useState<string | null>(null);
+  const [failedAt, setFailedAt] = useState<number | null>(null);
+  const [finished, setFinished] = useState(false);
   const [items, setItems] = useState<DraftItem[]>([]);
   const [included, setIncluded] = useState<Set<number>>(new Set());
   const [publishNow, setPublishNow] = useState(true);
@@ -99,7 +103,46 @@ export function CatalogueWizard({ blobUploads }: { blobUploads: boolean }) {
       };
     });
 
-  const done = result && !result.error;
+  const done = finished && result && !result.error;
+
+  /** Saves the included items a few at a time, so no single request has to download hundreds of photos. */
+  const publish = (startFrom = 0) =>
+    startPublish(async () => {
+      if (!draft) return;
+      const all = toSubmit().filter((i) => i.include);
+      const BATCH = 4;
+      const acc: PublishResult = startFrom > 0 && result ? { ...result, error: undefined } : { created: 0, updated: 0, errors: [], products: [] };
+      setFailedAt(null);
+      setFinished(false);
+      for (let i = startFrom; i < all.length; i += BATCH) {
+        const chunk = all.slice(i, i + BATCH);
+        setProgressText(`Įrašoma ${Math.min(i + BATCH, all.length)} / ${all.length}…`);
+        const fd = new FormData();
+        fd.set("token", draft.token);
+        fd.set("items", JSON.stringify(chunk));
+        fd.set("publish", publishNow ? "on" : "off");
+        fd.set("final", i + BATCH >= all.length ? "on" : "off");
+        let res: PublishResult | null = null;
+        try {
+          res = await publishDraft(null, fd);
+        } catch (e) {
+          res = { created: 0, updated: 0, errors: [], products: [], error: e instanceof Error ? e.message : "Ryšio klaida" };
+        }
+        if (!res || res.error) {
+          setResult({ ...acc, error: res?.error ?? "Nepavyko įrašyti." });
+          setFailedAt(i);
+          setProgressText(null);
+          return;
+        }
+        acc.created += res.created;
+        acc.updated += res.updated;
+        acc.errors.push(...res.errors);
+        acc.products.push(...res.products);
+        setResult({ ...acc });
+      }
+      setProgressText(null);
+      setFinished(true);
+    });
 
   return (
     <div className="space-y-6">
@@ -165,16 +208,19 @@ export function CatalogueWizard({ blobUploads }: { blobUploads: boolean }) {
           ))}
 
           <Card title="3. Įrašyti į katalogą">
-            <form action={publish} className="flex flex-wrap items-center gap-4">
-              <input type="hidden" name="token" value={draft.token} />
-              <input type="hidden" name="items" value={JSON.stringify(toSubmit())} />
-              <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="publish" checked={publishNow} onChange={(e) => setPublishNow(e.target.checked)} /> Iš karto rodyti svetainėje</label>
-              <PrimaryButton type="submit" disabled={publishing || included.size === 0}>
-                {publishing ? "Įrašoma…" : `Patvirtinti ir įrašyti (${included.size})`}
+            <div className="flex flex-wrap items-center gap-4">
+              <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={publishNow} onChange={(e) => setPublishNow(e.target.checked)} /> Iš karto rodyti svetainėje</label>
+              <PrimaryButton type="button" onClick={() => publish(0)} disabled={publishing || included.size === 0}>
+                {publishing ? saveProgress ?? "Įrašoma…" : `Patvirtinti ir įrašyti (${included.size})`}
               </PrimaryButton>
-              <span className="text-xs text-zinc-500">Esami produktai (pagal SKU) atnaujinami, jų nuotraukos pakeičiamos pažymėtomis.</span>
-            </form>
-            {result?.error && <div className="mt-3"><Notice tone="red">{result.error}</Notice></div>}
+              <span className="text-xs text-zinc-500">Įrašoma po kelis produktus; esami (pagal SKU) atnaujinami, jų nuotraukos pakeičiamos pažymėtomis.</span>
+            </div>
+            {result?.error && (
+              <div className="mt-3 space-y-2">
+                <Notice tone="red">{result.error} Įrašyta iki šiol: nauji {result.created}, atnaujinti {result.updated}.</Notice>
+                {failedAt !== null && <SecondaryButton type="button" onClick={() => publish(failedAt)} disabled={publishing}>Tęsti nuo {failedAt + 1}-o produkto</SecondaryButton>}
+              </div>
+            )}
           </Card>
         </>
       )}

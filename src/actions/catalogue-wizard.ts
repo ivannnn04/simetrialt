@@ -413,6 +413,21 @@ async function fetchImageAsFile(url: string, name: string): Promise<File> {
   return new File([buf], name, { type });
 }
 
+/** Product photos are stored at most 1600 px on the long side as JPEG: far smaller uploads and faster pages. */
+async function optimizeImage(file: File): Promise<File> {
+  try {
+    const buf = await sharp(Buffer.from(await file.arrayBuffer()))
+      .rotate()
+      .flatten({ background: "#ffffff" })
+      .resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true })
+      .jpeg({ quality: 85, mozjpeg: true })
+      .toBuffer();
+    return new File([buf], file.name.replace(/\.[a-z0-9]+$/i, "") + ".jpg", { type: "image/jpeg" });
+  } catch {
+    return file; // not an image sharp understands: upload as is
+  }
+}
+
 function dataUrlToFile(dataUrl: string, name: string): File {
   const m = dataUrl.match(/^data:(image\/[a-z]+);base64,(.+)$/);
   if (!m) throw new Error("netinkamas nuotraukos formatas");
@@ -479,33 +494,43 @@ export async function publishDraft(_prev: PublishResult | null | undefined, form
       }
       result.products.push({ id: product.id, slug: product.slug, name: product.name });
 
-      // images: replace the product's photos with the selected ones
-      const files: File[] = [];
+      // images: replace the product's photos with the selected ones (fetched in parallel, resized before upload)
       const stored = draft.items[it.idx];
-      for (const [n, ref] of it.images.entries()) {
-        try {
-          if (ref.kind === "catalogue") {
-            const src = stored?.images[ref.index]?.src;
-            if (src) files.push(dataUrlToFile(src, `${sku ?? slugify(name)}-${n + 1}.jpg`));
-          } else if (ref.kind === "pool") {
-            const src = draft.pool[ref.index]?.src;
-            if (src) files.push(dataUrlToFile(src, `${sku ?? slugify(name)}-${n + 1}.jpg`));
-          } else if (/^https?:\/\//.test(ref.src)) {
-            files.push(await fetchImageAsFile(ref.src, `${sku ?? slugify(name)}-${n + 1}.jpg`));
-          }
-        } catch (e) {
-          result.errors.push(`${name}: ${e instanceof Error ? e.message : "nuotraukos klaida"}`);
-        }
-      }
-      if (files.length > 0) {
-        await db.productImage.deleteMany({ where: { productId: product.id } });
-        for (const [n, file] of files.entries()) {
+      const base = sku ?? slugify(name);
+      const fetched = await Promise.all(
+        it.images.map(async (ref, n): Promise<File | null> => {
           try {
-            const url = await saveImage(file);
-            await db.productImage.create({ data: { productId: product.id, url, alt: name, sort: n } });
+            if (ref.kind === "catalogue") {
+              const src = stored?.images[ref.index]?.src;
+              return src ? dataUrlToFile(src, `${base}-${n + 1}.jpg`) : null;
+            }
+            if (ref.kind === "pool") {
+              const src = draft.pool[ref.index]?.src;
+              return src ? dataUrlToFile(src, `${base}-${n + 1}.jpg`) : null;
+            }
+            return /^https?:\/\//.test(ref.src) ? await fetchImageAsFile(ref.src, `${base}-${n + 1}.jpg`) : null;
           } catch (e) {
             result.errors.push(`${name}: ${e instanceof Error ? e.message : "nuotraukos klaida"}`);
+            return null;
           }
+        })
+      );
+      const files = fetched.filter((f): f is File => f !== null);
+      if (files.length > 0) {
+        const uploaded = await Promise.all(
+          files.map(async (file) => {
+            try {
+              return await saveImage(await optimizeImage(file));
+            } catch (e) {
+              result.errors.push(`${name}: ${e instanceof Error ? e.message : "nuotraukos klaida"}`);
+              return null;
+            }
+          })
+        );
+        const urls = uploaded.filter((u): u is string => Boolean(u));
+        if (urls.length > 0) {
+          await db.productImage.deleteMany({ where: { productId: product.id } });
+          await db.productImage.createMany({ data: urls.map((url, n) => ({ productId: product.id, url, alt: name, sort: n })) });
         }
       }
     } catch (e) {
@@ -513,7 +538,7 @@ export async function publishDraft(_prev: PublishResult | null | undefined, form
     }
   }
 
-  await db.setting.delete({ where: { key: draftKey(token) } }).catch(() => undefined);
+  if (formData.get("final") !== "off") await db.setting.delete({ where: { key: draftKey(token) } }).catch(() => undefined);
   revalidatePath("/catalogue");
   revalidatePath("/outlet");
   revalidatePath("/admin/products");
