@@ -10,9 +10,8 @@ const slugify = (input: string) =>
 
 /**
  * Product variants: SKU-level rows that are the same design in another colour, finish, colour
- * temperature or dimming option share a group and appear as one card on the website, with the
- * options as selectors on the product page. Sizes stay separate products (different photos,
- * different names), which is how the team wants to browse them.
+ * temperature, dimming option or size share a group and appear as one card on the website, with
+ * the options as selectors on the product page.
  *
  * The rules below derive the group and the variant attributes from what the supplier wrote;
  * `confirmGroups` in ai.ts can refine the result when an API key is configured.
@@ -55,14 +54,20 @@ export function deriveVariant(p: { name: string; brand?: string | null; typology
     variantPart = clean(variantPart.replace(KELVIN_RE, ""));
   }
 
-  // tokens of the variant part: sizes go back to the base (separate products), the rest are options
+  // tokens of the variant part: sizes become the Size option, the rest colour / finish options
   const tokens = variantPart
     .split(/\s*,\s*/)
     .map(clean)
     .filter(Boolean);
   const sizeTokens = tokens.filter((t) => SIZE_RE.test(t));
   const optionTokens = tokens.filter((t) => !SIZE_RE.test(t));
-  if (sizeTokens.length) base = clean(`${base} ${sizeTokens.join(", ")}`);
+  // a size written inside the base name ("Pòta! pendant lamp Ø 50 cm") is an option as well
+  const baseSize = base.match(/(?:,\s*)?(Ø\s*\d+(?:[.,]\d+)?\s*(?:cm|mm|m)?|\b\d+(?:[.,]\d+)?\s*(?:cm|mm|m)\b|\b\d{2,4}\s*x\s*\d{2,4}(?:\s*(?:cm|mm))?\b)\s*$/i);
+  if (baseSize) {
+    sizeTokens.unshift(clean(baseSize[1]));
+    base = clean(base.slice(0, baseSize.index));
+  }
+  if (sizeTokens.length) attrs.Size = sizeTokens.join(", ");
   const colourTokens = optionTokens.filter((t) => COLOUR_RE.test(t));
   const otherTokens = optionTokens.filter((t) => !COLOUR_RE.test(t));
   if (colourTokens.length) attrs.Colour = colourTokens.join(", ");
@@ -88,7 +93,7 @@ export function deriveVariant(p: { name: string; brand?: string | null; typology
 }
 
 /** Order of selector rows on the product page. */
-export const AXIS_ORDER = ["Colour", "Finish", "Colour temperature", "Dimming", "Material", "Size"];
+export const AXIS_ORDER = ["Size", "Colour", "Finish", "Colour temperature", "Dimming", "Material"];
 
 export function sortAxes(keys: string[]): string[] {
   return [...keys].sort((a, b) => {
