@@ -55,7 +55,7 @@ const singular = (section: string) =>
 function linesOf(items: Item[]): Item[][] {
   const rows: Item[][] = [];
   for (const it of [...items].sort((a, b) => a.y - b.y || a.x - b.x)) {
-    const row = rows.find((r) => Math.abs(r[0].y - it.y) <= 3);
+    const row = rows.find((r) => Math.abs(r[0].y - it.y) <= 2);
     if (row) row.push(it);
     else rows.push([it]);
   }
@@ -162,8 +162,8 @@ export async function extractBlockPriceList(data: ArrayBuffer, opts: { withImage
       for (const [i, t] of titles.entries()) if (y >= t.y - 4) k = i;
       return k;
     };
-    type Block = { title: string; y: number; rows: BlockRow[]; spec: Item[][]; accessory: boolean };
-    const blocks: Block[] = titles.map((t) => ({ title: t.text, y: t.y, rows: [], spec: [], accessory: false }));
+    type Block = { title: string; y: number; rows: BlockRow[]; spec: Item[][]; dims: string[]; accessory: boolean };
+    const blocks: Block[] = titles.map((t) => ({ title: t.text, y: t.y, rows: [], spec: [], dims: [], accessory: false }));
 
     let lastRowY = -100;
     for (const line of lines) {
@@ -173,6 +173,7 @@ export async function extractBlockPriceList(data: ArrayBuffer, opts: { withImage
       const tableItems = line.filter((i) => i.x >= tableX);
       const leftItems = line.filter((i) => i.x < tableX);
       if (leftItems.length) b.spec.push(leftItems);
+      b.dims.push(...leftItems.filter((i) => DIM_RE.test(i.text)).map((i) => i.text));
       if (!tableItems.length) continue;
       const code = tableItems.find((i) => CODE_RE.test(i.text) && !PRICE_RE.test(i.text));
       const price = tableItems.find((i) => PRICE_RE.test(i.text) && (!code || i.x > code.x));
@@ -195,7 +196,7 @@ export async function extractBlockPriceList(data: ArrayBuffer, opts: { withImage
     // specifications from the left column
     for (const b of blocks) {
       if (!b.rows.length) continue;
-      const specLines = b.spec.map(text).filter((t) => t && !isUpper(t));
+      const specLines = b.spec.map((its) => text(its.filter((i) => !DIM_RE.test(i.text)))).filter((t) => t && !isUpper(t));
       const grab = (re: RegExp, nextLines = 0) => {
         const i = specLines.findIndex((t) => re.test(t));
         if (i < 0) return "";
@@ -213,15 +214,26 @@ export async function extractBlockPriceList(data: ArrayBuffer, opts: { withImage
       const light = lastLanguage(grab(/^.*?\b(fonte luminosa|light source)\b/i, 3)).replace(/^led included\s*/i, "");
       const materials = lastLanguage(grab(/^.*?\b(materiali|materials)\b/i, 2));
       const weight = grab(/^.*?\b(peso|weight)\b/i);
-      const dims = [...new Set(b.spec.flat().map((i) => i.text.replace(/\s+/g, " ").trim()).filter((t) => DIM_RE.test(t)))].join(", ");
+      const dims = [...new Set(b.dims.map((t) => t.replace(/\s+/g, " ").trim()))].join(", ");
       const family = titleCase(b.title);
       const printed = printedOffset !== null ? p + printedOffset : null;
       const nameHit = (e: { name: string }) => norm(family).startsWith(norm(e.name)) || norm(e.name).startsWith(norm(family));
+      const byName = index.filter(nameHit).sort((a, b) => b.name.length - a.name.length);
       const entry =
-        index.find((e) => nameHit(e) && printed !== null && e.pages.includes(printed)) ??
-        index.find((e) => nameHit(e)) ??
+        byName.find((e) => printed !== null && e.pages.includes(printed)) ??
+        byName[0] ??
         index.find((e) => printed !== null && e.pages.includes(printed) && norm(family).split(" ")[0] === norm(e.name).split(" ")[0]);
-      const type = entry ? singular(entry.section) : "";
+      // no entry (a name split over two index pages): the chapter whose page range holds this page
+      let section = entry?.section ?? "";
+      if (!section && printed !== null) {
+        const ranges = new Map<string, { min: number; max: number }>();
+        for (const e of index) {
+          const r = ranges.get(e.section) ?? { min: Infinity, max: -Infinity };
+          ranges.set(e.section, { min: Math.min(r.min, ...e.pages), max: Math.max(r.max, ...e.pages) });
+        }
+        section = [...ranges.entries()].find(([, r]) => printed >= r.min && printed <= r.max)?.[0] ?? "";
+      }
+      const type = section ? singular(section) : "";
       for (const r of b.rows) {
         r.family = family;
         r.type = type;
