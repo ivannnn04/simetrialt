@@ -145,7 +145,11 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
       const ext = extOf(doc.name);
       try {
         if (ext === "pdf") {
-          const pl = await extractPriceListPdf(doc.buffer).catch(() => null);
+          const pl = await extractPriceListPdf(doc.buffer).catch((e: unknown) => {
+            warnings.push(`${doc.name}: kainoraščio skaitymas nepavyko (${e instanceof Error ? e.message.split("\n")[0] : "klaida"}).`);
+            return null;
+          });
+          if (pl) warnings.push(`${doc.name}: ${pl.pages} psl., ${pl.rows.length} kainoraščio eilučių (kodas / aprašymas / kaina).`);
           if (pl && pl.rows.length >= 5) {
             priceList.rows.push(...pl.rows.filter((r) => !priceList.rows.some((x) => x.sku === r.sku)));
             priceList.text += `\n${pl.text}`;
@@ -153,6 +157,7 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
             continue;
           }
           const r = await extractPdfPages(doc.buffer);
+          warnings.push(`${doc.name}: ${r.lines.length} teksto eilučių, ${r.images.length} nuotraukų.`);
           lines.push(...r.lines.map((l) => ({ ...l, page: l.page + pageOffset })));
           images.push(...r.images.map((im) => ({ ...im, page: im.page + pageOffset })));
           pageOffset += r.pages;
@@ -362,7 +367,7 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
         }
       }
     }
-    if (items.length === 0) return fail("Nepavyko sudaryti nė vieno produkto. Patikrinkite failus.");
+    if (items.length === 0) return fail(`Nepavyko sudaryti nė vieno produkto. ${warnings.join(" ")}`.trim());
 
     // --- loose photos: matched to products by file name (SKU or product name) ---
     const pool: { name: string; src: string }[] = [];
@@ -463,7 +468,7 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
     }
     return draft;
   } catch (e) {
-    return fail(e instanceof Error ? e.message.split("\n").filter(Boolean)[0] : "Nepavyko apdoroti failų.");
+    return fail(`${e instanceof Error ? e.message.split("\n").filter(Boolean)[0] : "Nepavyko apdoroti failų."} ${warnings.join(" ")}`.trim());
   }
 }
 
