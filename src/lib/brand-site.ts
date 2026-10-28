@@ -7,7 +7,7 @@
 const UA = "Mozilla/5.0 (compatible; SimetriaImport/1.0; +https://simetria.lt)";
 const FETCH_TIMEOUT_MS = 15000;
 const MAX_SITEMAPS = 12;
-const IMAGE_SKIP_RE = /logo|icon|favicon|sprite|placeholder|avatar|flag|badge|banner|catalog|catalogue|booklet|pdf|video|cover|\.svg|\.gif|pixel|spacer|loading|blank|thumb_|-\d{1,2}x\d{1,2}\./i;
+const IMAGE_SKIP_RE = /logo|icon|favicon|sprite|placeholder|avatar|flag|badge|banner|hero|apertura|catalog|catalogue|booklet|pdf|video|cover|\.svg|\.gif|pixel|spacer|loading|blank|thumb_|-\d{1,2}x\d{1,2}\.|2000x1125|1920x\d+/i;
 const IMAGE_EXT_RE = /\.(jpe?g|png|webp)(\?|$)/i;
 
 async function get(url: string): Promise<string> {
