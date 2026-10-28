@@ -16,6 +16,10 @@ import { imageSearchEnabled, searchImages } from "@/lib/image-search";
 import { composeDescription, type Draft, type DraftItem, type PublishResult, type SubmitItem } from "@/lib/catalogue-wizard";
 import { classify, SITE_CATEGORY_RE, siteCategorySlug } from "@/lib/taxonomy";
 import { deriveVariant } from "@/lib/variants";
+import { extractPriceListPdf, type PriceListRow } from "@/lib/pricelist-pdf";
+import { disambiguateNames, productFromPriceRow } from "@/lib/pricelist-products";
+import { looksLikeBrandList, matchBrand, parseBrandList, type BrandInfo } from "@/lib/brand-list";
+import { mapConcurrent, matchProductPage, pageImages, siteUrls } from "@/lib/brand-site";
 
 /**
  * Catalogue import wizard: a supplier PDF catalogue (photos, descriptions, specifications) plus
@@ -132,18 +136,30 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
     const images: PdfImage[] = [];
     const photos: { name: string; dataUrl: string }[] = [];
     const prices = { rows: new Map<string, PriceRow>(), order: [] as string[] };
+    // a price-list PDF (article number … price per line) and the supplier list (brand, website, transport %)
+    const priceList: { rows: PriceListRow[]; text: string; names: string[] } = { rows: [], text: "", names: [] };
+    const brandList: BrandInfo[] = [];
     let pageOffset = 0;
     let textPages = 0;
     for (const doc of docs) {
       const ext = extOf(doc.name);
       try {
         if (ext === "pdf") {
+          const pl = await extractPriceListPdf(doc.buffer).catch(() => null);
+          if (pl && pl.rows.length >= 5) {
+            priceList.rows.push(...pl.rows.filter((r) => !priceList.rows.some((x) => x.sku === r.sku)));
+            priceList.text += `\n${pl.text}`;
+            priceList.names.push(doc.name);
+            continue;
+          }
           const r = await extractPdfPages(doc.buffer);
           lines.push(...r.lines.map((l) => ({ ...l, page: l.page + pageOffset })));
           images.push(...r.images.map((im) => ({ ...im, page: im.page + pageOffset })));
           pageOffset += r.pages;
           textPages += r.pages;
           if (r.images.length === 0 && r.pages > 0) warnings.push(`${doc.name}: PDF be įterptų nuotraukų (gali būti skenuotas).`);
+        } else if (["xlsx", "xls", "csv"].includes(ext) && looksLikeBrandList(doc.buffer, doc.name)) {
+          brandList.push(...parseBrandList(doc.buffer, doc.name));
         } else if (["xlsx", "xls", "csv"].includes(ext)) {
           const r = readPriceList(doc.buffer, doc.name);
           if (r.warning) warnings.push(`${doc.name}: ${r.warning}`);
@@ -269,6 +285,82 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
       }
       const missing = prices.order.filter((s) => !pdfProducts.some((p) => p.sku === s)).length;
       if (textPages > 0 && missing > 0) warnings.push(`${missing} kainoraščio pozicijų nerasta kataloge – jos įtrauktos be nuotraukų.`);
+    }
+    // --- price-list PDF → products; prices with the brand's transport % and VAT; photos from the brand's website ---
+    if (priceList.rows.length > 0) {
+      const info = matchBrand(brandList, { brand, text: priceList.text, filename: priceList.names.join(" ") });
+      const brandName = brand || info?.brand || "";
+      const vat = Number.parseFloat(process.env.IMPORT_VAT_PERCENT ?? "21") || 0;
+      const pct = info?.transportPct ?? 0;
+      const products = priceList.rows.map((r) => productFromPriceRow(r, brandName));
+      disambiguateNames(products);
+      const plItems: DraftItem[] = [];
+      for (const p of products) {
+        if (bySku.has(p.sku)) continue;
+        const item: DraftItem = {
+          idx: items.length,
+          sku: p.sku,
+          name: p.name,
+          description: p.description,
+          category: p.category,
+          brand: brandName,
+          typology: p.typology,
+          material: "",
+          colour: p.colour,
+          dimensions: p.dimensions,
+          weight: "",
+          price: (Math.round(p.netPrice * (1 + pct / 100) * (1 + vat / 100) * 100) / 100).toFixed(2),
+          salePrice: "",
+          from: ["pricelist"],
+          page: null,
+          existing: null,
+          images: [],
+        };
+        items.push(item);
+        plItems.push(item);
+        bySku.set(p.sku, item);
+      }
+      warnings.push(
+        `Kainoraštis (${priceList.names.join(", ")}): ${plItems.length} pozicijų. Kaina svetainėje = katalogo kaina${pct ? ` + ${pct}% transportas` : ""} + ${vat}% PVM` +
+          (info ? ` (${info.brand}, pagal tiekėjų sąrašą).` : brandList.length ? ". Prekės ženklas tiekėjų sąraše nerastas – transporto % nepritaikytas; įrašykite prekės ženklą laukelyje." : ". Tiekėjų sąrašas (List.xlsx) neįkeltas – transporto % nepritaikytas.")
+      );
+      if (!brandName) warnings.push("Prekės ženklas nenustatytas – įrašykite jį laukelyje „Prekės ženklas“ ir analizuokite iš naujo.");
+      if (info?.website) {
+        const host = new URL(info.website).hostname.replace(/^www\./, "");
+        try {
+          const urls = await siteUrls(info.website);
+          const families = new Map<string, DraftItem[]>();
+          for (const p of products) {
+            const it = bySku.get(p.sku);
+            if (!it || !plItems.includes(it)) continue;
+            const key = `${p.family}|${p.typeHint}`;
+            families.set(key, [...(families.get(key) ?? []), it]);
+          }
+          const pages = new Map<string, string | null>();
+          for (const key of families.keys()) {
+            const [family, typeHint] = key.split("|");
+            pages.set(key, urls.length ? matchProductPage(family, typeHint, urls) : null);
+          }
+          const uniquePages = [...new Set([...pages.values()].filter((u): u is string => Boolean(u)))];
+          const fetched = await mapConcurrent(uniquePages, 8, (u) => pageImages(u, 4));
+          const imagesOf = new Map(uniquePages.map((u, i) => [u, fetched[i] ?? []]));
+          let withPhotos = 0;
+          for (const [key, list] of families) {
+            const page = pages.get(key);
+            const imgs = page ? imagesOf.get(page) ?? [] : [];
+            if (!imgs.length) continue;
+            withPhotos++;
+            for (const it of list) it.images.push(...imgs.map((src, i) => ({ kind: "web" as const, src, source: host, selected: i < 3 })));
+          }
+          warnings.push(
+            urls.length
+              ? `Nuotraukos iš ${host}: rasta ${withPhotos} iš ${families.size} produktų grupių${withPhotos < families.size ? "; likusioms ieškoma internete arba pridėkite rankiniu būdu" : ""}.`
+              : `${host}: svetainės žemėlapis (sitemap) nerastas – nuotraukų iš tiekėjo svetainės paimti nepavyko.`
+          );
+        } catch (e) {
+          warnings.push(`${host}: nuotraukų paimti nepavyko (${e instanceof Error ? e.message.split("\n")[0] : "klaida"}).`);
+        }
+      }
     }
     if (items.length === 0) return fail("Nepavyko sudaryti nė vieno produkto. Patikrinkite failus.");
 

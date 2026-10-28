@@ -152,6 +152,8 @@ export function CatalogueWizard({ blobUploads }: { blobUploads: boolean }) {
             Įkelkite viską, ką atsiuntė tiekėjas: PDF katalogus, kainoraščius (Excel / CSV), Word dokumentus, nuotraukas. Sistema
             pati atpažįsta, kas kuriame faile yra, sujungia produktus pagal SKU ir sudaro korteles su nuotraukomis, aprašymais,
             techniniais duomenimis ir kainomis. Jei kataloge nuotraukų nėra, jos surandamos internete.
+            Tiekėjo kainoraštį PDF galima įkelti kartu su tiekėjų sąrašu (List.xlsx: prekės ženklas, svetainė, transporto %):
+            kainos perskaičiuojamos (katalogo kaina + transportas + PVM), o nuotraukos paimamos iš tiekėjo svetainės.
           </p>
           <div className="grid gap-4 md:grid-cols-[1fr_1fr_260px]">
             <Field label="Dokumentai" hint={blobUploads ? "Galima pažymėti kelis failus iš karto, iki 300 MB kiekvienas." : "Galima pažymėti kelis failus iš karto. Iki 4 MB vienam įkėlimui; didesniems naudokite nuorodas."}>
