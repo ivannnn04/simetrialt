@@ -78,13 +78,20 @@ export async function loadCatalogue(sp: Search, opts: { saleOnly?: boolean; perP
       db.category.findMany({ orderBy: { sort: "asc" }, where: { products: { some: { published: true } } } }),
       db.product.findMany({ where: { ...scope, typology: { not: null } }, distinct: ["typology"], select: { typology: true } }),
       db.product.findMany({ where: { ...scope, brand: { not: null } }, distinct: ["brand"], select: { brand: true } }),
-      db.product.findMany({ where: { ...scope, material: { not: null } }, distinct: ["material"], select: { material: true } }),
+      db.product.groupBy({ by: ["material"], where: { ...scope, material: { not: null } }, _count: { _all: true }, orderBy: { _count: { material: "desc" } } }),
     ]);
+    // the material filter is useful only for short, shared values ("brass", "oak"), not for whole specification lines
+    const materialOptions = materials
+      .map((m) => ({ value: (m.material ?? "").trim(), count: m._count._all }))
+      .filter((m) => m.value && m.value.length <= 28 && !/[/;:()]/.test(m.value) && m.count >= 2)
+      .slice(0, 20)
+      .map((m) => m.value)
+      .sort((a, b) => a.localeCompare(b));
     groups = [
       { key: "typology", label: "Typology", options: typologies.map((t) => t.typology!).filter(Boolean) },
       { key: "brand", label: "Brands", options: brands.map((b) => b.brand!).filter(Boolean) },
       { key: "display", label: "On display", options: ["In showroom", "Online only"] },
-      { key: "material", label: "Material", options: materials.map((m) => m.material!).filter(Boolean) },
+      { key: "material", label: "Material", options: materialOptions },
     ].filter((g) => g.options.length > 0);
     const categoryLabel = new Map(categories.map((c) => [c.slug, c.name]));
     activeCategory = category.length === 1 ? categoryLabel.get(category[0]) : undefined;
