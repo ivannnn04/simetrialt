@@ -24,7 +24,7 @@ export type FamilyBlock = {
   images: string[];
 };
 
-type Line = { y: number; x0: number; x1: number; size: number; text: string; items: { x: number; text: string }[] };
+type Line = { y: number; x0: number; x1: number; size: number; text: string; items: { x: number; size: number; text: string }[] };
 
 const TITLE_MIN_SIZE = 10;
 const TYPE_RE = /\b(lamp|lamps|light|lights|chandelier|luminaire|candle holder|holder|spot|bollard|sofa|armchair|chair|stool|table|desk|bed|shelf|cabinet|sideboard|mirror|rug|vase|bench)\b/i;
@@ -85,7 +85,7 @@ async function pageLines(page: Awaited<ReturnType<Awaited<ReturnType<typeof getD
       x1: Math.max(...its.map((i) => i.x + i.w)),
       size: Math.max(...its.map((i) => i.size)),
       text: its.map((i) => i.text).join(" ").replace(/\s+/g, " ").trim(),
-      items: its.map((i) => ({ x: i.x, text: i.text })),
+      items: its.map((i) => ({ x: i.x, size: i.size, text: i.text })),
     });
   }
   return lines;
@@ -134,7 +134,7 @@ function parseIndex(lines: Line[]): IndexEntry[] {
     for (const [i, t] of toks.entries()) {
       depth += (t.match(/\(/g)?.length ?? 0) - (t.match(/\)/g)?.length ?? 0);
       const next = toks[i + 1];
-      const endsEntry = /^\d{1,4}$/.test(t) && depth <= 0 && name.length > 0 && (next === undefined || /^[A-ZÀ-Ý(]/.test(next));
+      const endsEntry = /^\d{1,4}$/.test(t) && depth <= 0 && name.length > 0 && (next === undefined || /^[A-ZÀ-Ý]/.test(next));
       if (endsEntry) {
         const raw = name.join(" ").trim();
         const hint = raw.match(/\(([^)]*)\)/)?.[1] ?? "";
@@ -168,7 +168,13 @@ export async function extractCatalogueFamilies(data: ArrayBuffer, opts: { withIm
     const lines = await pageLines(page);
     if (lines.some((l) => /\bindex\b/i.test(l.text) && l.size >= 8)) index.push(...parseIndex(lines));
     // printed page numbers: small numeric lines ("117", "120 121")
-    const nums = lines.filter((l) => l.size <= 8 && /^\d{1,4}(\s+\d{1,4})?$/.test(l.text)).flatMap((l) => l.text.split(/\s+/).map(Number));
+    // printed page numbers: small numbers near the bottom edge ("117", "120 121"), left to right
+    const pageHeight = page.view[3] - page.view[1];
+    const nums = lines
+      .filter((l) => l.y > pageHeight * 0.8)
+      .flatMap((l) => l.items.filter((i) => i.size <= 8 && /^\d{1,4}$/.test(i.text)).map((i) => ({ x: i.x, n: Number(i.text) })))
+      .sort((a, b) => a.x - b.x)
+      .map((i) => i.n);
     if (nums.length) printedPages.set(p, nums);
 
     const titles = lines.filter((l) => l.size >= TITLE_MIN_SIZE && l.text.length < 70 && l.text.length >= 2 && !/^\d+$/.test(l.text));
@@ -256,16 +262,18 @@ export async function extractCatalogueFamilies(data: ArrayBuffer, opts: { withIm
 
   // names for garbled titles: the index entry printed on the same page, else the chapter + type
   for (const { page, cols } of pending) {
-    for (const c of cols) {
+    for (const [k, c] of cols.entries()) {
       if (!c.garbled) continue;
       const printed = printedPages.get(page) ?? [];
+      // a spread prints two numbers: the left column belongs to the left number
+      const own = printed.length === cols.length ? printed[k] : null;
       const candidates = index.filter((e) => printed.some((n) => Math.abs(n - e.printed) <= 1));
       let best: IndexEntry | null = null;
       let bestScore = -1;
       for (const e of candidates) {
         const tw = typeWords(c.block.type);
         const hw = typeWords(e.hint);
-        const score = [...hw].filter((w) => tw.has(w)).length + (printed.includes(e.printed) ? 0.5 : 0);
+        const score = [...hw].filter((w) => tw.has(w)).length + (e.printed === own ? 2 : printed.includes(e.printed) ? 0.5 : 0);
         if (score > bestScore) {
           best = e;
           bestScore = score;
