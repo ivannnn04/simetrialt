@@ -31,6 +31,13 @@ export default async function QuotesList({ searchParams }: { searchParams: Promi
       <p className="text-sm text-zinc-600">
         Pasiūlymą sudarykite iš katalogo produktų: ieškokite jų čia arba svetainėje atidarę produktą spauskite „Į pasiūlymą“. Nuolaidą galima
         pritaikyti kiekvienai pozicijai atskirai ir visam pasiūlymui.
+        {me.role === "ADMIN" && (
+          <>
+            {" "}
+            Salono vadybininko paskyrą (mato tik pasiūlymus) sukursite skiltyje{" "}
+            <Link href="/admin/users" className="underline">Vartotojai ir slaptažodžiai</Link>, rolė „Salono vadybininkas“.
+          </>
+        )}
       </p>
       <div className="flex flex-wrap gap-2 text-sm">
         <Link href="/admin/quotes" className={`rounded-full px-3 py-1 ${!status ? "bg-zinc-900 text-white" : "bg-white shadow-sm hover:bg-zinc-50"}`}>Visi</Link>
