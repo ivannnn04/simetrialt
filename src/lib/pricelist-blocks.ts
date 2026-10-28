@@ -85,16 +85,19 @@ const stripLabels = (s: string) => s.replace(/^(\s*[\wÀ-ÿ ]*?\b(potenza|power|
 function readIndex(items: Item[], index: { name: string; section: string; pages: number[] }[], state: { section: string }): boolean {
   const refs = items.filter((i) => /^P\.\s*\d+/i.test(i.text));
   if (refs.length < 2) return false;
-  const heading = items.filter((i) => i.size >= 14 && isUpper(i.text)).sort((a, b) => a.y - b.y)[0];
-  if (heading) state.section = heading.text.replace(/\s+/g, " ").trim();
-  for (const ref of refs) {
+  const headings = items.filter((i) => i.size >= 14 && isUpper(i.text)).sort((a, b) => a.y - b.y);
+  for (const ref of refs.sort((a, b) => a.y - b.y)) {
+    // the chapter is the heading printed above the entry; entries above the first heading belong to the previous chapter
+    const above = headings.filter((h) => h.y < ref.y).pop();
+    if (above) state.section = above.text.replace(/\s+/g, " ").trim();
     // the product name sits right above the reference, roughly at the same x
-    const name = items.filter((i) => i.y < ref.y && ref.y - i.y < 20 && Math.abs(i.x + i.w / 2 - (ref.x + ref.w / 2)) < 60 && !/^P\./i.test(i.text)).sort((a, b) => b.y - a.y)[0];
+    const name = items.filter((i) => i.y < ref.y && ref.y - i.y < 20 && Math.abs(i.x + i.w / 2 - (ref.x + ref.w / 2)) < 60 && !/^P\./i.test(i.text) && i.size < 14).sort((a, b) => b.y - a.y)[0];
     if (!name) continue;
     const pages = [...ref.text.matchAll(/\d+/g)].map((m) => Number(m[0]));
     const span = pages.length === 2 ? Array.from({ length: pages[1] - pages[0] + 1 }, (_, k) => pages[0] + k) : pages;
     index.push({ name: name.text.trim(), section: state.section, pages: span });
   }
+  if (headings.length) state.section = headings[headings.length - 1].text.replace(/\s+/g, " ").trim();
   return true;
 }
 
