@@ -119,16 +119,29 @@ function columnText(line: Line, x0: number, x1: number): string {
 
 type IndexEntry = { family: string; hint: string; printed: number };
 
-/** "Lederam W 123" entries of an A–Z index page: family, type hint in brackets, printed page number. */
+/**
+ * "Lederam W 123" entries of an A–Z index page. An entry ends at a page number that is followed by
+ * the next entry's name (a capitalised word) or the end of the line, so names with numbers
+ * ("Par 18 61", "Lederam C180 / C150 119", "PostKrisi 50 / 51 / 52 176") stay whole.
+ */
 function parseIndex(lines: Line[]): IndexEntry[] {
   const out: IndexEntry[] = [];
   for (const l of lines) {
-    if (l.size > 11) continue;
-    for (const m of l.text.matchAll(/([^\d()]+?(?:\([^)]*\))?)\s+(\d{1,4})(?=\s|$)/g)) {
-      const name = m[1].trim();
-      if (name.length < 2 || /index/i.test(name)) continue;
-      const hint = name.match(/\(([^)]*)\)/)?.[1] ?? "";
-      out.push({ family: name.replace(/\s*\([^)]*\)\s*/g, " ").replace(/\s+/g, " ").trim(), hint, printed: Number(m[2]) });
+    if (l.size > 11 || /\bindex\b/i.test(l.text)) continue;
+    const toks = l.text.split(/\s+/);
+    let name: string[] = [];
+    let depth = 0;
+    for (const [i, t] of toks.entries()) {
+      depth += (t.match(/\(/g)?.length ?? 0) - (t.match(/\)/g)?.length ?? 0);
+      const next = toks[i + 1];
+      const endsEntry = /^\d{1,4}$/.test(t) && depth <= 0 && name.length > 0 && (next === undefined || /^[A-ZÀ-Ý(]/.test(next));
+      if (endsEntry) {
+        const raw = name.join(" ").trim();
+        const hint = raw.match(/\(([^)]*)\)/)?.[1] ?? "";
+        const family = raw.replace(/\s*\([^)]*\)\s*/g, " ").replace(/\s+/g, " ").trim();
+        if (family.length >= 2) out.push({ family, hint, printed: Number(t) });
+        name = [];
+      } else name.push(t);
     }
   }
   return out;
