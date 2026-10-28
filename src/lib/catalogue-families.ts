@@ -168,10 +168,10 @@ export async function extractCatalogueFamilies(data: ArrayBuffer, opts: { withIm
     const lines = await pageLines(page);
     if (lines.some((l) => /\bindex\b/i.test(l.text) && l.size >= 8)) index.push(...parseIndex(lines));
     // printed page numbers: small numeric lines ("117", "120 121")
-    // printed page numbers: small numbers near the bottom edge ("117", "120 121"), left to right
+    // printed page numbers: small stand-alone numbers at the top or bottom edge ("117", "120 121"), left to right
     const pageHeight = page.view[3] - page.view[1];
     const nums = lines
-      .filter((l) => l.y > pageHeight * 0.8)
+      .filter((l) => l.y > pageHeight * 0.8 || l.y < pageHeight * 0.12)
       .flatMap((l) => l.items.filter((i) => i.size <= 8 && /^\d{1,4}$/.test(i.text)).map((i) => ({ x: i.x, n: Number(i.text) })))
       .sort((a, b) => a.x - b.x)
       .map((i) => i.n);
@@ -273,7 +273,7 @@ export async function extractCatalogueFamilies(data: ArrayBuffer, opts: { withIm
       for (const e of candidates) {
         const tw = typeWords(c.block.type);
         const hw = typeWords(e.hint);
-        const score = [...hw].filter((w) => tw.has(w)).length + (e.printed === own ? 2 : printed.includes(e.printed) ? 0.5 : 0);
+        const score = [...hw].filter((w) => tw.has(w)).length + (e.printed === own ? 2 : printed.includes(e.printed) ? 1 : 0.5);
         if (score > bestScore) {
           best = e;
           bestScore = score;
