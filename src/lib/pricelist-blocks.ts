@@ -27,7 +27,7 @@ export type BlockRow = PriceListRow & {
 type Item = { x: number; y: number; w: number; size: number; text: string };
 
 const PRICE_RE = /^(\d{1,3}(?:[.\s]\d{3})*,\d{2}|\d{1,3}(?:,\d{3})*\.\d{2}|\d+[.,]\d{2})$/;
-const CODE_RE = /^(?=.*\d)[A-Z0-9][A-Z0-9.\-/]{4,}$/;
+const CODE_RE = /^(?=(?:.*\d){3})[A-Z0-9][A-Z0-9.\-/]{4,}$/;
 const TABLE_HEAD_RE = /^(finiture|finishes?|finish|colori|colou?rs?|codice|code|art\.?\s*no\.?|articolo|article|sku)\b/i;
 const LABEL_RE = /\b(potenza|power|tensione|voltage|fonte luminosa|light source|materiali|materials|peso|weight|dimensioni|dimensions|lumen|cri|colou?r temperature)\b/i;
 const DIM_RE = /^[øØ]?\s*\d+(?:[.,]\d+)?\s*(?:x\s*\d+(?:[.,]\d+)?\s*)*(?:mm|cm|m)$/i;
@@ -106,7 +106,7 @@ const norm = (s: string) =>
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 
-export async function extractBlockPriceList(data: ArrayBuffer, opts: { withImages?: boolean } = {}): Promise<{ rows: BlockRow[]; pages: number; text: string }> {
+export async function extractBlockPriceList(data: ArrayBuffer, opts: { withImages?: boolean } = {}): Promise<{ rows: BlockRow[]; pages: number; text: string; index: { name: string; section: string; pages: number[] }[] }> {
   const withImages = opts.withImages ?? true;
   const pdf = await getDocumentProxy(new Uint8Array(data.slice(0)));
   const pdfjs = await getResolvedPDFJS();
@@ -138,8 +138,8 @@ export async function extractBlockPriceList(data: ArrayBuffer, opts: { withImage
     const lines = linesOf(items);
 
     // printed page number (small number near the bottom) → offset to the index's page references
-    const pn = items.find((i) => i.y > pageHeight * 0.9 && /^\d{1,3}$/.test(i.text));
-    if (pn && printedOffset === null) printedOffset = Number(pn.text) - p;
+    const pn = items.find((i) => i.y > pageHeight * 0.9 && /^\d(\s?\d){0,2}$/.test(i.text));
+    if (pn && printedOffset === null) printedOffset = Number(pn.text.replace(/\s/g, "")) - p;
 
     // product titles: upper-case lines left of the table
     type Title = { y: number; text: string };
@@ -278,7 +278,7 @@ export async function extractBlockPriceList(data: ArrayBuffer, opts: { withImage
     for (const b of blocks) rows.push(...b.rows);
   }
   const seen = new Set<string>();
-  return { rows: rows.filter((r) => (seen.has(r.sku) ? false : (seen.add(r.sku), true))), pages: pdf.numPages, text: textParts.join("\n") };
+  return { rows: rows.filter((r) => (seen.has(r.sku) ? false : (seen.add(r.sku), true))), pages: pdf.numPages, text: textParts.join("\n"), index };
 }
 
 function mul(m: number[], t: number[]): number[] {
