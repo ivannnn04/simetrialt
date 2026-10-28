@@ -61,7 +61,25 @@ function linesOf(items: Item[]): Item[][] {
   }
   return rows.map((r) => r.sort((a, b) => a.x - b.x));
 }
-const text = (its: Item[]) => its.map((i) => i.text).join(" ").replace(/\s+/g, " ").trim();
+const text = (its: Item[]) => {
+  let out = "";
+  let end = -1;
+  for (const i of its) {
+    const gap = end < 0 ? 0 : i.x - end;
+    out += (out && gap >= 1.2 ? " " : "") + i.text;
+    end = i.x + i.w;
+  }
+  return out.replace(/\s+/g, " ").trim();
+};
+/** A bilingual title ("STRING LIGHT TESTA A CONO · CONE HEAD") keeps the shared prefix and the last language. */
+const bilingualTitle = (t: string) => {
+  const parts = t.split(/\s*·\s*/);
+  if (parts.length !== 2) return t;
+  const a = parts[0].split(" ");
+  const b = parts[1].split(" ");
+  return a.length > b.length ? [...a.slice(0, a.length - b.length), ...b].join(" ") : parts[1];
+};
+const stripLabels = (s: string) => s.replace(/^(\s*[\wÀ-ÿ ]*?\b(potenza|power|tensione|voltage|fonte luminosa|light source|materiali|materials|peso|weight)\b[\s·:]*)+/i, "").trim();
 
 /** Index pages: a large section heading ("TABLE LAMPS") above product names with "P. 12" page references. */
 function readIndex(items: Item[], index: { name: string; section: string; pages: number[] }[], state: { section: string }): boolean {
@@ -127,14 +145,11 @@ export async function extractBlockPriceList(data: ArrayBuffer, opts: { withImage
     type Title = { y: number; text: string };
     const titles: Title[] = [];
     for (const line of lines) {
-      const left = line.filter((i) => i.x < tableX);
+      const left = line.filter((i) => i.x < tableX && !DIM_RE.test(i.text) && (i.size >= 7 || isUpper(i.text)));
       const big = left.filter((i) => i.size >= 7 && i.size <= 14);
       if (!big.length || !isUpper(text(big)) || LABEL_RE.test(text(big)) || NOTE_RE.test(text(big))) continue;
-      const t = text(left)
-        .replace(/\s*\*+\s*$/, "")
-        .replace(/\s+/g, " ")
-        .trim();
-      if (t.length < 3 || /^\d/.test(t)) continue;
+      const t = bilingualTitle(text(left).replace(/\s*\*+\s*$/, "").replace(/\s+/g, " ").trim());
+      if (t.length < 3 || /^\d/.test(t) || /accessor|ricambi|spare parts|offline exclusive/i.test(t)) continue;
       // a title broken over two lines ("ARRANGEMENTS - ROUND MEDIUM -" / "SET OF 2")
       const prev = titles[titles.length - 1];
       if (prev && line[0].y - prev.y < 14 && /[-–]$/.test(prev.text)) prev.text = `${prev.text} ${t}`.replace(/\s*[-–]\s+/g, " - ");
@@ -150,6 +165,7 @@ export async function extractBlockPriceList(data: ArrayBuffer, opts: { withImage
     type Block = { title: string; y: number; rows: BlockRow[]; spec: Item[][]; accessory: boolean };
     const blocks: Block[] = titles.map((t) => ({ title: t.text, y: t.y, rows: [], spec: [], accessory: false }));
 
+    let lastRowY = -100;
     for (const line of lines) {
       const k = blockOf(line[0].y);
       if (k < 0) continue;
@@ -167,10 +183,13 @@ export async function extractBlockPriceList(data: ArrayBuffer, opts: { withImage
         if (Number.isFinite(n) && n > 0) b.rows.push({ sku: code.text, family: "", type: "", desc: "", price: n, page: p, finish, designer: "", materials: "", lightSource: "", weight: "", dimensions: "", images: [] });
       } else {
         const t = text(tableItems);
+        const last = b.rows[b.rows.length - 1];
         // a sub-heading inside the table ("POWER CABLE", "ACCESSORIES") opens the accessory rows
         if (TABLE_HEAD_RE.test(t)) b.accessory = false;
         else if (isUpper(t) && !/€|vat|iva/i.test(t)) b.accessory = true;
+        else if (last && !b.accessory && line[0].y - lastRowY < 9 && !/€|\d{2},\d{2}/.test(t)) last.finish = `${last.finish} ${lastLanguage(t)}`.trim();
       }
+      if (code && price) lastRowY = line[0].y;
     }
 
     // specifications from the left column
@@ -180,8 +199,12 @@ export async function extractBlockPriceList(data: ArrayBuffer, opts: { withImage
       const grab = (re: RegExp, nextLines = 0) => {
         const i = specLines.findIndex((t) => re.test(t));
         if (i < 0) return "";
-        const same = specLines[i].replace(re, "").replace(/^[\s·:]+/, "").trim();
-        const more = specLines.slice(i + 1, i + 1 + nextLines).filter((t) => !LABEL_RE.test(t) && !NOTE_RE.test(t) && !DIM_RE.test(t));
+        const same = stripLabels(specLines[i].replace(re, "").replace(/^[\s·:]+/, "").trim());
+        const more: string[] = [];
+        for (const t of specLines.slice(i + 1, i + 1 + nextLines)) {
+          if (LABEL_RE.test(t) || NOTE_RE.test(t) || DIM_RE.test(t)) break;
+          more.push(t);
+        }
         return [same, ...more].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
       };
       const designer = specLines.find((t) => /^[A-ZÀ-Ý][^,]{2,60},\s*(19|20)\d\d$/.test(t)) ?? "";
@@ -192,7 +215,12 @@ export async function extractBlockPriceList(data: ArrayBuffer, opts: { withImage
       const weight = grab(/^.*?\b(peso|weight)\b/i);
       const dims = [...new Set(b.spec.flat().map((i) => i.text.replace(/\s+/g, " ").trim()).filter((t) => DIM_RE.test(t)))].join(", ");
       const family = titleCase(b.title);
-      const entry = index.find((e) => norm(family).startsWith(norm(e.name)) || norm(e.name).startsWith(norm(family)) || (printedOffset !== null && e.pages.includes(p + printedOffset) && norm(family).split(" ")[0] === norm(e.name).split(" ")[0]));
+      const printed = printedOffset !== null ? p + printedOffset : null;
+      const nameHit = (e: { name: string }) => norm(family).startsWith(norm(e.name)) || norm(e.name).startsWith(norm(family));
+      const entry =
+        index.find((e) => nameHit(e) && printed !== null && e.pages.includes(printed)) ??
+        index.find((e) => nameHit(e)) ??
+        index.find((e) => printed !== null && e.pages.includes(printed) && norm(family).split(" ")[0] === norm(e.name).split(" ")[0]);
       const type = entry ? singular(entry.section) : "";
       for (const r of b.rows) {
         r.family = family;
