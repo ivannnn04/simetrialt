@@ -47,7 +47,7 @@ export function productFromPriceRow(row: PriceListRow, brand: string): PriceList
   const led = row.desc.match(/(\d+)x[\d,.]+W/);
   let kelvin = "";
   const tokens: string[] = [];
-  for (const s of splitSegments(row.desc)) {
+  for (const s of splitSegments(row.variant ?? row.desc)) {
     const k = s.match(KELVIN_RE);
     if (k) kelvin = `${k[1]}K`;
     if (TECH_RE.test(s) && !KEEP_RE.test(s)) continue;
@@ -63,8 +63,9 @@ export function productFromPriceRow(row: PriceListRow, brand: string): PriceList
   const colour = tokens.filter((t) => COLOUR_RE.test(t)).join(", ");
   const dimensions = all.filter((t) => SIZE_RE.test(t)).join(", ");
   const taxonomy = classify({ type: `${typeClean} ${name}`, name, section: family });
-  const description =
-    `${family}${brand ? ` by ${brand}` : ""} – ${typeClean}.\n\nSpecification: ${row.desc}` + (kelvin ? `\nColour temperature: ${kelvin}` : "");
+  const description = row.spec
+    ? `${family}${brand ? ` by ${brand}` : ""} – ${typeClean}${row.designer ? `, design ${row.designer}` : ""}.\n\n${row.variant ? `Finish: ${row.variant}\n` : ""}${row.spec}`
+    : `${family}${brand ? ` by ${brand}` : ""} – ${typeClean}.\n\nSpecification: ${row.desc}` + (kelvin ? `\nColour temperature: ${kelvin}` : "");
   return {
     sku: row.sku,
     name,

@@ -21,6 +21,7 @@ import { disambiguateNames, productFromPriceRow } from "@/lib/pricelist-products
 import { looksLikeBrandList, matchBrand, parseBrandList, type BrandInfo } from "@/lib/brand-list";
 import { mapConcurrent, matchProductPage, pageImages, siteUrls } from "@/lib/brand-site";
 import { extractCatalogueFamilies, findFamily, type FamilyBlock } from "@/lib/catalogue-families";
+import { extractBlockPriceList, type BlockRow } from "@/lib/pricelist-blocks";
 
 /**
  * Catalogue import wizard: a supplier PDF catalogue (photos, descriptions, specifications) plus
@@ -139,6 +140,7 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
     const prices = { rows: new Map<string, PriceRow>(), order: [] as string[] };
     // a price-list PDF (article number … price per line) and the supplier list (brand, website, transport %)
     const priceList: { rows: PriceListRow[]; text: string; names: string[] } = { rows: [], text: "", names: [] };
+    const blockRows = new Map<string, BlockRow>(); // price-list rows that carry their own photos / dimensions
     const brandList: BrandInfo[] = [];
     // a presentation catalogue: one family per page with photos, materials, colours (no prices)
     const catalogue: { blocks: FamilyBlock[]; names: string[] } = { blocks: [], names: [] };
@@ -156,6 +158,19 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
           if (pl && pl.rows.length >= 5) {
             priceList.rows.push(...pl.rows.filter((r) => !priceList.rows.some((x) => x.sku === r.sku)));
             priceList.text += `\n${pl.text}`;
+            priceList.names.push(doc.name);
+            continue;
+          }
+          // a price list printed as product blocks (title, specifications, finish / code / price table)
+          const bl = await extractBlockPriceList(doc.buffer).catch(() => null);
+          if (bl && bl.rows.length >= 5) {
+            warnings.push(`${doc.name}: ${bl.pages} psl., ${bl.rows.length} pozicijų (${new Set(bl.rows.map((r) => r.family)).size} produktų${bl.index.length ? `, tipai pagal turinį` : ""}).`);
+            for (const r of bl.rows) {
+              if (priceList.rows.some((x) => x.sku === r.sku)) continue;
+              priceList.rows.push(r);
+              blockRows.set(r.sku, r);
+            }
+            priceList.text += `\n${bl.text}`;
             priceList.names.push(doc.name);
             continue;
           }
@@ -326,6 +341,7 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
         if (bySku.has(p.sku)) continue;
         const fam = catalogue.blocks.length ? findFamily(catalogue.blocks, p.family, p.typeHint) : null;
         if (fam) withCatalogue++;
+        const own = blockRows.get(p.sku);
         const item: DraftItem = {
           idx: items.length,
           sku: p.sku,
@@ -334,16 +350,16 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
           category: p.category,
           brand: brandName,
           typology: p.typology,
-          material: fam?.materials ?? "",
+          material: fam?.materials ?? own?.materials ?? "",
           colour: p.colour,
-          dimensions: p.dimensions || fam?.dimensions || "",
+          dimensions: p.dimensions || own?.dimensions || fam?.dimensions || "",
           weight: "",
           price: (Math.round(p.netPrice * (1 + pct / 100) * (1 + vat / 100) * 100) / 100).toFixed(2),
           salePrice: "",
           from: fam ? ["pricelist", "pdf"] : ["pricelist"],
           page: fam?.page ?? null,
           existing: null,
-          images: (fam?.images ?? []).map((src, i) => ({ kind: "catalogue" as const, src, selected: i < 2 })),
+          images: [...(own?.images ?? []), ...(fam?.images ?? [])].map((src, i) => ({ kind: "catalogue" as const, src, selected: i < 2 })),
         };
         items.push(item);
         bySku.set(p.sku, item);

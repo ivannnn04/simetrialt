@@ -116,6 +116,7 @@ export async function extractBlockPriceList(data: ArrayBuffer, opts: { withImage
   const indexState = { section: "" };
   const textParts: string[] = [];
   let printedOffset: number | null = null; // printed page number − pdf page
+  let carry = ""; // title of the last block, for rows continued at the top of the next page
 
   for (let p = 1; p <= pdf.numPages; p++) {
     const page = await pdf.getPage(p);
@@ -155,7 +156,9 @@ export async function extractBlockPriceList(data: ArrayBuffer, opts: { withImage
       if (prev && line[0].y - prev.y < 14 && /[-–]$/.test(prev.text)) prev.text = `${prev.text} ${t}`.replace(/\s*[-–]\s+/g, " - ");
       else titles.push({ y: line[0].y, text: t });
     }
+    if (carry && (!titles.length || lines.some((l) => l[0].y < titles[0].y - 4 && l.some((i) => i.x >= tableX && CODE_RE.test(i.text.replace(/\*+$/, "")))))) titles.unshift({ y: -1, text: carry });
     if (!titles.length) continue;
+    carry = titles[titles.length - 1].text;
 
     const blockOf = (y: number) => {
       let k = -1;
@@ -175,13 +178,13 @@ export async function extractBlockPriceList(data: ArrayBuffer, opts: { withImage
       if (leftItems.length) b.spec.push(leftItems);
       b.dims.push(...leftItems.filter((i) => DIM_RE.test(i.text)).map((i) => i.text));
       if (!tableItems.length) continue;
-      const code = tableItems.find((i) => CODE_RE.test(i.text) && !PRICE_RE.test(i.text));
+      const code = tableItems.find((i) => CODE_RE.test(i.text.replace(/\*+$/, "")) && !PRICE_RE.test(i.text));
       const price = tableItems.find((i) => PRICE_RE.test(i.text) && (!code || i.x > code.x));
       if (code && price) {
         if (b.accessory) continue;
         const finish = lastLanguage(text(tableItems.filter((i) => i.x < code.x)));
         const n = Number.parseFloat(price.text.replace(/\s/g, "").replace(/\.(?=\d{3})/g, "").replace(",", "."));
-        if (Number.isFinite(n) && n > 0) b.rows.push({ sku: code.text, family: "", type: "", desc: "", price: n, page: p, finish, designer: "", materials: "", lightSource: "", weight: "", dimensions: "", images: [] });
+        if (Number.isFinite(n) && n > 0) b.rows.push({ sku: code.text.replace(/\*+$/, ""), family: "", type: "", desc: "", price: n, page: p, finish, designer: "", materials: "", lightSource: "", weight: "", dimensions: "", images: [] });
       } else {
         const t = text(tableItems);
         const last = b.rows[b.rows.length - 1];
@@ -242,7 +245,9 @@ export async function extractBlockPriceList(data: ArrayBuffer, opts: { withImage
         r.lightSource = light;
         r.weight = weight;
         r.dimensions = dims;
-        r.desc = [r.finish, power && `power ${power}`, voltage && `voltage ${voltage}`, light && `light source ${light}`, materials && `materials ${materials}`, weight && `weight ${weight}`].filter(Boolean).join(" / ");
+        r.variant = r.finish;
+        r.spec = [power && `Power: ${power}`, voltage && `Voltage: ${voltage}`, light && `Light source: ${light}`, materials && `Materials: ${materials}`, weight && `Weight: ${weight}`, dims && `Dimensions: ${dims}`].filter(Boolean).join("\n");
+        r.desc = [r.finish, power && `power ${power}`, light && `light source ${light}`, materials && `materials ${materials}`].filter(Boolean).join(" / ");
       }
     }
 

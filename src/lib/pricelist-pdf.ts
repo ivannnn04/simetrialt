@@ -23,6 +23,11 @@ export type PriceListRow = {
   /** catalogue price as printed (net) */
   price: number;
   page: number;
+  /** when known separately: the option words for the name (finish / colour / size) … */
+  variant?: string;
+  /** … and the specification lines for the description */
+  spec?: string;
+  designer?: string;
 };
 
 type Word = { x0: number; y: number; x1: number; text: string };
