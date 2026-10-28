@@ -96,10 +96,13 @@ export function parsePriceLines(lines: string[], page: number): PriceListRow[] {
 }
 
 export async function extractPriceListPdf(data: ArrayBuffer): Promise<{ rows: PriceListRow[]; text: string; pages: number }> {
-  const pdf = await getDocumentProxy(new Uint8Array(data));
+  // pdf.js takes ownership of the buffer it is given: work on a copy so the caller can read the file again
+  const pdf = await getDocumentProxy(new Uint8Array(data.slice(0)));
   const rows: PriceListRow[] = [];
   const textParts: string[] = [];
   for (let p = 1; p <= pdf.numPages; p++) {
+    // a photo catalogue has no price lines at all: give up after a while instead of reading every page
+    if (p > 25 && rows.length === 0) break;
     const page = await pdf.getPage(p);
     const pageHeight = page.view[3] - page.view[1];
     const pageWidth = page.view[2] - page.view[0];

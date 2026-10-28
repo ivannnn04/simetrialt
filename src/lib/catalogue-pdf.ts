@@ -35,7 +35,7 @@ const PRICE_RE = /(€|eur|\$|£)\s?\d|\d[\d.,]*\s?(€|eur)/i;
 const SKU_LABEL_RE = /\b(art\.?\s*no\.?|article\s*(?:no\.?|number)?|artikel|sku|code|kodas|codice|ref\.?|item\s*no\.?)\s*[:#.]?\s*((?=[A-Z0-9.\-/]*\d)[A-Z0-9][A-Z0-9.\-/]{3,})/i;
 
 export async function extractPdfPages(data: ArrayBuffer): Promise<{ lines: PdfLine[]; images: PdfImage[]; pages: number }> {
-  const pdf = await getDocumentProxy(new Uint8Array(data));
+  const pdf = await getDocumentProxy(new Uint8Array(data.slice(0)));
   const pdfjs = await getResolvedPDFJS();
   const OPS = pdfjs.OPS;
   const lines: PdfLine[] = [];

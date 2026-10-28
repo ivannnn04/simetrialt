@@ -152,7 +152,7 @@ const typeWords = (s: string) => new Set((s.toLowerCase().match(/[a-z]+/g) ?? []
 export async function extractCatalogueFamilies(data: ArrayBuffer, opts: { withImages?: boolean; maxImagesPerFamily?: number } = {}): Promise<{ blocks: FamilyBlock[]; pages: number }> {
   const withImages = opts.withImages ?? true;
   const maxImages = opts.maxImagesPerFamily ?? 3;
-  const pdf = await getDocumentProxy(new Uint8Array(data));
+  const pdf = await getDocumentProxy(new Uint8Array(data.slice(0)));
   const pdfjs = await getResolvedPDFJS();
   const OPS = pdfjs.OPS;
   const blocks: FamilyBlock[] = [];
