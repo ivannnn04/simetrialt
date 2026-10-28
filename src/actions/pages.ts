@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireEditor } from "@/lib/auth";
 import { slugify } from "@/lib/slug";
 
 const pageSchema = z.object({
@@ -17,7 +17,7 @@ const pageSchema = z.object({
 });
 
 export async function savePage(id: string | null, formData: FormData) {
-  await requireUser();
+  await requireEditor();
   const parsed = pageSchema.parse({
     title: formData.get("title"),
     slug: String(formData.get("slug") ?? ""),
@@ -39,7 +39,7 @@ export async function savePage(id: string | null, formData: FormData) {
 }
 
 export async function deletePage(id: string) {
-  await requireUser();
+  await requireEditor();
   await db.page.delete({ where: { id } });
   revalidatePath("/");
   redirect("/admin/pages");

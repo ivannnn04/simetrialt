@@ -1,7 +1,9 @@
 import { db } from "@/lib/db";
+import { requireEditor } from "@/lib/auth";
 import { ProductForm } from "@/components/ProductForm";
 
 export default async function NewProduct() {
+  await requireEditor();
   const categories = await db.category.findMany({ orderBy: { sort: "asc" } });
   return (
     <div>

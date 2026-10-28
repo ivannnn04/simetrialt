@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireUser } from "@/lib/auth";
+import { requireEditor } from "@/lib/auth";
 import { slugify } from "@/lib/slug";
 import { saveImage } from "@/lib/uploads";
 import type { Project, ProjectType } from "@/data/projects";
@@ -53,7 +53,7 @@ async function imageField(fd: FormData, key: string, previous: string): Promise<
 const PROJECT_TYPES: ProjectType[] = ["private", "public", "other"];
 
 export async function saveProject(originalSlug: string | null, formData: FormData) {
-  await requireUser();
+  await requireEditor();
   const projects = [...(await getProjects())];
   const existing = originalSlug ? projects.find((p) => p.slug === originalSlug) : undefined;
   const name = str(formData, "name");
@@ -89,7 +89,7 @@ export async function saveProject(originalSlug: string | null, formData: FormDat
 }
 
 export async function deleteProject(slug: string) {
-  await requireUser();
+  await requireEditor();
   const projects = (await getProjects()).filter((p) => p.slug !== slug);
   await writeSetting(KEYS.projects, projects);
   clearContentCache();
@@ -98,7 +98,7 @@ export async function deleteProject(slug: string) {
 }
 
 export async function moveProject(slug: string, direction: -1 | 1) {
-  await requireUser();
+  await requireEditor();
   const projects = [...(await getProjects())];
   const i = projects.findIndex((p) => p.slug === slug);
   const j = i + direction;
@@ -115,7 +115,7 @@ export async function moveProject(slug: string, direction: -1 | 1) {
 const HEIGHTS = [458, 366, 275] as const;
 
 export async function saveBrand(originalSlug: string | null, formData: FormData) {
-  await requireUser();
+  await requireEditor();
   const brands = [...(await getBrands())];
   const existing = originalSlug ? brands.find((b) => b.slug === originalSlug) : undefined;
   const name = str(formData, "name");
@@ -151,7 +151,7 @@ export async function saveBrand(originalSlug: string | null, formData: FormData)
 }
 
 export async function deleteBrand(slug: string) {
-  await requireUser();
+  await requireEditor();
   await writeSetting(KEYS.brands, (await getBrands()).filter((b) => b.slug !== slug));
   clearContentCache();
   revalidateSite();
@@ -159,7 +159,7 @@ export async function deleteBrand(slug: string) {
 }
 
 export async function moveBrand(slug: string, direction: -1 | 1) {
-  await requireUser();
+  await requireEditor();
   const brands = [...(await getBrands())];
   const i = brands.findIndex((b) => b.slug === slug);
   const j = i + direction;
@@ -174,7 +174,7 @@ export async function moveBrand(slug: string, direction: -1 | 1) {
 // ---------- Site settings ----------
 
 export async function saveSettings(formData: FormData) {
-  await requireUser();
+  await requireEditor();
   const current = await getContacts();
   const phone = str(formData, "phone") || current.phone;
   const contacts: SiteContacts = {

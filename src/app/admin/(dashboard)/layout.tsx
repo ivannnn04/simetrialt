@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { requireUser } from "@/lib/auth";
+import { requireUser, ROLE_LABELS, type Role } from "@/lib/auth";
 import { logoutAction } from "@/actions/auth";
 import { dbStatus } from "@/lib/db";
 import { SetupNotice } from "@/components/admin/SetupNotice";
 
-const GROUPS: { title: string; items: { href: string; label: string }[] }[] = [
+const GROUPS: { title: string; items: { href: string; label: string; roles?: string[] }[] }[] = [
   {
     title: "Svetainė",
     items: [
@@ -25,13 +25,23 @@ const GROUPS: { title: string; items: { href: string; label: string }[] }[] = [
   },
   {
     title: "Klientai",
-    items: [{ href: "/admin/leads", label: "Užklausos (CRM)" }],
+    items: [
+      { href: "/admin/leads", label: "Užklausos (CRM)" },
+      { href: "/admin/quotes", label: "Pasiūlymai" },
+      { href: "/admin/customers", label: "Registruoti klientai", roles: ["ADMIN"] },
+    ],
   },
   {
     title: "Sistema",
-    items: [{ href: "/admin/users", label: "Vartotojai ir slaptažodžiai" }],
+    items: [{ href: "/admin/users", label: "Vartotojai ir slaptažodžiai", roles: ["ADMIN"] }],
   },
 ];
+
+/** A showroom manager sees only the quotes; editors everything but user management; the admin everything. */
+function navFor(role: string) {
+  if (role === "SHOWROOM") return [{ title: "Salonas", items: [{ href: "/admin/quotes", label: "Pasiūlymai" }] }];
+  return GROUPS.map((g) => ({ ...g, items: g.items.filter((i) => !i.roles || i.roles.includes(role)) })).filter((g) => g.items.length);
+}
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const status = await dbStatus();
@@ -48,10 +58,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <aside className="flex w-64 shrink-0 flex-col border-r border-zinc-200 bg-white">
         <div className="border-b border-zinc-200 p-4">
           <p className="notranslate text-lg font-semibold tracking-tight" translate="no">Simetria</p>
-          <p className="text-xs text-zinc-500">Administravimas · {user.email}</p>
+          <p className="text-xs text-zinc-500">{ROLE_LABELS[user.role as Role] ?? "Administravimas"} · {user.email}</p>
         </div>
         <nav className="flex-1 space-y-5 p-3">
-          {GROUPS.map((g) => (
+          {navFor(user.role).map((g) => (
             <div key={g.title}>
               <p className="mb-1 px-3 text-[11px] font-semibold uppercase tracking-wide text-zinc-400">{g.title}</p>
               {g.items.map((item) => (

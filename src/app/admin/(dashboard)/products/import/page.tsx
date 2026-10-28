@@ -1,9 +1,11 @@
+import { requireEditor } from "@/lib/auth";
 import { CatalogueWizard } from "@/components/admin/CatalogueWizard";
 
 // PDF parsing and photo downloads can take a while on large catalogues.
 export const maxDuration = 300;
 
-export default function ImportPage() {
+export default async function ImportPage() {
+  await requireEditor();
   return (
     <div className="space-y-10">
       <div>

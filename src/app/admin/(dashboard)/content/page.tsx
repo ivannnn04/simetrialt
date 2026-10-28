@@ -1,3 +1,4 @@
+import { requireEditor } from "@/lib/auth";
 import Link from "next/link";
 import { CONTENT_SECTIONS } from "@/lib/content-sections";
 import { LOCALES, LOCALE_LABELS } from "@/i18n/config";
@@ -5,6 +6,7 @@ import { getContentOverrides } from "@/lib/site-content";
 import { Card, PageTitle } from "@/components/admin/ui";
 
 export default async function ContentIndex() {
+  await requireEditor();
   const edited = await Promise.all(LOCALES.map(async (l) => [l, Object.keys(await getContentOverrides(l))] as const));
   const count = (locale: string, key: string) =>
     (edited.find(([l]) => l === locale)?.[1] ?? []).filter((p) => p === key || p.startsWith(`${key}.`)).length;

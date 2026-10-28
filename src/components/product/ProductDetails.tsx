@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductInfo } from "@/components/product/ProductInfo";
+import { AddToQuote } from "@/components/product/AddToQuote";
 import type { ProductView } from "@/lib/product-page";
 
 /**
@@ -10,7 +11,7 @@ import type { ProductView } from "@/lib/product-page";
  * colour or another option swaps the photos, price, SKU and specification together. The URL is
  * updated to the variant's own page without a reload, so links and the back button stay exact.
  */
-export function ProductDetails({ product, crumbs }: { product: ProductView; crumbs: React.ReactNode }) {
+export function ProductDetails({ product, crumbs, staff = false }: { product: ProductView; crumbs: React.ReactNode; staff?: boolean }) {
   const [selectedId, setSelectedId] = useState(product.id);
   const variant = useMemo(() => product.variants.find((v) => v.id === selectedId) ?? product.variants[0], [product.variants, selectedId]);
 
@@ -35,6 +36,7 @@ export function ProductDetails({ product, crumbs }: { product: ProductView; crum
       {/* Info column (node 4217:46881) */}
       <div className="min-[993px]:sticky min-[993px]:top-0 min-[993px]:self-start">
         <ProductInfo product={product} variant={variant} onSelect={select} />
+        {staff && !/^sample-/.test(variant.slug) && <AddToQuote productId={variant.id} />}
       </div>
     </section>
   );

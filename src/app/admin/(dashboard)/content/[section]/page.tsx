@@ -1,3 +1,4 @@
+import { requireEditor } from "@/lib/auth";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LOCALES, LOCALE_LABELS, isLocale, DEFAULT_LOCALE } from "@/i18n/config";
@@ -26,6 +27,7 @@ export default async function ContentSection({
   params: Promise<{ section: string }>;
   searchParams: Promise<{ locale?: string; saved?: string; reset?: string }>;
 }) {
+  await requireEditor();
   const [{ section }, sp] = await Promise.all([params, searchParams]);
   if (!CONTENT_SECTIONS.some((s) => s.key === section)) notFound();
   const locale = isLocale(sp.locale) ? sp.locale : DEFAULT_LOCALE;

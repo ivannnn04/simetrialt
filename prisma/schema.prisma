@@ -15,9 +15,49 @@ model User {
   email        String   @unique
   passwordHash String
   name         String
-  role         String   @default("ADMIN") // ADMIN | EDITOR
+  role         String   @default("ADMIN") // ADMIN (super admin) | EDITOR | SHOWROOM (showroom manager: quotes only)
+  quotes       Quote[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+/** A commercial offer prepared in the showroom: products with quantities, per-line and whole-quote discounts. */
+model Quote {
+  id            String      @id @default(cuid())
+  number        Int         @default(autoincrement())
+  status        String      @default("DRAFT") // DRAFT | SENT | ACCEPTED | DECLINED
+  customerName  String      @default("")
+  customerEmail String      @default("")
+  customerPhone String      @default("")
+  company       String      @default("")
+  note          String      @default("")
+  /** discount on the whole quote, percent */
+  discountPct   Float       @default(0)
+  validUntil    DateTime?
+  author        User?       @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  authorId      String?
+  items         QuoteItem[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([customerEmail])
+}
+
+model QuoteItem {
+  id          String   @id @default(cuid())
+  quote       Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  quoteId     String
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productId   String?
+  name        String
+  sku         String   @default("")
+  image       String   @default("")
+  /** unit price incl. VAT, as on the website, in cents */
+  unitCents   Int
+  quantity    Int      @default(1)
+  /** discount on this line, percent */
+  discountPct Float    @default(0)
+  sort        Int      @default(0)
 }
 
 // ---------- CMS ----------
@@ -73,6 +113,7 @@ model Product {
   categoryId  String?
   images      ProductImage[]
   savedIn     CollectionItem[]
+  quoteItems  QuoteItem[]
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 

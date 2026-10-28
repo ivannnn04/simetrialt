@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { requireEditor } from "@/lib/auth";
 
 export default async function PagesList() {
+  await requireEditor();
   const pages = await db.page.findMany({ orderBy: { updatedAt: "desc" } });
   return (
     <div>

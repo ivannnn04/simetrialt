@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { randomBytes } from "crypto";
 import { db } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireEditor } from "@/lib/auth";
 import { slugify } from "@/lib/slug";
 import { saveImage } from "@/lib/uploads";
 import mammoth from "mammoth";
@@ -115,7 +115,7 @@ async function photoDataUrl(buffer: ArrayBuffer): Promise<string> {
 
 /** Step 1: read every document, build the draft items and stage them. */
 export async function analyzeCatalogue(_prev: Draft | null | undefined, formData: FormData): Promise<Draft | null> {
-  await requireUser();
+  await requireEditor();
   const brand = String(formData.get("brand") ?? "").trim();
   const warnings: string[] = [];
 
@@ -545,7 +545,7 @@ export type FoundImages = { candidates: (ImageCandidate & { match: boolean })[];
 
 /** Finds more photos of a draft product online; with AI configured, flags the ones showing the same product. */
 export async function findMoreImages(token: string, idx: number, override?: { brand?: string; name?: string; description?: string }): Promise<FoundImages> {
-  await requireUser();
+  await requireEditor();
   const draft = await loadDraft(token);
   const item = draft?.items[idx];
   if (!item) return { candidates: [], error: "Juodraščio nebėra – įkelkite failus iš naujo." };
@@ -598,7 +598,7 @@ function dataUrlToFile(dataUrl: string, name: string): File {
 
 /** Step 2: write the reviewed items to the catalogue. */
 export async function publishDraft(_prev: PublishResult | null | undefined, formData: FormData): Promise<PublishResult | null> {
-  await requireUser();
+  await requireEditor();
   const token = String(formData.get("token") ?? "");
   const publish = formData.get("publish") === "on";
   const draft = await loadDraft(token);

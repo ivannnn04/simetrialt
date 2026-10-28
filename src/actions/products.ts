@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireEditor } from "@/lib/auth";
 import { slugify } from "@/lib/slug";
 import { saveImage } from "@/lib/uploads";
 import { deriveVariant } from "@/lib/variants";
@@ -21,7 +21,7 @@ function optionalCents(raw: string): number | null {
 const optional = (v: FormDataEntryValue | null | string) => String(v ?? "").trim() || null;
 
 export async function saveProduct(id: string | null, formData: FormData) {
-  await requireUser();
+  await requireEditor();
   const name = String(formData.get("name") ?? "").trim();
   if (!name) throw new Error("Pavadinimas privalomas");
   const slug = slugify(String(formData.get("slug") ?? "") || name);
@@ -75,7 +75,7 @@ export async function saveProduct(id: string | null, formData: FormData) {
 }
 
 export async function deleteProduct(id: string) {
-  await requireUser();
+  await requireEditor();
   await db.product.delete({ where: { id } });
   revalidatePath("/catalogue");
   redirect("/admin/products");
@@ -85,7 +85,7 @@ export type BulkDeleteResult = { deleted: number; error?: string } | null;
 
 /** Bulk delete from the products table: the selected ids, or every product when `all` is on. */
 export async function deleteProducts(_prev: BulkDeleteResult, formData: FormData): Promise<BulkDeleteResult> {
-  await requireUser();
+  await requireEditor();
   const all = formData.get("all") === "on";
   const ids = formData.getAll("ids").map(String).filter(Boolean);
   try {
@@ -115,7 +115,7 @@ export async function deleteProducts(_prev: BulkDeleteResult, formData: FormData
 
 /** Recomputes the variant group of every product from its name (used once after the variants feature shipped, or after bulk edits). */
 export async function regroupProducts(): Promise<{ products: number; groups: number }> {
-  await requireUser();
+  await requireEditor();
   const products = await db.product.findMany({ select: { id: true, name: true, brand: true, typology: true, description: true, sku: true } });
   const keys = new Set<string>();
   for (const p of products) {
@@ -130,13 +130,13 @@ export async function regroupProducts(): Promise<{ products: number; groups: num
 }
 
 export async function deleteProductImage(imageId: string, productId: string) {
-  await requireUser();
+  await requireEditor();
   await db.productImage.delete({ where: { id: imageId } });
   revalidatePath(`/admin/products/${productId}`);
 }
 
 export async function saveCategory(formData: FormData) {
-  await requireUser();
+  await requireEditor();
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return;
   await db.category.create({ data: { name, slug: slugify(name) } });
@@ -145,7 +145,7 @@ export async function saveCategory(formData: FormData) {
 }
 
 export async function deleteCategory(id: string) {
-  await requireUser();
+  await requireEditor();
   await db.category.delete({ where: { id } });
   revalidatePath("/admin/products");
   revalidatePath("/catalogue");

@@ -1,3 +1,4 @@
+import { requireEditor } from "@/lib/auth";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getProjectBySlug } from "@/lib/site-content";
@@ -12,6 +13,7 @@ export default async function ProjectEdit({
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ saved?: string }>;
 }) {
+  await requireEditor();
   const [{ slug }, sp] = await Promise.all([params, searchParams]);
   const isNew = slug === "new";
   const project = isNew ? null : await getProjectBySlug(slug);

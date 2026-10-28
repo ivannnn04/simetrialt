@@ -1,3 +1,4 @@
+import { requireEditor } from "@/lib/auth";
 import Link from "next/link";
 import { getProjects } from "@/lib/site-content";
 import { moveProject } from "@/actions/site-data";
@@ -6,6 +7,7 @@ import { Badge, Card, PageTitle, PrimaryLink } from "@/components/admin/ui";
 const TYPE_LABEL: Record<string, string> = { private: "Privatus", public: "Viešas", other: "Kita" };
 
 export default async function ProjectsAdmin() {
+  await requireEditor();
   const projects = await getProjects();
   return (
     <div className="space-y-6">

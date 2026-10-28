@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { requireEditor } from "@/lib/auth";
 import { getBrands, getProjects } from "@/lib/site-content";
 import { Card, PageTitle } from "@/components/admin/ui";
 
 export default async function AdminDashboard() {
-  const [pages, products, leads, newLeads, users, projects, brands, recent] = await Promise.all([
+  await requireEditor();
+  const [pages, products, leads, newLeads, users, projects, brands, recent, quotes, customers] = await Promise.all([
     db.page.count(),
     db.product.count(),
     db.lead.count(),
@@ -13,6 +15,8 @@ export default async function AdminDashboard() {
     getProjects(),
     getBrands(),
     db.lead.findMany({ orderBy: { createdAt: "desc" }, take: 5 }),
+    db.quote.count({ where: { status: { in: ["DRAFT", "SENT"] } } }),
+    db.customer.count(),
   ]);
   const cards = [
     { label: "Naujos užklausos", value: newLeads, href: "/admin/leads?status=NEW" },
@@ -21,6 +25,8 @@ export default async function AdminDashboard() {
     { label: "Projektai", value: projects.length, href: "/admin/projects" },
     { label: "Prekių ženklai", value: brands.length, href: "/admin/brands" },
     { label: "Papildomi puslapiai", value: pages, href: "/admin/pages" },
+    { label: "Atviri pasiūlymai", value: quotes, href: "/admin/quotes" },
+    { label: "Registruoti klientai", value: customers, href: "/admin/customers" },
     { label: "Vartotojai", value: users, href: "/admin/users" },
   ];
   const shortcuts = [

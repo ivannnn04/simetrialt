@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
+import { requireEditor } from "@/lib/auth";
 import { addLeadNote, deleteLead, updateLeadStatus } from "@/actions/leads";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -15,6 +16,7 @@ export default async function LeadDetail({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireEditor();
   const { id } = await params;
   const lead = await db.lead.findUnique({
     where: { id },

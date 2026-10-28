@@ -42,3 +42,21 @@ export async function requireUser() {
   if (!user) redirect("/admin/login");
   return user;
 }
+
+export type Role = "ADMIN" | "EDITOR" | "SHOWROOM";
+export const ROLE_LABELS: Record<Role, string> = { ADMIN: "Administratorius", EDITOR: "Redaktorius", SHOWROOM: "Salono vadybininkas" };
+
+/** The first page of the admin area for a role: showroom managers land on their quotes. */
+export const homeFor = (role: string) => (role === "SHOWROOM" ? "/admin/quotes" : "/admin");
+
+/** Guard for pages/actions reserved to some roles; others are sent to their own start page. */
+export async function requireRole(...roles: Role[]) {
+  const user = await requireUser();
+  if (!roles.includes(user.role as Role)) redirect(homeFor(user.role));
+  return user;
+}
+
+/** Content and catalogue management: administrators and editors. */
+export const requireEditor = () => requireRole("ADMIN", "EDITOR");
+/** User management: the super admin only. */
+export const requireAdmin = () => requireRole("ADMIN");

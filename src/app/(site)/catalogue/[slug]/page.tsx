@@ -6,6 +6,7 @@ import { ProductLine } from "@/components/home/HomeSections";
 import { ProductDetails } from "@/components/product/ProductDetails";
 import { DESCRIPTION, loadProduct } from "@/lib/product-page";
 import { getT } from "@/i18n/server";
+import { currentUser } from "@/lib/auth";
 import { term } from "@/i18n/dictionaries";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +21,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 // Figma "Product page" (node 4217:46868)
 export default async function ProductPage({ params }: Params) {
-  const [{ slug }, t] = await Promise.all([params, getT()]);
+  const [{ slug }, t, staff] = await Promise.all([params, getT(), currentUser()]);
   const loaded = await loadProduct(slug);
   if (!loaded) notFound();
   // The placeholder description follows the locale until products carry their own translations.
@@ -48,7 +49,7 @@ export default async function ProductPage({ params }: Params) {
   return (
     <div className="flex w-full flex-col bg-cream pb-10 md:pb-[120px]">
       <SiteHeader variant="solid" />
-      <ProductDetails product={product} crumbs={<Breadcrumbs items={crumbs} />} />
+      <ProductDetails product={product} crumbs={<Breadcrumbs items={crumbs} />} staff={Boolean(staff)} />
 
       <ProductLine products={product.related} title={t.product.related} cta={null} className="pt-[120px]" />
     </div>

@@ -1,9 +1,11 @@
+import { requireEditor } from "@/lib/auth";
 import Link from "next/link";
 import { getBrands } from "@/lib/site-content";
 import { moveBrand } from "@/actions/site-data";
 import { Card, PageTitle, PrimaryLink } from "@/components/admin/ui";
 
 export default async function BrandsAdmin() {
+  await requireEditor();
   const brands = await getBrands();
   return (
     <div className="space-y-6">

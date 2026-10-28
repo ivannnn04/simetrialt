@@ -4,18 +4,19 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireAdmin, requireUser } from "@/lib/auth";
 
 const MIN_PASSWORD = 8;
 
 type Result = { error?: string; ok?: string };
 
 export async function createUser(_prev: Result | undefined, formData: FormData): Promise<Result> {
-  await requireUser();
+  await requireAdmin();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const name = String(formData.get("name") ?? "").trim();
   const password = String(formData.get("password") ?? "");
-  const role = String(formData.get("role") ?? "ADMIN") === "EDITOR" ? "EDITOR" : "ADMIN";
+  const wanted = String(formData.get("role") ?? "ADMIN");
+  const role = ["ADMIN", "EDITOR", "SHOWROOM"].includes(wanted) ? wanted : "ADMIN";
   if (!email || !name) return { error: "Įveskite vardą ir el. paštą." };
   if (password.length < MIN_PASSWORD) return { error: `Slaptažodis turi būti bent ${MIN_PASSWORD} simbolių.` };
   if (await db.user.findUnique({ where: { email } })) return { error: "Toks el. paštas jau užregistruotas." };
@@ -27,6 +28,8 @@ export async function createUser(_prev: Result | undefined, formData: FormData):
 export async function changePassword(_prev: Result | undefined, formData: FormData): Promise<Result> {
   const me = await requireUser();
   const userId = String(formData.get("userId") ?? me.id);
+  // only the super admin changes other people's passwords
+  if (userId !== me.id && me.role !== "ADMIN") return { error: "Tik administratorius gali keisti kitų vartotojų slaptažodžius." };
   const password = String(formData.get("password") ?? "");
   const confirm = String(formData.get("confirm") ?? "");
   if (password.length < MIN_PASSWORD) return { error: `Slaptažodis turi būti bent ${MIN_PASSWORD} simbolių.` };
@@ -37,10 +40,18 @@ export async function changePassword(_prev: Result | undefined, formData: FormDa
 }
 
 export async function deleteUser(id: string) {
-  const me = await requireUser();
+  const me = await requireAdmin();
   if (id === me.id) return;
   if ((await db.user.count()) <= 1) return;
   await db.user.delete({ where: { id } });
   revalidatePath("/admin/users");
   redirect("/admin/users");
+}
+
+export async function changeRole(id: string, formData: FormData) {
+  const me = await requireAdmin();
+  const role = String(formData.get("role") ?? "");
+  if (id === me.id || !["ADMIN", "EDITOR", "SHOWROOM"].includes(role)) return;
+  await db.user.update({ where: { id }, data: { role } });
+  revalidatePath("/admin/users");
 }

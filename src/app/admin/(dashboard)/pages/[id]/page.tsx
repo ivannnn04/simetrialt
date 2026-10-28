@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
+import { requireEditor } from "@/lib/auth";
 import { PageForm } from "@/components/PageForm";
 
 export default async function EditPage({
@@ -7,6 +8,7 @@ export default async function EditPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireEditor();
   const { id } = await params;
   const page = await db.page.findUnique({ where: { id } });
   if (!page) notFound();

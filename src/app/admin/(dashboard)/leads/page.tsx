@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { requireEditor } from "@/lib/auth";
 import { createLead } from "@/actions/leads";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -23,6 +24,7 @@ export default async function LeadsList({
 }: {
   searchParams: Promise<{ status?: string }>;
 }) {
+  await requireEditor();
   const { status } = await searchParams;
   const leads = await db.lead.findMany({
     where: status ? { status } : undefined,

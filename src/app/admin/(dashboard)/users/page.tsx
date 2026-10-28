@@ -1,16 +1,20 @@
 import { db } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
-import { deleteUser } from "@/actions/users";
+import { requireAdmin, ROLE_LABELS, type Role } from "@/lib/auth";
+import { changeRole, deleteUser } from "@/actions/users";
 import { Badge, Card, PageTitle } from "@/components/admin/ui";
 import { ConfirmButton } from "@/components/admin/ConfirmButton";
 import { ChangePasswordForm, CreateUserForm } from "@/components/admin/UserForms";
 
 export default async function UsersAdmin() {
-  const me = await requireUser();
+  const me = await requireAdmin();
   const users = await db.user.findMany({ orderBy: { createdAt: "asc" } });
   return (
     <div className="space-y-6">
       <PageTitle>Vartotojai ir slaptažodžiai</PageTitle>
+      <p className="text-sm text-zinc-600">
+        Administratorius valdo visą sistemą ir vartotojus. Redaktorius tvarko svetainės turinį ir katalogą. Salono vadybininkas mato tik
+        pasiūlymus: naršo katalogą svetainėje ir rengia komercinius pasiūlymus su nuolaidomis.
+      </p>
       <Card className="p-0">
         <table className="w-full text-sm">
           <thead className="bg-zinc-50 text-left text-zinc-500">
@@ -29,7 +33,20 @@ export default async function UsersAdmin() {
                   {u.name} {u.id === me.id && <Badge tone="green">jūs</Badge>}
                 </td>
                 <td className="p-4 text-zinc-500">{u.email}</td>
-                <td className="p-4"><Badge>{u.role === "EDITOR" ? "Redaktorius" : "Administratorius"}</Badge></td>
+                <td className="p-4">
+                  {u.id === me.id ? (
+                    <Badge>{ROLE_LABELS[u.role as Role] ?? u.role}</Badge>
+                  ) : (
+                    <form action={changeRole.bind(null, u.id)}>
+                      <select name="role" defaultValue={u.role} className="rounded-md border border-zinc-300 bg-white px-2 py-1 text-xs">
+                        {Object.entries(ROLE_LABELS).map(([k, v]) => (
+                          <option key={k} value={k}>{v}</option>
+                        ))}
+                      </select>
+                      <button type="submit" className="ml-2 text-xs underline">Keisti</button>
+                    </form>
+                  )}
+                </td>
                 <td className="p-4 text-zinc-500">{u.createdAt.toLocaleDateString("lt-LT")}</td>
                 <td className="p-4 text-right">
                   {u.id !== me.id && users.length > 1 && (

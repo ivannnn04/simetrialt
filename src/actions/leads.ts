@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireEditor } from "@/lib/auth";
 import { getT } from "@/i18n/server";
 
 const contactSchema = (m: { firstName: string; email: string; message: string }) =>
@@ -52,7 +52,7 @@ export async function submitContact(
 }
 
 export async function createLead(formData: FormData) {
-  await requireUser();
+  await requireEditor();
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return;
   await db.lead.create({
@@ -71,7 +71,7 @@ export async function createLead(formData: FormData) {
 const STATUSES = ["NEW", "CONTACTED", "QUALIFIED", "WON", "LOST"] as const;
 
 export async function updateLeadStatus(id: string, status: string) {
-  await requireUser();
+  await requireEditor();
   if (!STATUSES.includes(status as (typeof STATUSES)[number])) return;
   await db.lead.update({ where: { id }, data: { status } });
   revalidatePath(`/admin/leads/${id}`);
@@ -79,7 +79,7 @@ export async function updateLeadStatus(id: string, status: string) {
 }
 
 export async function addLeadNote(leadId: string, formData: FormData) {
-  await requireUser();
+  await requireEditor();
   const body = String(formData.get("body") ?? "").trim();
   if (!body) return;
   await db.note.create({ data: { leadId, body } });
@@ -87,7 +87,7 @@ export async function addLeadNote(leadId: string, formData: FormData) {
 }
 
 export async function deleteLead(id: string) {
-  await requireUser();
+  await requireEditor();
   await db.lead.delete({ where: { id } });
   revalidatePath("/admin/leads");
   redirect("/admin/leads");

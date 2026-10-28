@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
+import { requireEditor } from "@/lib/auth";
 import { ProductForm } from "@/components/ProductForm";
 
 export default async function EditProduct({
@@ -7,6 +8,7 @@ export default async function EditProduct({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireEditor();
   const { id } = await params;
   const [product, categories] = await Promise.all([
     db.product.findUnique({

@@ -1,8 +1,10 @@
+import { requireEditor } from "@/lib/auth";
 import { getContacts, getSlides } from "@/lib/site-content";
 import { saveSettings } from "@/actions/site-data";
 import { Card, Field, Input, Notice, PageTitle, PrimaryButton } from "@/components/admin/ui";
 
 export default async function SettingsAdmin({ searchParams }: { searchParams: Promise<{ saved?: string }> }) {
+  await requireEditor();
   const [sp, c, slides] = await Promise.all([searchParams, getContacts(), getSlides()]);
   return (
     <div className="space-y-6">

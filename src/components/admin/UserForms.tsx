@@ -22,6 +22,7 @@ export function CreateUserForm() {
           <Select name="role" defaultValue="ADMIN">
             <option value="ADMIN">Administratorius</option>
             <option value="EDITOR">Redaktorius</option>
+            <option value="SHOWROOM">Salono vadybininkas</option>
           </Select>
         </Field>
       </div>

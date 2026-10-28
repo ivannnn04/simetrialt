@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { requireEditor } from "@/lib/auth";
 import { saveCategory, deleteCategory } from "@/actions/products";
 import { ProductsTable } from "@/components/admin/ProductsTable";
 import { RegroupButton } from "@/components/admin/RegroupButton";
@@ -8,6 +9,7 @@ import { RegroupButton } from "@/components/admin/RegroupButton";
 export const maxDuration = 120;
 
 export default async function ProductsList() {
+  await requireEditor();
   const [products, categories] = await Promise.all([
     db.product.findMany({
       orderBy: { updatedAt: "desc" },

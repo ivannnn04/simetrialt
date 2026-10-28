@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireUser } from "@/lib/auth";
+import { requireEditor } from "@/lib/auth";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getPath } from "@/i18n/overrides";
@@ -26,7 +26,7 @@ const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
  * `k:<path>`; values equal to the shipped copy are dropped so only real edits are stored.
  */
 export async function saveContentSection(locale: string, section: string, formData: FormData) {
-  await requireUser();
+  await requireEditor();
   if (!isLocale(locale)) throw new Error("Unknown locale");
   const defaults = getDictionary(locale as Locale);
   const overrides = { ...(await getContentOverrides(locale as Locale)) };
@@ -49,7 +49,7 @@ export async function saveContentSection(locale: string, section: string, formDa
 
 /** Drops every stored edit of one section so the shipped copy shows again. */
 export async function resetContentSection(locale: string, section: string) {
-  await requireUser();
+  await requireEditor();
   if (!isLocale(locale)) throw new Error("Unknown locale");
   const overrides = { ...(await getContentOverrides(locale as Locale)) };
   for (const key of Object.keys(overrides)) {
