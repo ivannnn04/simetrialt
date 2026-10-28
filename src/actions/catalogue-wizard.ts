@@ -29,7 +29,7 @@ import { mapConcurrent, matchProductPage, pageImages, siteUrls } from "@/lib/bra
 
 const DRAFT_TTL_MS = 2 * 60 * 60 * 1000;
 const draftKey = (token: string) => `draft:${token}`;
-const MAX_FETCH_BYTES = 40 * 1024 * 1024;
+const MAX_FETCH_BYTES = 300 * 1024 * 1024;
 
 const cents = (n: number | null | undefined) => (n == null ? "" : (n / 100).toFixed(2));
 
@@ -64,7 +64,7 @@ async function fetchDocument(url: string): Promise<{ buffer: ArrayBuffer; name: 
   const res = await fetch(url, { redirect: "follow" });
   if (!res.ok) throw new Error(`Nepavyko atsisiųsti ${url} (${res.status}).`);
   const len = Number(res.headers.get("content-length") ?? 0);
-  if (len > MAX_FETCH_BYTES) throw new Error(`${url}: failas per didelis (daugiau nei 40 MB).`);
+  if (len > MAX_FETCH_BYTES) throw new Error(`${url}: failas per didelis (daugiau nei 300 MB).`);
   const buffer = await res.arrayBuffer();
   let name = decodeURIComponent(new URL(url).pathname.split("/").pop() || "document");
   if (!/\.[a-z0-9]{2,5}$/i.test(name)) {
