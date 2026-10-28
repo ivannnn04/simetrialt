@@ -152,7 +152,7 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
             warnings.push(`${doc.name}: kainoraščio skaitymas nepavyko (${e instanceof Error ? e.message.split("\n")[0] : "klaida"}).`);
             return null;
           });
-          if (pl) warnings.push(`${doc.name}: ${pl.pages} psl., ${pl.rows.length} kainoraščio eilučių (kodas / aprašymas / kaina).`);
+          if (pl && pl.rows.length > 0) warnings.push(`${doc.name}: ${pl.pages} psl., ${pl.rows.length} kainoraščio eilučių (kodas / aprašymas / kaina).`);
           if (pl && pl.rows.length >= 5) {
             priceList.rows.push(...pl.rows.filter((r) => !priceList.rows.some((x) => x.sku === r.sku)));
             priceList.text += `\n${pl.text}`;
