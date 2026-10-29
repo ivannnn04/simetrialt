@@ -7,7 +7,7 @@ import { Photo } from "@/components/ui/Photo";
 import { DotButton } from "@/components/ui/Button";
 import { PageHero, SectionLink } from "@/components/site/Sections";
 import { ProductLine } from "@/components/home/HomeSections";
-import { getFeaturedProducts } from "@/lib/products";
+import { getBrandCatalogue, getFeaturedProducts } from "@/lib/products";
 import { getBrandBySlug, getProjects } from "@/lib/site-content";
 import { getT } from "@/i18n/server";
 import { term, termParts } from "@/i18n/dictionaries";
@@ -41,8 +41,13 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
   const brand = await getBrandBySlug(slug);
   if (!brand) notFound();
 
-  const [cards, t, projects] = await Promise.all([getFeaturedProducts(9), getT(), getProjects()]);
+  const [own, t, projects] = await Promise.all([getBrandCatalogue(brand.name, 9), getT(), getProjects()]);
   const d = t.brandsPage.detail;
+  // the brand's own products; the sample strip stays only while a brand has nothing in the catalogue yet
+  const hasProducts = own.cards.length > 0;
+  const cards = hasProducts ? own.cards : await getFeaturedProducts(9);
+  const catalogueHref = hasProducts ? `/catalogue?brand=${encodeURIComponent(own.brandValue)}` : "/catalogue";
+  const typologyHref = (typology: string) => `${catalogueHref}&typology=${encodeURIComponent(typology)}`;
 
   return (
     <div className="flex w-full flex-col gap-[120px] bg-cream pb-10 md:pb-[120px]">
@@ -64,15 +69,24 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
       <section className="flex w-full flex-col gap-10">
         <div className="mx-auto flex w-full max-w-[1440px] flex-col items-start gap-4 px-4 min-[480px]:flex-row min-[480px]:items-center min-[480px]:justify-between min-[480px]:gap-6 md:px-10">
           <h2 className="text-[36px] font-medium leading-[1.1] tracking-[-0.04em] text-black md:text-[52px]">{d.collections}</h2>
-          <SectionLink href="/catalogue">{d.seeMore}</SectionLink>
+          <SectionLink href={catalogueHref}>{d.seeMore}</SectionLink>
         </div>
         <CardStrip>
-          {brand.collections.map((c, i) => (
-            <Link key={c.title} href="/catalogue" className="flex w-[300px] flex-col gap-4 lg:w-[360px]">
-              <Photo src={`/images/brands/${brand.slug}-collection-${i + 1}.jpg`} tone="light" className={cn("w-full", COLLECTION_HEIGHT[c.height])} />
-              <p className="text-[18px] font-medium leading-none tracking-[-0.04em] text-black">{term(t, c.title)}</p>
-            </Link>
-          ))}
+          {hasProducts
+            ? own.typologies.map((c, i) => (
+                <Link key={c.typology} href={typologyHref(c.typology)} className="flex w-[300px] flex-col gap-4 lg:w-[360px]">
+                  <Photo src={c.image ?? `/images/brands/${brand.slug}-collection-${(i % 3) + 1}.jpg`} tone="light" position="center" className={cn("w-full bg-white", i % 3 === 0 ? COLLECTION_HEIGHT[458] : i % 3 === 1 ? COLLECTION_HEIGHT[366] : COLLECTION_HEIGHT[275])} />
+                  <p className="text-[18px] font-medium leading-none tracking-[-0.04em] text-black">
+                    {term(t, c.typology)} <span className="text-body">· {c.count}</span>
+                  </p>
+                </Link>
+              ))
+            : brand.collections.map((c, i) => (
+                <Link key={c.title} href="/catalogue" className="flex w-[300px] flex-col gap-4 lg:w-[360px]">
+                  <Photo src={`/images/brands/${brand.slug}-collection-${i + 1}.jpg`} tone="light" className={cn("w-full", COLLECTION_HEIGHT[c.height])} />
+                  <p className="text-[18px] font-medium leading-none tracking-[-0.04em] text-black">{term(t, c.title)}</p>
+                </Link>
+              ))}
         </CardStrip>
       </section>
 
@@ -100,7 +114,7 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
         </CardStrip>
       </section>
 
-      <ProductLine products={cards} title={d.productLine} cta={{ label: d.seeMore, href: "/catalogue" }} className="" />
+      <ProductLine products={cards} title={d.productLine} cta={{ label: d.seeMore, href: catalogueHref }} className="" />
 
       {/* CTA (Figma "section cta") */}
       <section className="w-full lg:border-y lg:border-line">
@@ -117,7 +131,7 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
               <p className="text-[18px] leading-[1.3] tracking-[-0.04em] text-body">{d.ctaText}</p>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2">
-              <DotButton href="/catalogue" className="max-w-full text-center max-[399px]:whitespace-normal!">{d.viewProducts}</DotButton>
+              <DotButton href={catalogueHref} className="max-w-full text-center max-[399px]:whitespace-normal!">{d.viewProducts}</DotButton>
               <DotButton variant="ghost" dots={false} href={`/contact?product=${encodeURIComponent(brand.name)}`}>{d.enquiry}</DotButton>
             </div>
           </div>

@@ -103,3 +103,41 @@ export function relativeTime(date: Date): string {
   if (d < 30) return `${d} day${d === 1 ? "" : "s"} ago`;
   return date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 }
+
+export type BrandCatalogue = {
+  /** the brand name exactly as stored on the products (used in catalogue links) */
+  brandValue: string;
+  /** one card per product group, newest first */
+  cards: ProductCardData[];
+  /** the brand's product types with a representative photo, for the "collections" strip */
+  typologies: { typology: string; count: number; image: string | null }[];
+  total: number;
+};
+
+/** Everything the website shows for one brand: its own products only. Empty when the brand has none yet. */
+export async function getBrandCatalogue(brandName: string, take = 9): Promise<BrandCatalogue> {
+  const products = await tryDb("getBrandCatalogue", () =>
+    db.product.findMany({
+      where: { published: true, brand: { equals: brandName, mode: "insensitive" } },
+      orderBy: { updatedAt: "desc" },
+      include: { category: true, images: { orderBy: { sort: "asc" }, take: 2 } },
+    })
+  );
+  const list = products ?? [];
+  const grouped = groupCards(list);
+  const byType = new Map<string, { count: number; image: string | null }>();
+  for (const p of list) {
+    const key = p.typology?.trim();
+    if (!key) continue;
+    const cur = byType.get(key) ?? { count: 0, image: null };
+    cur.count++;
+    if (!cur.image && p.images[0]) cur.image = p.images[0].url;
+    byType.set(key, cur);
+  }
+  return {
+    brandValue: list[0]?.brand ?? brandName,
+    cards: grouped.slice(0, take),
+    typologies: [...byType.entries()].map(([typology, v]) => ({ typology, ...v })).sort((a, b) => b.count - a.count),
+    total: grouped.length,
+  };
+}
