@@ -366,6 +366,10 @@ export const en = {
     saveNew: "Save to new collection",
     create: "Create new collection",
     savedTo: (name: string) => `Saved to “${name}”.`,
+    loginTitle: "You are not signed in",
+    loginText: "Sign in or create an account to save products to your albums. Your albums are kept in your account, on every device.",
+    loginButton: "Sign in",
+    registerButton: "Create an account",
   },
   albums: {
     meta: "My albums — Simetria LT",

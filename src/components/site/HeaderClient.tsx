@@ -8,7 +8,8 @@ import { LOCALES, LOCALE_LABELS, stripLocale, switchLocale } from "@/i18n/config
 import { term, type Dictionary } from "@/i18n/dictionaries";
 import { cn } from "@/lib/cn";
 import { BurgerIcon, CaretIcon, CloseIcon, SearchIcon, UserIcon, Wordmark } from "@/components/ui/Icons";
-import { useAlbums } from "@/lib/albums-store";
+import { connectAccount, useAlbums } from "@/lib/albums-store";
+import { loadAccount, useAccount } from "@/lib/account-client";
 import { Photo } from "@/components/ui/Photo";
 import { SearchPanel } from "@/components/site/SearchPanel";
 
@@ -119,16 +120,27 @@ type Props = {
   account?: HeaderAccount;
 };
 
-export function HeaderClient({ variant = "solid", account = { signedIn: false, albums: 0 } }: Props) {
+export function HeaderClient({ variant = "solid" }: Props) {
   const t = useT();
   const LEFT_LINKS = leftLinks(t);
   const RIGHT_LINKS = rightLinks(t);
   const MENU_CARDS = menuCards(t);
-  // Albums live in the browser for now; with none saved the page shows the three sample albums.
-  const albums = useAlbums();
+  // Signed-in customer and their albums (loaded from the account once per page)
+  const status = useAccount();
+  const albumsState = useAlbums();
+  const albums = status?.signedIn ? albumsState : [];
+  const account = { signedIn: Boolean(status?.signedIn) };
+  useEffect(() => {
+    if (status) void connectAccount(status);
+  }, [status]);
+  // sign-in / sign-out happen through in-app navigations: re-check on every page change
+  const routePath = usePathname();
+  useEffect(() => {
+    void loadAccount(true);
+  }, [routePath]);
   const accountLinks = [
     ...RIGHT_LINKS,
-    { label: t.nav.myAlbums(albums.length || account.albums || 3), href: "/account/albums" },
+    { label: t.nav.myAlbums(albums.length), href: "/account/albums" },
     { label: account.signedIn ? t.nav.account : t.nav.signIn, href: account.signedIn ? "/account" : "/account/login" },
   ];
   const [open, setOpen] = useState(false);
@@ -439,7 +451,7 @@ export function HeaderClient({ variant = "solid", account = { signedIn: false, a
                   </div>
                 </div>
               </li>
-              {[...LEFT_LINKS, ...RIGHT_LINKS, { label: t.nav.myAlbums(albums.length || account.albums || 3), href: "/account/albums" }].map((l) => (
+              {[...LEFT_LINKS, ...RIGHT_LINKS, { label: t.nav.myAlbums(albums.length), href: "/account/albums" }].map((l) => (
                 <li key={l.label} className="border-b border-line">
                   <Link
                     href={l.href}

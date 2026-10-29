@@ -9,6 +9,8 @@ import { cn } from "@/lib/cn";
 import { useT } from "@/i18n/client";
 import { addToAlbum, createAlbum, isSavedAnywhere, useAlbums, type SavedProduct } from "@/lib/albums-store";
 import { PRODUCT_PLACEHOLDER_IMAGE } from "@/lib/placeholder";
+import { loadAccount, useAccount } from "@/lib/account-client";
+import { LoginPrompt } from "@/components/account/LoginPrompt";
 
 type Props = {
   productId: string;
@@ -26,10 +28,13 @@ const PANEL_WIDTH_SMALL = 340; // below lg
 /**
  * Heart button on product cards. Opens the Figma "Save to" panel (node 4217:47501) anchored to
  * the heart: its top-right corner sits on the heart's top-right (Figma "Add to collection",
- * 4217:47427). Collections live in the browser (front-end only for now).
+ * 4217:47427). Albums belong to a customer account: a visitor who is not signed in gets the
+ * "You are not signed in" dialog instead of the panel.
  */
 export function SaveButton({ productId, product, className, light, saved: forced }: Props) {
   const albums = useAlbums();
+  const account = useAccount();
+  const [prompt, setPrompt] = useState(false);
   const t = useT().save;
   const anchor = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
@@ -97,7 +102,8 @@ export function SaveButton({ productId, product, className, light, saved: forced
     setNewName("");
   };
 
-  const isSaved = forced ?? isSavedAnywhere(albums, productId);
+  // hearts are only filled for the signed-in customer's own albums
+  const isSaved = forced ?? (account?.signedIn ? isSavedAnywhere(albums, productId) : false);
 
   return (
     <div className={cn("relative", className)}>
@@ -108,8 +114,11 @@ export function SaveButton({ productId, product, className, light, saved: forced
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          if (open) setOpen(false);
-          else openPanel();
+          if (open) return setOpen(false);
+          const go = (signedIn: boolean) => (signedIn ? openPanel() : setPrompt(true));
+          // signed in → panel at once; otherwise confirm with the server before asking to sign in
+          if (account?.signedIn) go(true);
+          else void loadAccount(true).then((s) => go(s.signedIn));
         }}
         className={cn(
           "flex size-6 items-center justify-center transition-colors duration-300",
@@ -119,6 +128,7 @@ export function SaveButton({ productId, product, className, light, saved: forced
         {/* Figma saved state: solid heart in the ink colour */}
         <HeartIcon className={cn("transition-[fill] duration-300", isSaved ? "fill-current" : "fill-transparent")} />
       </button>
+      {prompt && <LoginPrompt onClose={() => setPrompt(false)} />}
 
       {open &&
         pos &&

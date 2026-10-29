@@ -21,18 +21,6 @@ type AlbumCard = {
   updatedAt: number;
 };
 
-const sampleAlbums = (name: string, updated: string): AlbumCard[] => [1, 2, 3].map((n) => ({
-  id: `sample-${n}`,
-  href: `/account/albums/sample-${n}`,
-  name,
-  count: 18,
-  updated,
-  images: [PRODUCT_PLACEHOLDER_IMAGE, PRODUCT_PLACEHOLDER_IMAGE, PRODUCT_PLACEHOLDER_IMAGE],
-  tags: ["Marset", "Sancal", "Pedrali"],
-  createdAt: 0,
-  updatedAt: 0,
-}));
-
 const SORTS = ["relevance", "newest", "name"] as const;
 type Sort = (typeof SORTS)[number];
 
@@ -66,11 +54,12 @@ export function AlbumsList() {
     createdAt: a.createdAt,
     updatedAt: a.updatedAt,
   }));
-  const list = own.length ? own : sampleAlbums(t.sampleName, t.time.days(2));
+  // real albums only: a new customer starts with an empty list
+  const list = own;
   const sorted = [...list].sort((a, b) =>
     sort === "name" ? a.name.localeCompare(b.name) : sort === "newest" ? b.createdAt - a.createdAt : b.updatedAt - a.updatedAt
   );
-  const saved = own.length ? own.reduce((n, c) => n + c.count, 0) : 42;
+  const saved = own.reduce((n, c) => n + c.count, 0);
 
   return (
     <>
@@ -118,6 +107,7 @@ export function AlbumsList() {
           </div>
         </div>
 
+        {sorted.length === 0 && <p className="text-[16px] tracking-[-0.03em] text-secondary">{dict.save.empty}</p>}
         <div className="grid grid-cols-1 gap-x-4 gap-y-12 md:grid-cols-2 xl:grid-cols-3">
           {sorted.map((c) => (
             <Link key={c.id} href={c.href} className="group flex flex-col gap-7">

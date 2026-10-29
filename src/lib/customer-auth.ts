@@ -58,7 +58,9 @@ export async function currentCustomer() {
 /** Guard for account pages — sends anonymous visitors to the login page and back afterwards. */
 export async function requireCustomer(next = "/account/albums") {
   const customer = await currentCustomer();
-  if (!customer) redirect(`/account/login?next=${encodeURIComponent(next)}`);
+  // keep the visitor's language: "/lt/account/albums" → "/lt/account/login"
+  const prefix = next.match(/^\/(lt)(\/|$)/)?.[1];
+  if (!customer) redirect(`${prefix ? `/${prefix}` : ""}/account/login?next=${encodeURIComponent(next)}`);
   return customer;
 }
 

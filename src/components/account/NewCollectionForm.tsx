@@ -7,6 +7,8 @@ import { useHref, useT } from "@/i18n/client";
 import { createAlbum } from "@/lib/albums-store";
 import { Field } from "@/components/ui/Field";
 import { cn } from "@/lib/cn";
+import { loadAccount } from "@/lib/account-client";
+import { LoginPrompt } from "@/components/account/LoginPrompt";
 
 /**
  * "New collection" button opening the Figma "create new collection" modal (node 4117:21198):
@@ -18,6 +20,7 @@ export function NewCollectionButton({ className }: { className?: string }) {
   const href = useHref();
   const t = useT().newCollection;
   const [open, setOpen] = useState(false);
+  const [prompt, setPrompt] = useState(false);
   const [name, setName] = useState("");
   const [error, setError] = useState<string | undefined>();
   const pending = false;
@@ -50,7 +53,7 @@ export function NewCollectionButton({ className }: { className?: string }) {
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => void loadAccount(true).then((s) => (s.signedIn ? setOpen(true) : setPrompt(true)))}
         className={cn(
           "flex h-[39px] items-center justify-center whitespace-nowrap bg-dark px-4 text-center text-[13px] font-medium text-white transition-colors duration-300 hover:bg-accent md:px-8",
           className
@@ -59,6 +62,7 @@ export function NewCollectionButton({ className }: { className?: string }) {
         {t.button}
       </button>
 
+      {prompt && <LoginPrompt onClose={() => setPrompt(false)} />}
       {open &&
         createPortal(
           <div
