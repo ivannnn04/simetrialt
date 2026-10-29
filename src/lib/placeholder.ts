@@ -8,6 +8,9 @@ const DEFAULT = "https://unsplash.com/photos/9M66C_w_ToM/download?force=true&w=1
 const env = process.env.NEXT_PUBLIC_PLACEHOLDER_IMAGE;
 export const PLACEHOLDER_IMAGE: string | null = env === undefined ? DEFAULT : env || null;
 
+/** The placeholder stands in only for the built-in /images/… slots; real photos (uploads, imports) always show. */
+export const photoSrc = (src: string): string => (PLACEHOLDER_IMAGE && src.startsWith("/images/") ? PLACEHOLDER_IMAGE : src);
+
 /** Temporary product photo for every catalogue item without its own images. */
 const PRODUCT_DEFAULT = "https://lampandlight.com/cdn/shop/files/3601411_dicut_on1.png?v=1783151132";
 const productEnv = process.env.NEXT_PUBLIC_PRODUCT_PLACEHOLDER_IMAGE;

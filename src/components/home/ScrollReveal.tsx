@@ -5,7 +5,7 @@ import { cn } from "@/lib/cn";
 import { useT } from "@/i18n/client";
 import { DotButton } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { PLACEHOLDER_IMAGE } from "@/lib/placeholder";
+import { photoSrc } from "@/lib/placeholder";
 import { FeatureSlider, type FeatureSlide } from "@/components/home/FeatureSlider";
 
 const CARD_W = 334; // Figma "2 section / with image" (node 4189:22881)
@@ -63,7 +63,7 @@ export function ScrollReveal({ image, slides }: Props) {
     };
   }, []);
 
-  const src = PLACEHOLDER_IMAGE ?? image;
+  const src = photoSrc(image);
 
   // Timeline (fractions of the pinned scroll distance)
   const pop = easeOut(range(p, 0.1, 0.38)); // portrait card scales up from 0 in the centre

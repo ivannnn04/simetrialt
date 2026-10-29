@@ -77,6 +77,10 @@ export async function saveProject(originalSlug: string | null, formData: FormDat
     lightTitle: str(formData, "lightTitle"),
     light: paragraphs(formData, "light"),
     specs: pairs(formData, "specs"),
+    // own photos (one URL per line); the Lithuanian copy and source of imported projects are kept
+    ...(formData.has("gallery") ? { gallery: lines(formData, "gallery") } : existing?.gallery ? { gallery: existing.gallery } : {}),
+    ...(existing?.lt ? { lt: existing.lt } : {}),
+    ...(existing?.source ? { source: existing.source } : {}),
   };
 
   const index = existing ? projects.indexOf(existing) : -1;

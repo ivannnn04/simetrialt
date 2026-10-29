@@ -9,7 +9,8 @@ import { PageHero, SectionLink } from "@/components/site/Sections";
 import { ProductLine } from "@/components/home/HomeSections";
 import { getBrandCatalogue, getFeaturedProducts } from "@/lib/products";
 import { getBrandBySlug, getProjects } from "@/lib/site-content";
-import { getT } from "@/i18n/server";
+import { getLocale, getT } from "@/i18n/server";
+import { DEFAULT_LOCALE } from "@/i18n/config";
 import { term, termParts } from "@/i18n/dictionaries";
 
 export const dynamic = "force-dynamic";
@@ -41,7 +42,16 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
   const brand = await getBrandBySlug(slug);
   if (!brand) notFound();
 
-  const [own, t, projects] = await Promise.all([getBrandCatalogue(brand.name, 9), getT(), getProjects()]);
+  const [own, t, allProjects, locale] = await Promise.all([getBrandCatalogue(brand.name, 9), getT(), getProjects(), getLocale()]);
+  const lt = locale !== DEFAULT_LOCALE;
+  // only projects whose credits name this brand
+  const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+  const brandKey = norm(brand.name);
+  const brandWord = brandKey.split(" ")[0];
+  const projects = allProjects.filter((p) => {
+    const credits = ` ${norm(p.specs.map(([, v]) => v).join(" "))} `;
+    return credits.includes(` ${brandKey} `) || (brandWord.length >= 4 && credits.includes(` ${brandWord} `));
+  });
   const d = t.brandsPage.detail;
   // the brand's own products; the sample strip stays only while a brand has nothing in the catalogue yet
   const hasProducts = own.cards.length > 0;
@@ -90,8 +100,8 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
         </CardStrip>
       </section>
 
-      {/* Projects */}
-      <section className="flex w-full flex-col gap-10">
+      {/* Projects that used this brand */}
+      {projects.length > 0 && <section className="flex w-full flex-col gap-10">
         <div className="mx-auto flex w-full max-w-[1440px] flex-col items-start gap-4 px-4 min-[480px]:flex-row min-[480px]:items-center min-[480px]:justify-between min-[480px]:gap-6 md:px-10">
           <h2 className="text-[36px] font-medium leading-[1.1] tracking-[-0.04em] text-black md:text-[52px]">{d.projects}</h2>
           <SectionLink href="/projects">{d.seeMore}</SectionLink>
@@ -106,13 +116,13 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
             >
               <Photo src={p.image} className={cn("w-full", i === 0 ? "h-[458px]" : "h-[366px]")} />
               <div className="flex flex-col gap-2 font-medium leading-none">
-                <p className="text-[18px] tracking-[-0.04em] text-black">{p.name}</p>
-                <p className="text-[13px] uppercase tracking-[-0.04em] text-body">{termParts(t, p.category)}</p>
+                <p className="text-[18px] tracking-[-0.04em] text-black">{(lt && p.lt?.name) || p.name}</p>
+                <p className="text-[13px] uppercase tracking-[-0.04em] text-body">{(lt && p.lt?.category) || termParts(t, p.category)}</p>
               </div>
             </Link>
           ))}
         </CardStrip>
-      </section>
+      </section>}
 
       <ProductLine products={cards} title={d.productLine} cta={{ label: d.seeMore, href: catalogueHref }} className="" />
 

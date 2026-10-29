@@ -35,10 +35,14 @@ export default async function ProjectEdit({
         )}
       </p>
       {sp.saved && <Notice tone="green">Išsaugota.</Notice>}
-      <Notice>
+      {project?.lt ? (
+        <Notice>
+          Šis projektas importuotas iš senos svetainės: lietuviškas tekstas sukurtas iš jo duomenų. Čia redaguojamas angliškas turinys ir bendri duomenys.
+        </Notice>
+      ) : <Notice>
         Lietuviškame puslapyje projekto aprašymo tekstai (apie projektą, apšvietimas, specifikacijos) imami iš sekcijos
         „Projekto puslapis“ (Tekstai → LT). Čia redaguojamas angliškas turinys ir bendri duomenys.
-      </Notice>
+      </Notice>}
 
       <form action={save} className="max-w-3xl space-y-6">
         <Card title="Pagrindiniai duomenys">
@@ -78,9 +82,17 @@ export default async function ProjectEdit({
               <Field label="arba nuoroda į nuotrauką">
                 <Input name="image" defaultValue={project?.image} placeholder="/images/projects/…/cover.jpg" />
               </Field>
-              <p className="text-xs text-zinc-500">
-                Vidinio puslapio nuotraukos imamos iš <code>/images/projects/&lt;slug&gt;/hero.jpg</code> ir kt. (žr. public/images/README.md).
-              </p>
+              <Field label="Galerija (vidinis puslapis)" hint="Po vieną nuotraukos nuorodą eilutėje. Pirmoji – viršutinė (hero). Tuščia – naudojamos /images/projects/<slug>/… nuotraukos.">
+                <Textarea name="gallery" rows={6} defaultValue={project?.gallery?.join("\n") ?? ""} className="font-mono text-xs" />
+              </Field>
+              {project?.gallery && project.gallery.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {project.gallery.slice(0, 24).map((u) => (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img key={u} src={u} alt="" className="h-14 w-20 rounded bg-zinc-100 object-cover" />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </Card>

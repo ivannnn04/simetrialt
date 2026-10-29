@@ -1,5 +1,19 @@
 export type ProjectType = "private" | "public" | "other";
 
+/** Per-project text for the Lithuanian pages (the shared dictionary copy is used when missing). */
+export type ProjectCopy = {
+  name?: string;
+  category?: string;
+  kind?: string;
+  aboutTitle: string;
+  about: string[];
+  sectionTitle: string;
+  sectionText: string;
+  lightTitle: string;
+  light: string[];
+  specs: [string, string][];
+};
+
 export type Project = {
   slug: string;
   name: string;
@@ -16,6 +30,12 @@ export type Project = {
   /** "5 section" (Figma 4217:47594): lighting story next to a 687×480 photo */
   lightTitle: string;
   light: string[];
+  /** The project's own photos; the first is the hero. Without it the page uses /images/projects/<slug>/… */
+  gallery?: string[];
+  /** Lithuanian copy written for this project */
+  lt?: ProjectCopy;
+  /** where an imported project came from (old simetria.lt page) */
+  source?: string;
 };
 
 const DEFAULT_ABOUT = [

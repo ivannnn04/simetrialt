@@ -6,7 +6,8 @@ import { Photo } from "@/components/ui/Photo";
 import { StrokeLink } from "@/components/ui/Button";
 import type { Project, ProjectType } from "@/data/projects";
 import { getProjects } from "@/lib/site-content";
-import { getT } from "@/i18n/server";
+import { getLocale, getT } from "@/i18n/server";
+import { DEFAULT_LOCALE } from "@/i18n/config";
 import { termParts, type Dictionary } from "@/i18n/dictionaries";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -41,7 +42,9 @@ function buildRows(projects: Project[]): { project: Project; slot: Slot }[][] {
   return rows;
 }
 
-function ProjectCard({ project, slot, t }: { project: Project; slot: Slot; t: Dictionary }) {
+function ProjectCard({ project, slot, t, lt }: { project: Project; slot: Slot; t: Dictionary; lt: boolean }) {
+  const name = (lt && project.lt?.name) || project.name;
+  const category = (lt && project.lt?.category) || termParts(t, project.category);
   return (
     <Link
       href={`/projects/${project.slug}`}
@@ -53,8 +56,8 @@ function ProjectCard({ project, slot, t }: { project: Project; slot: Slot; t: Di
         className={cn("w-full overflow-hidden", slot.tall ? "h-[420px] lg:h-[752px]" : "h-[420px] lg:h-[458px]")}
       />
       <div className="flex flex-col gap-2 font-medium leading-none">
-        <p className="text-[18px] tracking-[-0.04em] text-black">{project.name}</p>
-        <p className="text-[13px] uppercase tracking-[-0.04em] text-body">{termParts(t, project.category)}</p>
+        <p className="text-[18px] tracking-[-0.04em] text-black">{name}</p>
+        <p className="text-[13px] uppercase tracking-[-0.04em] text-body">{category}</p>
       </div>
     </Link>
   );
@@ -66,7 +69,8 @@ export default async function ProjectsPage({
   searchParams: Promise<{ type?: string }>;
 }) {
   const { type } = await searchParams;
-  const t = await getT();
+  const [t, locale] = await Promise.all([getT(), getLocale()]);
+  const lt = locale !== DEFAULT_LOCALE;
   const TABS = TAB_VALUES.map((value) => ({ value, label: t.projectsPage.tabs[value] }));
   const active = TABS.some((tab) => tab.value === type) ? (type as ProjectType | "all") : "all";
   const all = await getProjects();
@@ -115,7 +119,7 @@ export default async function ProjectsPage({
             {rows.map((row, i) => (
               <div key={i} className="flex flex-col gap-4 lg:flex-row lg:items-start">
                 {row.map(({ project, slot }) => (
-                  <ProjectCard key={project.slug} project={project} slot={slot} t={t} />
+                  <ProjectCard key={project.slug} project={project} slot={slot} t={t} lt={lt} />
                 ))}
               </div>
             ))}
