@@ -37,6 +37,10 @@ model Quote {
   author        User?       @relation(fields: [authorId], references: [id], onDelete: SetNull)
   authorId      String?
   items         QuoteItem[]
+  /** website | scoro — where the quote was created */
+  source        String      @default("website")
+  scoroId       Int?        @unique
+  scoroSyncedAt DateTime?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
@@ -114,6 +118,10 @@ model Product {
   images      ProductImage[]
   savedIn     CollectionItem[]
   quoteItems  QuoteItem[]
+  /** Scoro CRM product id; scoroSyncedAt / scoroHash are written with raw SQL so they do not bump updatedAt */
+  scoroId       Int?         @unique
+  scoroSyncedAt DateTime?
+  scoroHash     String?
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
@@ -140,6 +148,10 @@ model Lead {
   message   String   @default("")
   source    String   @default("website") // website | manual | import
   status    String   @default("NEW") // NEW | CONTACTED | QUALIFIED | WON | LOST
+  /** product the visitor asked about (Inquire button on a product page) */
+  productSku     String?
+  scoroContactId Int?
+  scoroQuoteId   Int?
   notes     Note[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -189,4 +201,30 @@ model CollectionItem {
   createdAt    DateTime   @default(now())
 
   @@unique([collectionId, productId])
+}
+
+// ---------- Scoro CRM sync ----------
+
+/** Outgoing work for Scoro that is retried until it succeeds (inquiries, offers, deactivated products). */
+model ScoroTask {
+  id        String   @id @default(cuid())
+  kind      String   // lead | quote | deactivate
+  ref       String   // lead id, quote id or Scoro product id
+  attempts  Int      @default(0)
+  lastError String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([kind, ref])
+}
+
+model ScoroLog {
+  id        String   @id @default(cuid())
+  direction String   // out | in
+  kind      String
+  ok        Boolean
+  message   String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
 }

@@ -1,3 +1,9 @@
 {
-  "buildCommand": "node scripts/build.mjs"
+  "buildCommand": "node scripts/build.mjs",
+  "crons": [
+    {
+      "path": "/api/scoro/cron",
+      "schedule": "17 2 * * *"
+    }
+  ]
 }

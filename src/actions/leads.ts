@@ -6,6 +6,8 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireEditor } from "@/lib/auth";
 import { getT } from "@/i18n/server";
+import { after } from "next/server";
+import { enqueue, runSync, wantsPush } from "@/lib/scoro/sync";
 
 const contactSchema = (m: { firstName: string; email: string; message: string }) =>
   z.object({
@@ -38,7 +40,8 @@ export async function submitContact(
     return { error: parsed.error.issues[0]?.message ?? form.errors.form };
   }
   const d = parsed.data;
-  await db.lead.create({
+  const productSku = String(formData.get("productSku") ?? "").trim().slice(0, 100) || null;
+  const lead = await db.lead.create({
     data: {
       name: d.name,
       email: d.email || null,
@@ -46,8 +49,14 @@ export async function submitContact(
       company: d.company || null,
       message: d.message,
       source: "website",
+      productSku,
     },
   });
+  // Scoro: contact + quote, sent after the response so the visitor never waits for it
+  if (await wantsPush("lead").catch(() => false)) {
+    await enqueue("lead", lead.id);
+    after(() => runSync(20_000).catch(() => undefined));
+  }
   return { message: form.success };
 }
 

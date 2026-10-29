@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
+import { after } from "next/server";
+import { enqueue, runSync, wantsPush } from "@/lib/scoro/sync";
 
 /** Quotes are prepared by showroom managers, editors and administrators alike. */
 
@@ -76,6 +78,11 @@ export async function saveQuote(id: string, input: QuoteInput): Promise<{ ok?: s
   ]);
   revalidatePath("/admin/quotes");
   revalidatePath(`/admin/quotes/${id}`);
+  if (await wantsPush("quote").catch(() => false)) {
+    await enqueue("quote", id);
+    after(() => runSync(20_000).catch(() => undefined));
+    return { ok: "Pasiūlymas išsaugotas ir siunčiamas į Scoro." };
+  }
   return { ok: "Pasiūlymas išsaugotas." };
 }
 

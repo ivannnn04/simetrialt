@@ -170,7 +170,7 @@ export function ProductInfo({ product, variant, onSelect }: Props) {
             {added ? p.added : p.addToCart}
           </button>
           <Link
-            href={`/contact?product=${encodeURIComponent(variant.sku ? `${product.name} (${variant.sku})` : product.name)}`}
+            href={`/contact?product=${encodeURIComponent(variant.sku ? `${product.name} (${variant.sku})` : product.name)}${variant.sku ? `&sku=${encodeURIComponent(variant.sku)}` : ""}`}
             className="flex h-[39px] flex-1 items-center justify-center bg-dark px-8 py-[11px] text-[14px] font-semibold leading-none tracking-[-0.04em] text-white transition-colors duration-300 hover:bg-accent"
           >
             {p.inquire}

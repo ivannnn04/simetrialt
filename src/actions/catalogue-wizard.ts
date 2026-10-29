@@ -22,6 +22,8 @@ import { looksLikeBrandList, matchBrand, parseBrandList, type BrandInfo } from "
 import { mapConcurrent, matchProductPage, pageImages, siteUrls } from "@/lib/brand-site";
 import { extractCatalogueFamilies, findFamily, type FamilyBlock } from "@/lib/catalogue-families";
 import { extractBlockPriceList, type BlockRow } from "@/lib/pricelist-blocks";
+import { after } from "next/server";
+import { kickProductSync } from "@/lib/scoro/sync";
 
 /**
  * Catalogue import wizard: a supplier PDF catalogue (photos, descriptions, specifications) plus
@@ -707,5 +709,6 @@ export async function publishDraft(_prev: PublishResult | null | undefined, form
   revalidatePath("/catalogue");
   revalidatePath("/outlet");
   revalidatePath("/admin/products");
+  await kickProductSync(after);
   return result;
 }

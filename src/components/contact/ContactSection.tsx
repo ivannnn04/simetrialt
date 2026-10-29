@@ -123,7 +123,7 @@ function validate(form: HTMLFormElement, msg: Dictionary["contactPage"]["form"][
   return errors;
 }
 
-export function ContactSection({ initialMessage = "" }: { initialMessage?: string }) {
+export function ContactSection({ initialMessage = "", productSku = "" }: { initialMessage?: string; productSku?: string }) {
   const [state, formAction, pending] = useActionState(submitContact, undefined);
   const [details, setDetails] = useState(initialMessage);
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -158,6 +158,7 @@ export function ContactSection({ initialMessage = "" }: { initialMessage?: strin
           ) : (
             <div className="flex flex-col gap-10">
               <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden="true" />
+              {productSku && <input type="hidden" name="productSku" value={productSku} />}
               <div className="flex flex-col gap-10 sm:flex-row sm:gap-4">
                 <Field name="firstName" label={f.firstName} required autoComplete="given-name" className="flex-1" error={errors.firstName} />
                 <Field name="lastName" label={f.lastName} autoComplete="family-name" className="flex-1" />

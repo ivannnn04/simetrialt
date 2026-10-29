@@ -16,8 +16,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 // Figma "Contact" (node 4217:46337), LT 4217:48376
-export default async function ContactPage({ searchParams }: { searchParams: Promise<{ product?: string }> }) {
-  const [{ product }, t, site] = await Promise.all([searchParams, getT(), getContacts()]);
+export default async function ContactPage({ searchParams }: { searchParams: Promise<{ product?: string; sku?: string }> }) {
+  const [{ product, sku }, t, site] = await Promise.all([searchParams, getT(), getContacts()]);
   const c = t.contactPage;
   const CONTACTS = [
     { label: c.call, value: site.phone, Icon: PhoneIcon, href: site.phoneHref },
@@ -68,7 +68,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
             {TICKER}{TICKER}
           </p>
         </div>
-        <ContactSection initialMessage={product ? c.enquiry(product) : ""} />
+        <ContactSection initialMessage={product ? c.enquiry(product) : ""} productSku={sku ?? ""} />
       </section>
     </>
   );

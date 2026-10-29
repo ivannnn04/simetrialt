@@ -7,6 +7,8 @@ import { requireEditor } from "@/lib/auth";
 import { slugify } from "@/lib/slug";
 import { saveImage } from "@/lib/uploads";
 import { deriveVariant } from "@/lib/variants";
+import { after } from "next/server";
+import { kickProductSync, queueDeactivations } from "@/lib/scoro/sync";
 
 function parsePriceCents(raw: string): number {
   const n = Number.parseFloat(raw.replace(",", "."));
@@ -71,11 +73,13 @@ export async function saveProduct(id: string | null, formData: FormData) {
 
   revalidatePath("/catalogue");
   revalidatePath(`/catalogue/${slug}`);
+  await kickProductSync(after);
   redirect(`/admin/products/${product.id}`);
 }
 
 export async function deleteProduct(id: string) {
   await requireEditor();
+  await queueDeactivations({ id });
   await db.product.delete({ where: { id } });
   revalidatePath("/catalogue");
   redirect("/admin/products");
@@ -90,6 +94,7 @@ export async function deleteProducts(_prev: BulkDeleteResult, formData: FormData
   const ids = formData.getAll("ids").map(String).filter(Boolean);
   try {
     let deleted = 0;
+    await queueDeactivations(all ? {} : { id: { in: ids } });
     if (all) {
       // in batches, so one request never has to remove thousands of rows (and their cascades) at once
       for (;;) {

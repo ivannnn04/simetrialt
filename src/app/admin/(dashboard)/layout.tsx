@@ -33,7 +33,10 @@ const GROUPS: { title: string; items: { href: string; label: string; roles?: str
   },
   {
     title: "Sistema",
-    items: [{ href: "/admin/users", label: "Vartotojai ir slaptažodžiai", roles: ["ADMIN"] }],
+    items: [
+      { href: "/admin/users", label: "Vartotojai ir slaptažodžiai", roles: ["ADMIN"] },
+      { href: "/admin/scoro", label: "Scoro CRM", roles: ["ADMIN"] },
+    ],
   },
 ];
 
