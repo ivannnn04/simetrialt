@@ -32,6 +32,16 @@ const GROUPS: { title: string; items: { href: string; label: string; roles?: str
     ],
   },
   {
+    title: "ERP (Scoro pakaitalas)",
+    items: [
+      { href: "/admin/erp", label: "Apžvalga", roles: ["ADMIN", "EDITOR"] },
+      { href: "/admin/erp/offers", label: "Pasiūlymai ir užsakymai", roles: ["ADMIN", "EDITOR"] },
+      { href: "/admin/erp/invoices", label: "Sąskaitos", roles: ["ADMIN", "EDITOR"] },
+      { href: "/admin/erp/stock", label: "Sandėlis", roles: ["ADMIN", "EDITOR"] },
+      { href: "/admin/erp/calendar", label: "Kalendorius", roles: ["ADMIN", "EDITOR"] },
+    ],
+  },
+  {
     title: "Sistema",
     items: [
       { href: "/admin/users", label: "Vartotojai ir slaptažodžiai", roles: ["ADMIN"] },

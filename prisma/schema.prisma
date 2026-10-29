@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
@@ -21,7 +21,9 @@ model User {
   updatedAt    DateTime @updatedAt
 }
 
-/** A commercial offer prepared in the showroom: products with quantities, per-line and whole-quote discounts. */
+/**
+ * A commercial offer prepared in the showroom: products with quantities, per-line and whole-quote discounts.
+ */
 model Quote {
   id            String      @id @default(cuid())
   number        Int         @default(autoincrement())
@@ -31,13 +33,17 @@ model Quote {
   customerPhone String      @default("")
   company       String      @default("")
   note          String      @default("")
-  /** discount on the whole quote, percent */
+  /**
+   * discount on the whole quote, percent
+   */
   discountPct   Float       @default(0)
   validUntil    DateTime?
   author        User?       @relation(fields: [authorId], references: [id], onDelete: SetNull)
   authorId      String?
   items         QuoteItem[]
-  /** website | scoro — where the quote was created */
+  /**
+   * website | scoro — where the quote was created
+   */
   source        String      @default("website")
   scoroId       Int?        @unique
   scoroSyncedAt DateTime?
@@ -56,10 +62,14 @@ model QuoteItem {
   name        String
   sku         String   @default("")
   image       String   @default("")
-  /** unit price incl. VAT, as on the website, in cents */
+  /**
+   * unit price incl. VAT, as on the website, in cents
+   */
   unitCents   Int
   quantity    Int      @default(1)
-  /** discount on this line, percent */
+  /**
+   * discount on this line, percent
+   */
   discountPct Float    @default(0)
   sort        Int      @default(0)
 }
@@ -70,7 +80,7 @@ model Page {
   id        String   @id @default(cuid())
   slug      String   @unique
   title     String
-  content   String   // markdown-ish rich text
+  content   String // markdown-ish rich text
   metaTitle String?
   metaDesc  String?
   published Boolean  @default(false)
@@ -94,36 +104,51 @@ model Category {
 }
 
 model Product {
-  id          String         @id @default(cuid())
-  name        String
-  slug        String         @unique
-  sku         String?        @unique
-  description String         @default("")
-  priceCents  Int            @default(0)
+  id             String           @id @default(cuid())
+  name           String
+  slug           String           @unique
+  sku            String?          @unique
+  description    String           @default("")
+  priceCents     Int              @default(0)
   salePriceCents Int?
-  currency    String         @default("EUR")
-  brand       String?
-  typology    String?
-  material    String?
-  inShowroom  Boolean        @default(false)
-  published   Boolean        @default(false)
-  /** Variants of one design share a group key; the catalogue shows one card per group. */
-  groupKey    String?
-  /** e.g. {"Colour":"black","Colour temperature":"2700K"} — the axes shown as selectors on the product page */
-  variantAttrs Json?
-  /** short label of this variant, e.g. "black, 2700K" */
-  variantLabel String?
-  category    Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  categoryId  String?
-  images      ProductImage[]
-  savedIn     CollectionItem[]
-  quoteItems  QuoteItem[]
-  /** Scoro CRM product id; scoroSyncedAt / scoroHash are written with raw SQL so they do not bump updatedAt */
-  scoroId       Int?         @unique
-  scoroSyncedAt DateTime?
-  scoroHash     String?
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  currency       String           @default("EUR")
+  brand          String?
+  typology       String?
+  material       String?
+  inShowroom     Boolean          @default(false)
+  published      Boolean          @default(false)
+  /**
+   * Variants of one design share a group key; the catalogue shows one card per group.
+   */
+  groupKey       String?
+  /**
+   * e.g. {"Colour":"black","Colour temperature":"2700K"} — the axes shown as selectors on the product page
+   */
+  variantAttrs   Json?
+  /**
+   * short label of this variant, e.g. "black, 2700K"
+   */
+  variantLabel   String?
+  category       Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  categoryId     String?
+  images         ProductImage[]
+  savedIn        CollectionItem[]
+  quoteItems     QuoteItem[]
+  /**
+   * Scoro CRM product id; scoroSyncedAt / scoroHash are written with raw SQL so they do not bump updatedAt
+   */
+  scoroId        Int?             @unique
+  scoroSyncedAt  DateTime?
+  scoroHash      String?
+  /**
+   * ERP: purchase cost per unit (cents, ex VAT) and the usual supplier
+   */
+  costCents      Int?
+  supplierName   String?
+  erpLines       ErpLine[]
+  erpStock       ErpStock[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 
   @@index([groupKey])
 }
@@ -140,21 +165,23 @@ model ProductImage {
 // ---------- CRM ----------
 
 model Lead {
-  id        String   @id @default(cuid())
-  name      String
-  email     String?
-  phone     String?
-  company   String?
-  message   String   @default("")
-  source    String   @default("website") // website | manual | import
-  status    String   @default("NEW") // NEW | CONTACTED | QUALIFIED | WON | LOST
-  /** product the visitor asked about (Inquire button on a product page) */
+  id             String   @id @default(cuid())
+  name           String
+  email          String?
+  phone          String?
+  company        String?
+  message        String   @default("")
+  source         String   @default("website") // website | manual | import
+  status         String   @default("NEW") // NEW | CONTACTED | QUALIFIED | WON | LOST
+  /**
+   * product the visitor asked about (Inquire button on a product page)
+   */
   productSku     String?
   scoroContactId Int?
   scoroQuoteId   Int?
-  notes     Note[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  notes          Note[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 model Note {
@@ -194,9 +221,13 @@ model CollectionItem {
   collectionId String
   product      Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId    String
-  /** planned units of this product in the project */
+  /**
+   * planned units of this product in the project
+   */
   quantity     Int        @default(1)
-  /** free-text note shown in the album table */
+  /**
+   * free-text note shown in the album table
+   */
   note         String     @default("")
   createdAt    DateTime   @default(now())
 
@@ -205,11 +236,13 @@ model CollectionItem {
 
 // ---------- Scoro CRM sync ----------
 
-/** Outgoing work for Scoro that is retried until it succeeds (inquiries, offers, deactivated products). */
+/**
+ * Outgoing work for Scoro that is retried until it succeeds (inquiries, offers, deactivated products).
+ */
 model ScoroTask {
   id        String   @id @default(cuid())
-  kind      String   // lead | quote | deactivate
-  ref       String   // lead id, quote id or Scoro product id
+  kind      String // lead | quote | deactivate
+  ref       String // lead id, quote id or Scoro product id
   attempts  Int      @default(0)
   lastError String?
   createdAt DateTime @default(now())
@@ -220,11 +253,273 @@ model ScoroTask {
 
 model ScoroLog {
   id        String   @id @default(cuid())
-  direction String   // out | in
+  direction String // out | in
   kind      String
   ok        Boolean
   message   String
   createdAt DateTime @default(now())
 
   @@index([createdAt])
+}
+
+// ---------- ERP (Scoro replacement demonstrator) ----------
+// One document table for every business document (offer, order, purchase order, invoices),
+// lines carry supplier + purchase cost so margins are calculated everywhere.
+
+/**
+ * Company or person: clients, architects, partners, suppliers, carriers…
+ */
+model ErpContact {
+  id              String          @id @default(cuid())
+  kind            String          @default("COMPANY") // COMPANY | PERSON
+  name            String
+  company         ErpContact?     @relation("ErpPersonCompany", fields: [companyId], references: [id], onDelete: SetNull)
+  companyId       String?
+  people          ErpContact[]    @relation("ErpPersonCompany")
+  position        String          @default("")
+  regCode         String          @default("")
+  vatCode         String          @default("")
+  email           String          @default("")
+  phone           String          @default("")
+  website         String          @default("")
+  address         String          @default("")
+  deliveryAddress String          @default("")
+  /**
+   * Klientas | Architektas | Partneris | Tiekėjas | Vežėjai | …
+   */
+  category        String          @default("Klientas")
+  tags            String[]        @default([])
+  /**
+   * architects: commission % of the net sale
+   */
+  commissionPct   Float?
+  managerId       String?
+  notes           String          @default("")
+  isDemo          Boolean         @default(false)
+  legacyScoroId   Int?
+  deleted         Boolean         @default(false)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  clientDocs      ErpDocument[]   @relation("ErpClient")
+  partyDocs       ErpDocument[]   @relation("ErpParty")
+  supplierDocs    ErpDocument[]   @relation("ErpSupplier")
+  commissions     ErpCommission[]
+  activities      ErpActivity[]
+
+  @@index([category])
+  @@index([name])
+}
+
+/**
+ * OFFER | ORDER | PURCHASE_ORDER | INVOICE | PREPAYMENT | CREDIT | PURCHASE_INVOICE
+ */
+model ErpDocument {
+  id            String          @id @default(cuid())
+  type          String
+  number        String
+  series        String          @default("")
+  status        String
+  date          DateTime        @default(now())
+  dueDate       DateTime?
+  client        ErpContact?     @relation("ErpClient", fields: [clientId], references: [id], onDelete: SetNull)
+  clientId      String?
+  /**
+   * architect / partner who brought the client
+   */
+  party         ErpContact?     @relation("ErpParty", fields: [partyId], references: [id], onDelete: SetNull)
+  partyId       String?
+  /**
+   * purchase orders and purchase invoices
+   */
+  supplier      ErpContact?     @relation("ErpSupplier", fields: [supplierId], references: [id], onDelete: SetNull)
+  supplierId    String?
+  /**
+   * Pardavimas architektams | Be architekto | Pardavimas partneriams
+   */
+  channel       String          @default("Be architekto")
+  managerId     String?
+  /**
+   * document it was created from (offer → order → invoice / purchase order)
+   */
+  parent        ErpDocument?    @relation("ErpChain", fields: [parentId], references: [id], onDelete: SetNull)
+  parentId      String?
+  children      ErpDocument[]   @relation("ErpChain")
+  probability   Int?
+  validUntil    DateTime?
+  discountPct   Float           @default(0)
+  /**
+   * order contract: advance %
+   */
+  advancePct    Float           @default(0)
+  deliveryTerm  String          @default("")
+  contractText  String          @default("")
+  note          String          @default("")
+  /**
+   * KPO, transport cost, references…
+   */
+  meta          Json?
+  sent          Boolean         @default(false)
+  isDemo        Boolean         @default(false)
+  legacyScoroId Int?
+  deleted       Boolean         @default(false)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  lines         ErpLine[]
+  payments      ErpPayment[]
+  commissions   ErpCommission[]
+  activities    ErpActivity[]
+  events        ErpEvent[]
+
+  @@unique([type, number])
+  @@index([type, status])
+  @@index([clientId])
+}
+
+model ErpLine {
+  id           String      @id @default(cuid())
+  document     ErpDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  documentId   String
+  product      Product?    @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productId    String?
+  code         String      @default("")
+  name         String
+  description  String      @default("")
+  qty          Float       @default(1)
+  unit         String      @default("vnt.")
+  /**
+   * net (ex VAT) unit price, cents
+   */
+  priceCents   Int         @default(0)
+  discountPct  Float       @default(0)
+  vatPct       Float       @default(21)
+  /**
+   * supplier and purchase cost per unit (cents) → margin
+   */
+  supplierId   String?
+  costCents    Int         @default(0)
+  /**
+   * purchase orders: received so far
+   */
+  receivedQty  Float       @default(0)
+  /**
+   * order line a purchase-order line was made from
+   */
+  sourceLineId String?
+  image        String      @default("")
+  sort         Int         @default(0)
+}
+
+model ErpPayment {
+  id          String      @id @default(cuid())
+  document    ErpDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  documentId  String
+  date        DateTime    @default(now())
+  amountCents Int
+  method      String      @default("Pavedimas") // Pavedimas | Grynieji (KPO) | Kortelė
+  note        String      @default("")
+  createdAt   DateTime    @default(now())
+}
+
+model ErpWarehouse {
+  id    String     @id @default(cuid())
+  code  Int        @unique
+  name  String
+  stock ErpStock[]
+}
+
+model ErpStock {
+  id          String       @id @default(cuid())
+  product     Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId   String
+  warehouse   ErpWarehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  warehouseId String
+  qty         Float        @default(0)
+  reserved    Float        @default(0)
+  /**
+   * average purchase cost per unit, cents
+   */
+  costCents   Int          @default(0)
+
+  @@unique([productId, warehouseId])
+}
+
+model ErpStockMove {
+  id            String   @id @default(cuid())
+  productId     String
+  warehouseId   String
+  toWarehouseId String?
+  /**
+   * RECEIPT | TRANSFER | ISSUE | WRITEOFF | RESERVE
+   */
+  type          String
+  qty           Float
+  costCents     Int      @default(0)
+  documentId    String?
+  note          String   @default("")
+  userId        String?
+  createdAt     DateTime @default(now())
+
+  @@index([productId])
+}
+
+/**
+ * Architect / partner commission ("padėkos mokestis"): accrued when the invoice is paid.
+ */
+model ErpCommission {
+  id          String      @id @default(cuid())
+  architect   ErpContact  @relation(fields: [architectId], references: [id], onDelete: Cascade)
+  architectId String
+  document    ErpDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  documentId  String
+  baseCents   Int
+  pct         Float
+  amountCents Int
+  status      String      @default("ACCRUED") // ACCRUED | APPROVED | PAID
+  paidAt      DateTime?
+  method      String      @default("")
+  createdAt   DateTime    @default(now())
+
+  @@unique([documentId, architectId])
+}
+
+model ErpActivity {
+  id          String       @id @default(cuid())
+  title       String
+  type        String
+  start       DateTime
+  end         DateTime?
+  allDay      Boolean      @default(false)
+  userIds     String[]     @default([])
+  contact     ErpContact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  contactId   String?
+  document    ErpDocument? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  documentId  String?
+  location    String       @default("")
+  description String       @default("")
+  done        Boolean      @default(false)
+  isDemo      Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+
+  @@index([start])
+}
+
+/**
+ * Activity log and comments on documents
+ */
+model ErpEvent {
+  id         String      @id @default(cuid())
+  document   ErpDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  documentId String
+  kind       String      @default("LOG") // LOG | COMMENT
+  text       String
+  userName   String      @default("")
+  createdAt  DateTime    @default(now())
+}
+
+/**
+ * Last number per series, so numbering can continue from Scoro after migration
+ */
+model ErpCounter {
+  series String @id
+  last   Int    @default(0)
 }
