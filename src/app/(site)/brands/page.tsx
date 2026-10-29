@@ -4,7 +4,6 @@ import { SiteHeader } from "@/components/site/Header";
 import { PageHero } from "@/components/site/Sections";
 import { getBrands } from "@/lib/site-content";
 import { BrandMark } from "@/components/site/BrandMark";
-import { PLACEHOLDER_IMAGE } from "@/lib/placeholder";
 import { getT } from "@/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -39,7 +38,7 @@ export default async function BrandsPage() {
                     aria-hidden
                     className="absolute inset-0 bg-cover bg-center opacity-0 transition-opacity group-hover:opacity-100"
                     style={{
-                      backgroundImage: `url(${PLACEHOLDER_IMAGE ?? `/images/brands/${brand.slug}.jpg`}), linear-gradient(165deg, #4b4641 0%, #2b2825 55%, #171615 100%)`,
+                      backgroundImage: `url(/images/brands/${brand.slug}.jpg), linear-gradient(165deg, #4b4641 0%, #2b2825 55%, #171615 100%)`,
                     }}
                   />
                   <span className="relative w-[180px] xl:w-[235px]">

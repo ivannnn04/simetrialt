@@ -23,7 +23,8 @@ const sizes: Record<ButtonSize, string> = {
 const variants: Record<ButtonVariant, { box: string; dot: string; disabledBox: string; disabledDot: string }> = {
   primary: {
     box: "bg-white text-ink hover:bg-dark hover:text-white active:bg-[#393939] active:text-white",
-    dot: "bg-ink group-hover/btn:bg-white group-active/btn:bg-white",
+    // Figma "Dot Left / Dot Right" on the white button: Brand/Red
+    dot: "bg-brand group-hover/btn:bg-white group-active/btn:bg-white",
     disabledBox: "bg-[#909090] text-tertiary",
     disabledDot: "bg-tertiary",
   },

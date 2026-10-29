@@ -11,6 +11,7 @@ const GROUPS: { title: string; items: { href: string; label: string; roles?: str
       { href: "/admin", label: "Apžvalga" },
       { href: "/admin/content", label: "Tekstai (EN / LT)" },
       { href: "/admin/projects", label: "Projektai" },
+      { href: "/admin/site-images", label: "Svetainės nuotraukos" },
       { href: "/admin/brands", label: "Prekių ženklai" },
       { href: "/admin/settings", label: "Kontaktai ir nustatymai" },
       { href: "/admin/pages", label: "Papildomi puslapiai" },
