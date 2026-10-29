@@ -173,7 +173,7 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
       <div ref={trackRef} className="relative hidden w-full xl:block" style={{ paddingTop: 0 }}>
         <div className="absolute left-0 right-0 h-px bg-line" style={{ top: LINE_TOP }} aria-hidden />
         <div
-          className="absolute left-0 h-px bg-dark"
+          className="absolute left-0 h-px bg-brand"
           style={{ top: LINE_TOP, width: Math.min(progress, width) }}
           aria-hidden
         />
@@ -234,7 +234,7 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
           from 480px it is centred and the points alternate right / left. */}
       <ol ref={vTrackRef} className="relative flex flex-col gap-8 md:hidden">
         <div className="absolute bottom-0 left-2 top-0 w-px bg-line min-[480px]:left-1/2 min-[480px]:-translate-x-1/2" aria-hidden />
-        <div className="absolute left-2 top-0 w-px bg-dark min-[480px]:left-1/2 min-[480px]:-translate-x-1/2" style={{ height: Math.min(progress, width) }} aria-hidden />
+        <div className="absolute left-2 top-0 w-px bg-brand min-[480px]:left-1/2 min-[480px]:-translate-x-1/2" style={{ height: Math.min(progress, width) }} aria-hidden />
         {stages.map((stage, i) => {
           const isActive = i === active;
           const passed = i <= active;
@@ -252,7 +252,7 @@ export function StagesTimeline({ stages }: { stages: ServiceStage[] }) {
                   ref={(el) => {
                     vDotRefs.current[i] = el;
                   }}
-                  className={cn("block rounded-full border transition-colors duration-300", passed ? "border-dark bg-dark" : "border-[#c6c6c6] bg-cream")}
+                  className={cn("block rounded-full border transition-colors duration-300", passed ? "border-brand bg-brand" : "border-[#c6c6c6] bg-cream")}
                   style={{ width: DOT, height: DOT }}
                 />
               </button>
@@ -326,7 +326,7 @@ function Point({ stage, i, active, setDot, jumpTo, resume, className, below: bel
           ref={(el) => setDot(i, el)}
           className={cn(
             "block rounded-full border transition-colors duration-300",
-            passed ? "border-dark bg-dark" : "border-[#c6c6c6] bg-cream"
+            passed ? "border-brand bg-brand" : "border-[#c6c6c6] bg-cream"
           )}
           style={{ width: DOT, height: DOT }}
         />

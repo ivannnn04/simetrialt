@@ -55,7 +55,7 @@ export default async function AboutPage() {
             >
               <div className="mx-auto flex w-full max-w-[1440px] flex-col px-4 pt-6 md:flex-row md:items-start md:gap-12 md:px-10 lg:gap-[100px] lg:pl-[180px] xl:gap-[156px] xl:pl-[320px]">
                 <div className="flex w-[250px] shrink-0 items-start gap-2">
-                  <span className="text-[96px] font-medium leading-none tracking-[-0.04em] text-black md:text-[134px]">{years}</span>
+                  <span className="text-[96px] font-medium leading-none tracking-[-0.04em] text-brand md:text-[134px]">{years}</span>
                   <span className="py-8 text-[13px] leading-[1.3] tracking-[-0.04em] text-black">{a.years}</span>
                 </div>
                 <div className="flex min-w-0 flex-1 items-center justify-between gap-8 py-8 text-[18px] leading-[1.3] tracking-[-0.04em] text-[#1f1f1f]">

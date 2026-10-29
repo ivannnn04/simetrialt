@@ -227,7 +227,7 @@ export function HeaderClient({ variant = "solid" }: Props) {
           ))}
         </nav>
 
-        <Link href="/" className={cn("leading-none", solid ? "text-black" : "text-white")} aria-label={t.nav.home}>
+        <Link href="/" className={cn("leading-none", solid ? "text-brand" : "text-white")} aria-label={t.nav.home}>
           <Wordmark />
         </Link>
 
@@ -384,7 +384,7 @@ export function HeaderClient({ variant = "solid" }: Props) {
       {mobileOpen && (
         <div className="fixed inset-0 z-[80] flex flex-col bg-white text-black menu-fade min-[1200px]:hidden" role="dialog" aria-modal="true" aria-label={t.nav.menu}>
           <div className="flex h-[76px] items-center justify-between px-4 md:px-10">
-            <Link href="/" aria-label={t.nav.home} onClick={() => setMobileOpen(false)}>
+            <Link href="/" aria-label={t.nav.home} onClick={() => setMobileOpen(false)} className="text-brand">
               <Wordmark />
             </Link>
             <button type="button" aria-label={t.nav.closeMenu} onClick={() => setMobileOpen(false)} className="transition-colors hover:text-accent">

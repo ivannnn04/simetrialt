@@ -47,7 +47,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
                   rel={external ? "noopener noreferrer" : undefined}
                   className="group flex items-center gap-[10px] py-2 md:w-[216px]"
                 >
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-line text-ink transition-[background-color,border-color,color] duration-500 ease-out group-hover:border-dark group-hover:bg-dark group-hover:text-white">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-line text-brand transition-[background-color,border-color,color] duration-500 ease-out group-hover:border-dark group-hover:bg-dark group-hover:text-white">
                     <Icon />
                   </span>
                   <span className="flex flex-col gap-1 leading-none">
@@ -65,7 +65,16 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
       <section className="flex w-full flex-col overflow-hidden pt-16 md:pt-[120px]">
         <div className="flex whitespace-nowrap" aria-hidden>
           <p className="ticker text-[64px] leading-[0.92] tracking-[-0.04em] text-[#393939] md:text-[143px]">
-            {TICKER}{TICKER}
+            {[0, 1].map((n) => (
+              <span key={n}>
+                {TICKER.split("•").map((part, i, all) => (
+                  <span key={i}>
+                    {part}
+                    {i < all.length - 1 && <span className="text-brand">•</span>}
+                  </span>
+                ))}
+              </span>
+            ))}
           </p>
         </div>
         <ContactSection initialMessage={product ? c.enquiry(product) : ""} productSku={sku ?? ""} />

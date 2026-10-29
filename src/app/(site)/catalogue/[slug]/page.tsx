@@ -49,7 +49,7 @@ export default async function ProductPage({ params }: Params) {
   return (
     <div className="flex w-full flex-col bg-cream pb-10 md:pb-[120px]">
       <SiteHeader variant="solid" />
-      <ProductDetails product={product} crumbs={<Breadcrumbs items={crumbs} />} staff={Boolean(staff)} />
+      <ProductDetails product={product} crumbs={<Breadcrumbs items={crumbs} highlight={crumbs.length > 3 ? crumbs.length - 2 : undefined} />} staff={Boolean(staff)} />
 
       <ProductLine products={product.related} title={t.product.related} cta={null} className="pt-[120px]" />
     </div>

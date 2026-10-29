@@ -1,9 +1,13 @@
 import Link from "@/components/ui/Link";
+import { cn } from "@/lib/cn";
 
 type Crumb = { label: string; href?: string };
 
-/** Figma "Breadcrumbs" (4068:10001) / "Link Breadcrumb" (4068:9949): grey trail, black current item, hover accent. */
-export function Breadcrumbs({ items }: { items: Crumb[] }) {
+/**
+ * Figma "Breadcrumbs" (4068:10001) / "Link Breadcrumb" (4068:9949): grey trail, black current item, hover accent.
+ * `highlight` marks one item in the brand red (product page: the category the product belongs to).
+ */
+export function Breadcrumbs({ items, highlight }: { items: Crumb[]; highlight?: number }) {
   return (
     <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[15px] leading-[1.4] tracking-[-0.04em]">
       {items.map((item, i) => {
@@ -11,7 +15,7 @@ export function Breadcrumbs({ items }: { items: Crumb[] }) {
         return (
           <span key={item.label} className="flex items-center gap-2 whitespace-nowrap">
             {item.href && !last ? (
-              <Link href={item.href} className="text-secondary transition-colors duration-300 hover:text-accent">{item.label}</Link>
+              <Link href={item.href} className={cn("transition-colors duration-300", i === highlight ? "text-brand hover:opacity-80" : "text-secondary hover:text-accent")}>{item.label}</Link>
             ) : (
               <span className={last ? "text-black" : "text-secondary"} aria-current={last ? "page" : undefined}>{item.label}</span>
             )}

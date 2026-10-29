@@ -108,7 +108,7 @@ export function ProductInfo({ product, variant, onSelect }: Props) {
                           className={cn(
                             "flex h-[81px] w-[61px] items-center justify-center bg-[#f2f2f2] p-2 transition-[border-color,filter] duration-300",
                             "border-b-2",
-                            active ? "border-dark" : "border-transparent hover:border-line"
+                            active ? "border-brand" : "border-transparent hover:border-line"
                           )}
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element */}

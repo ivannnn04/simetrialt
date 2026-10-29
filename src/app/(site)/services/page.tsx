@@ -59,8 +59,8 @@ export default async function ServicesPage() {
             className="group/card relative block"
           >
             <Photo src={step.image} className="flex h-[260px] flex-col items-center justify-center px-8 md:h-[480px] xl:h-[660px]">
-              <div className="absolute inset-0 bg-black/10 transition-colors duration-500 ease-out group-hover/process:bg-black/60 group-hover/card:!bg-black/25" />
-              <div className="relative flex max-w-[320px] flex-col items-center text-center text-white">
+              <div className="absolute inset-0 bg-black/10 transition-colors duration-500 ease-out group-hover/process:bg-[#282828]/60 group-hover/card:!bg-black/20" />
+              <div className="relative flex max-w-[320px] flex-col items-center text-center text-white transition-opacity duration-500 ease-out group-hover/process:opacity-30 group-hover/card:!opacity-100">
                 <h2 className="text-[30px] font-medium leading-[1.3] tracking-[-0.04em]">{step.title}</h2>
                 <div className="grid grid-rows-[0fr] transition-[grid-template-rows] duration-500 ease-out group-hover/card:grid-rows-[1fr]">
                   <p
@@ -73,7 +73,7 @@ export default async function ServicesPage() {
                   </p>
                 </div>
               </div>
-              <p className="absolute bottom-5 text-[18px] leading-[1.3] tracking-[-0.04em] text-white md:bottom-8">/ {step.number}</p>
+              <p className="absolute bottom-5 text-[18px] leading-[1.3] tracking-[-0.04em] text-white transition-opacity duration-500 ease-out group-hover/process:opacity-30 group-hover/card:!opacity-100 md:bottom-8">/ {step.number}</p>
             </Photo>
           </Link>
         ))}

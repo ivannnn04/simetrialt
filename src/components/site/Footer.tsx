@@ -99,7 +99,7 @@ export async function SiteFooter() {
               <div className="flex flex-col gap-4 md:flex-row md:flex-wrap">
                 {CONTACTS.map(({ label, value, Icon, href }) => (
                   <Link key={label} href={href} className="group flex w-[218px] items-center gap-2 py-2">
-                    <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-line text-dark transition-[background-color,border-color,color] duration-500 ease-out group-hover:border-dark group-hover:bg-dark group-hover:text-white">
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-line text-brand transition-[background-color,border-color,color] duration-500 ease-out group-hover:border-dark group-hover:bg-dark group-hover:text-white">
                       <Icon />
                     </span>
                     <span className="flex flex-col gap-1.5 leading-none tracking-[-0.04em]">

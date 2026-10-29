@@ -75,7 +75,7 @@ export function ProductCard({ product, className, imageClassName, compact = fals
             <p className="text-[13px] tracking-[-0.04em] text-tertiary">{term(t, product.category)}</p>
           </div>
           {!compact && onSale && product.discount ? (
-            <span className="w-fit border border-[#fb3b30] px-2 py-1 text-[14px] leading-[1.3] tracking-[-0.04em] text-[#fb3b30]">
+            <span className="w-fit border border-brand px-2 py-1 text-[14px] leading-[1.3] tracking-[-0.04em] text-brand">
               {t.catalogue.off(product.discount)}
             </span>
           ) : null}
@@ -87,7 +87,7 @@ export function ProductCard({ product, className, imageClassName, compact = fals
         {onSale ? (
           <>
             <span className={cn("text-[13px] font-light leading-none line-through transition-colors duration-300", compact ? "text-black" : "text-secondary", hoverImage && "group-hover:text-white/80")}>{product.price}</span>
-            <span className={cn("text-[#fb3b30]", compact ? "text-[13px] font-light leading-none" : "text-[16px] leading-[1.3] tracking-[-0.04em]")}>
+            <span className={cn("text-brand", compact ? "text-[13px] font-light leading-none" : "text-[16px] leading-[1.3] tracking-[-0.04em]")}>
               {product.salePrice}
             </span>
           </>

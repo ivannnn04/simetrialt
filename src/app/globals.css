@@ -11,6 +11,8 @@
   --color-label: #4c4c4c;
   --color-body: #6e6e6e;
   --color-accent: #a67c3d;
+  /* Figma "Brand/Red": logo, contact icons, highlights */
+  --color-brand: #c30a1e;
   --color-warm: #e8e1d7;
   --color-warm-overlay: #ddd1c3;
 
