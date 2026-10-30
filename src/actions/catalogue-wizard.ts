@@ -46,6 +46,14 @@ function shownBrand(listed: string, hay: string): string {
   return kept.join(" ");
 }
 
+/** Image search: brand and product name ("Moooi Farooo floor lamp large, white"); the description only when the name is just a code. */
+function photoQuery(brand: string, name: string, description = ""): string {
+  const n = name.replace(/\s+[–-]\s+/g, " ").replace(/\s*\([^)]*\)\s*$/, "").trim();
+  const words = n.split(/\s+/).filter((w) => /[a-z]{3}/i.test(w)).length;
+  const extra = words < 2 ? description.split(/[,.\n]/)[0] : "";
+  return [brand && !n.toLowerCase().startsWith(brand.toLowerCase()) ? brand : "", n, extra].filter(Boolean).join(" ").slice(0, 120);
+}
+
 const cents = (n: number | null | undefined) => (n == null ? "" : (n / 100).toFixed(2));
 
 function fail(message: string): Draft {
@@ -540,7 +548,7 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
         let found = 0;
         const failures: string[] = [];
         const worker = async (it: DraftItem) => {
-          const q = [it.brand, it.name, it.description.split(/[,.\n]/)[0]].filter(Boolean).join(" ").slice(0, 120);
+          const q = photoQuery(it.brand, it.name);
           try {
             const results = await searchImages(q, 6);
             if (results.length === 0) return;
@@ -610,7 +618,7 @@ export async function findMoreImages(token: string, idx: number, override?: { br
   const brand = override?.brand ?? item.brand;
   const name = override?.name ?? item.name;
   const description = override?.description ?? item.description;
-  const query = [brand, name, description.split(/[,.\n]/)[0]].filter(Boolean).join(" ").slice(0, 120);
+  const query = photoQuery(brand, name, description);
   try {
     const found = await searchImages(query, 10);
     const reference = item.images.find((im) => im.kind === "catalogue")?.src;
