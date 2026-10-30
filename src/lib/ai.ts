@@ -62,7 +62,7 @@ export async function extractProductsFromText(text: string, brand: string): Prom
   const out: AiProductFields[] = [];
   const CHUNK = 60000;
   for (let i = 0; i < text.length; i += CHUNK) {
-    const response = await getClient().messages.parse({
+    const response = await getClient().messages.stream({
       model: MODEL,
       max_tokens: 32000,
       output_config: { effort: "medium", format: zodOutputFormat(Extraction) },
@@ -71,7 +71,7 @@ export async function extractProductsFromText(text: string, brand: string): Prom
         "distinct product in them with its details. One entry per product; use the supplier's article number as sku when " +
         `printed, otherwise leave sku empty. Copy values as printed; never invent specifications. The brand is ${brand || "unknown"}.`,
       messages: [{ role: "user", content: text.slice(i, i + CHUNK) }],
-    });
+    }).finalMessage();
     out.push(...(response.parsed_output?.products ?? []));
   }
   return out;

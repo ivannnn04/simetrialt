@@ -15,8 +15,9 @@ import { familyPhotos } from "@/lib/pdf-images";
  */
 
 const MODEL = "claude-opus-5-5";
-/** All chunks are read at once so a long document still fits in the import's time limit. */
+/** At most this many chunks; read a few at a time so a new API account stays under its per-minute token limit. */
 const MAX_CHUNKS = 16;
+const CONCURRENCY = 4;
 const MIN_CHUNK_PAGES = 6;
 /** The API takes requests up to 32 MB: heavier chunks are split again. */
 const MAX_CHUNK_BYTES = 22 * 1024 * 1024;
@@ -108,8 +109,8 @@ async function mapLimit<T, R>(items: T[], limit: number, fn: (t: T) => Promise<R
 }
 
 /** Reads the PDF with Claude. Returns the products as price-list rows (with photos) for the import wizard. */
-export async function readCatalogueWithAI(data: ArrayBuffer, brand: string): Promise<{ rows: BlockRow[]; pages: number; failed: number; chunks: number; currency: string }> {
-  if (!aiEnabled()) return { rows: [], pages: 0, failed: 0, chunks: 0, currency: "" };
+export async function readCatalogueWithAI(data: ArrayBuffer, brand: string): Promise<{ rows: BlockRow[]; pages: number; failed: number; chunks: number; currency: string; error: string }> {
+  if (!aiEnabled()) return { rows: [], pages: 0, failed: 0, chunks: 0, currency: "", error: "" };
   const pdf = await PDFDocument.load(data.slice(0), { ignoreEncryption: true });
   const total = pdf.getPageCount();
   const size = Math.max(MIN_CHUNK_PAGES, Math.ceil(total / MAX_CHUNKS));
@@ -117,9 +118,11 @@ export async function readCatalogueWithAI(data: ArrayBuffer, brand: string): Pro
   for (let p = 1; p <= total; p += size) chunks.push([p, Math.min(total, p + size - 1)]);
   let failed = 0;
   const signal = AbortSignal.timeout(DEADLINE_MS);
-  const results = await mapLimit(chunks, MAX_CHUNKS, ([from, to]) =>
+  let error = "";
+  const results = await mapLimit(chunks, CONCURRENCY, ([from, to]) =>
     readChunk(pdf, from, to, total, brand, signal).catch((e: unknown) => {
       failed++;
+      if (!error) error = describeError(e);
       console.error(`AI catalogue chunk ${from}-${to} failed`, e);
       return [] as AiCatalogueProduct[];
     })
@@ -178,5 +181,14 @@ export async function readCatalogueWithAI(data: ArrayBuffer, brand: string): Pro
     });
   }
   const currency = [...currencies.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "";
-  return { rows, pages: total, failed, chunks: chunks.length, currency };
+  return { rows, pages: total, failed, chunks: chunks.length, currency, error };
+}
+
+/** A short reason for the admin: rate limit, credit, timeout or the API's own message. */
+function describeError(e: unknown): string {
+  if (e instanceof Anthropic.RateLimitError) return "per daug užklausų per minutę (Anthropic paskyros limitas) – pabandykite po minutės";
+  if (e instanceof Anthropic.AuthenticationError) return "neteisingas ANTHROPIC_API_KEY";
+  if (e instanceof Anthropic.APIError && /credit|billing/i.test(e.message)) return "Anthropic paskyroje nėra kredito";
+  if (e instanceof Anthropic.APIUserAbortError || (e instanceof Error && e.name === "AbortError")) return "baigėsi laikas";
+  return e instanceof Error ? e.message.split("\n")[0].slice(0, 200) : "klaida";
 }

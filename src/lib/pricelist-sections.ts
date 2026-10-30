@@ -1,6 +1,6 @@
 import { getDocumentProxy } from "unpdf";
 import type { BlockRow } from "@/lib/pricelist-blocks";
-import { familyPhotos } from "@/lib/pdf-images";
+import { familyPhotos, photosOnPage } from "@/lib/pdf-images";
 
 /**
  * Reads a *sectioned* price list: each product family is printed as a large title, the designer
@@ -288,4 +288,109 @@ export async function extractSectionPriceList(data: ArrayBuffer, opts: { withIma
     families: families.filter((f) => f.models.some((m) => m.rows.length)).length,
     text: textParts.join("\n"),
   };
+}
+
+/** A price at the end of a line, with or without the currency: "920.00", "1,030.00", "1.030,00 €", "€ 1.954". */
+// thousands separated by "." "," or a non-breaking space only: an ordinary space would glue the code's last digits to the price
+const TAIL_PRICE_RE = /(?:(?:€|EUR)\s*)?(\d{1,3}(?:[.,  ]\d{3})*[.,]\d{2}|\d+[.,]\d{2}|(?<=(?:€|EUR)\s*)\d{1,3}(?:[.  ]\d{3})*)\s*(?:€|EUR)?$/i;
+const COLUMN_HEAD_RE = /\b(product number|article (?:no|number)|item no|retail price|price list|excl\.? (?:of )?vat|incl\.? (?:of )?vat|kaina)\b/i;
+
+/**
+ * Reads a *table* price list: groups of rows "finish / variant · code · price" under one or two
+ * header lines (family, then the type), e.g.
+ *
+ *   Alouette
+ *   Ceiling light / 1 Bird ‘T’
+ *   Black (white reflector)        004OL-C01-ME01      920.00
+ *   White (white reflector)        004OL-C01-ME02      920.00
+ *
+ * The header is the block of lines printed right above the first row of a group.
+ */
+export async function extractTablePriceList(data: ArrayBuffer, opts: { withImages?: boolean } = {}): Promise<{ rows: BlockRow[]; pages: number; families: number; text: string; exclVat: boolean }> {
+  const withImages = opts.withImages ?? true;
+  const pdf = await getDocumentProxy(new Uint8Array(data.slice(0)));
+  const rows: BlockRow[] = [];
+  const textParts: string[] = [];
+  const families = new Set<string>();
+  let exclVat = false;
+  let found = 0;
+
+  for (let p = 1; p <= pdf.numPages; p++) {
+    if (p > 20 && found === 0) break;
+    const page = await pdf.getPage(p);
+    const height = page.view[3] - page.view[1];
+    const content = await page.getTextContent();
+    type Raw = { str: string; transform: number[]; width: number };
+    const items: Item[] = [];
+    for (const it of content.items as Raw[]) {
+      if (typeof it.str !== "string" || !it.str.trim()) continue;
+      if (Math.abs(it.transform[1]) > Math.abs(it.transform[0])) continue;
+      items.push({ x: it.transform[4], y: height - it.transform[5], w: it.width || 0, size: Math.round(Math.hypot(it.transform[0], it.transform[1]) * 2) / 2, text: unspace(it.str.trim()) });
+    }
+    const lines = toLines(items).filter((l) => l.y < height * 0.95);
+    if (p <= 3) textParts.push(lines.map((l) => l.text).join(" "));
+    if (lines.some((l) => /excl\.?\s*(of\s*)?vat|be pvm|ohne mwst|iva esclusa/i.test(l.text))) exclVat = true;
+
+    type Row = { y: number; name: string; code: string; price: number };
+    const parsed: (Row | null)[] = lines.map((line) => {
+      const m = line.text.match(TAIL_PRICE_RE);
+      if (!m) return null;
+      const before = line.text.slice(0, m.index).trim().split(" ");
+      const ci = before.findLastIndex((w) => CODE_RE.test(w.replace(/[*,;]+$/, "")));
+      if (ci < 0) return null;
+      const price = parseMoney(m[1]);
+      if (!Number.isFinite(price) || price <= 0) return null;
+      return { y: line.y, name: before.slice(0, ci).join(" ").trim(), code: before[ci].replace(/[*,;]+$/, ""), price };
+    });
+    const rowYs = parsed.filter((r): r is Row => Boolean(r)).map((r) => r.y);
+    const gaps = rowYs.slice(1).map((y, i) => y - rowYs[i]).filter((g) => g > 0).sort((a, b) => a - b);
+    const step = gaps[Math.floor(gaps.length / 2)] ?? 14;
+
+    type Group = { header: string[]; top: number; bottom: number; rows: Row[] };
+    const groups: Group[] = [];
+    let current: Group | null = null;
+    for (const [i, line] of lines.entries()) {
+      const r = parsed[i];
+      if (!r) continue;
+      const prev = i > 0 ? parsed[i - 1] : null;
+      if (!current || !prev) {
+        // the header: the lines right above, each within ~2 row steps of the next
+        const header: string[] = [];
+        let y = line.y;
+        for (let k = i - 1; k >= 0 && header.length < 4; k--) {
+          const l = lines[k];
+          if (parsed[k] || y - l.y > step * 2.2) break;
+          y = l.y;
+          if (COLUMN_HEAD_RE.test(l.text) || /^[€$£]/.test(l.text)) break;
+          header.unshift(l.text);
+        }
+        current = { header, top: y, bottom: line.y, rows: [] };
+        groups.push(current);
+      }
+      current.rows.push(r);
+      current.bottom = line.y;
+      found++;
+    }
+
+    for (const g of groups) {
+      // no header on this page: the rows continue the last group of the previous page
+      const last = rows[rows.length - 1];
+      const family = g.header[0] ?? last?.family ?? "";
+      const typeLine = g.header.length ? g.header.slice(1).join(" / ") : last?.type ?? "";
+      const segs = typeLine.split(/\s+\/\s+/).map((s) => s.trim()).filter(Boolean);
+      const extra = segs.filter((s) => !/lamp|light|chandelier|sconce|pendant|chair|table|sofa|stool|bench|mirror|rug|vase|bed|cabinet|shelf/i.test(s));
+      let images: string[] = [];
+      if (withImages && g.header.length) {
+        const photos = await photosOnPage(pdf, p, { within: { top: g.top - 40, bottom: g.bottom + 20 } }).catch(() => []);
+        images = photos.slice(0, 2).map((ph) => ph.src);
+      } else if (!g.header.length && last) images = last.images;
+      if (family) families.add(family);
+      for (const r of g.rows) {
+        const variant = [...extra, r.name].filter(Boolean).join(" / ");
+        rows.push({ sku: r.code, family, type: typeLine, desc: [typeLine, r.name].filter(Boolean).join(" / "), price: r.price, page: p, variant, finish: r.name, designer: "", materials: "", lightSource: "", weight: "", dimensions: "", images, spec: "" });
+      }
+    }
+  }
+  const seen = new Set<string>();
+  return { rows: rows.filter((r) => (seen.has(r.sku) ? false : (seen.add(r.sku), true))), pages: pdf.numPages, families: families.size, text: textParts.join("\n"), exclVat };
 }

@@ -22,7 +22,7 @@ import { looksLikeBrandList, matchBrand, parseBrandList, type BrandInfo } from "
 import { mapConcurrent, matchProductPage, pageImages, siteUrls } from "@/lib/brand-site";
 import { extractCatalogueFamilies, findFamily, type FamilyBlock } from "@/lib/catalogue-families";
 import { extractBlockPriceList, type BlockRow } from "@/lib/pricelist-blocks";
-import { extractSectionPriceList } from "@/lib/pricelist-sections";
+import { extractSectionPriceList, extractTablePriceList } from "@/lib/pricelist-sections";
 import { readCatalogueWithAI } from "@/lib/ai-catalogue";
 import { after } from "next/server";
 import { kickProductSync } from "@/lib/scoro/sync";
@@ -139,7 +139,7 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
   await requireEditor();
   const brand = String(formData.get("brand") ?? "").trim();
   // "retail": catalogue prices already include VAT; "net": supplier price + transport % + VAT; "vat": + VAT only
-  const priceMode = String(formData.get("priceMode") ?? "net");
+  let priceMode = String(formData.get("priceMode") ?? "net");
   const warnings: string[] = [];
 
   try {
@@ -185,27 +185,6 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
       const ext = extOf(doc.name);
       try {
         if (ext === "pdf") {
-          // AI reads any layout like a person would; the rule-based readers below are the fallback
-          if (aiEnabled()) {
-            const read = await readCatalogueWithAI(doc.buffer, brand).catch((e: unknown) => {
-              warnings.push(`${doc.name}: AI skaitymas nepavyko (${e instanceof Error ? e.message.split("\n")[0] : "klaida"}) – skaitoma pagal taisykles.`);
-              return null;
-            });
-            const priced = read ? read.rows.filter((r) => r.price > 0).length : 0;
-            if (read && read.rows.length) {
-              warnings.push(
-                `${doc.name}: AI perskaitė ${read.pages} psl. – ${read.rows.length} pozicijų, ${new Set(read.rows.map((r) => r.family)).size} produktų šeimų, ${priced} su kaina.` +
-                  (read.failed ? ` ${read.failed} iš ${read.chunks} dalių perskaityti nepavyko (laiko ar API riba) – įkelkite tuos puslapius atskirai arba analizuokite dar kartą.` : "") +
-                  (read.currency && read.currency !== "EUR" ? ` Dėmesio: kainos ${read.currency}, ne EUR.` : "")
-              );
-            }
-            // with prices it is a price list; a catalogue without prices goes on to the catalogue reader (photos for a separate price list)
-            if (read && priced > 0 && priced >= read.rows.length / 2) {
-              aiRead = true;
-              addPriceRows(read.rows, "", doc.name, true);
-              continue;
-            }
-          }
           const pl = await extractPriceListPdf(doc.buffer).catch((e: unknown) => {
             warnings.push(`${doc.name}: kainoraščio skaitymas nepavyko (${e instanceof Error ? e.message.split("\n")[0] : "klaida"}).`);
             return null;
@@ -236,6 +215,39 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
             warnings.push(`${doc.name}: ${sl.pages} psl., ${sl.rows.length} pozicijų su kodais ir kainomis (${sl.families} produktų šeimų).`);
             addPriceRows(sl.rows, sl.text, doc.name);
             continue;
+          }
+          // a table price list: header lines (family, type) above rows "variant · code · price"
+          const tl = await extractTablePriceList(doc.buffer).catch(() => null);
+          if (tl && tl.rows.length >= 5) {
+            warnings.push(`${doc.name}: ${tl.pages} psl., ${tl.rows.length} pozicijų su kodais ir kainomis (${tl.families} produktų šeimų).`);
+            if (tl.exclVat && priceMode === "retail") {
+              // "Retail price € excl. of VAT": the website shows prices with VAT
+              priceMode = "vat";
+              warnings.push(`${doc.name}: kainoraštyje kainos „excl. VAT“ (be PVM) – svetainės kainai pridėtas PVM.`);
+            }
+            addPriceRows(tl.rows, tl.text, doc.name);
+            continue;
+          }
+          // any other layout: AI reads it like a person would
+          if (aiEnabled()) {
+            const read = await readCatalogueWithAI(doc.buffer, brand).catch((e: unknown) => {
+              warnings.push(`${doc.name}: AI skaitymas nepavyko (${e instanceof Error ? e.message.split("\n")[0] : "klaida"}).`);
+              return null;
+            });
+            const priced = read ? read.rows.filter((r) => r.price > 0).length : 0;
+            if (read && read.failed) warnings.push(`${doc.name}: AI neperskaitė ${read.failed} iš ${read.chunks} dalių (${read.error || "API klaida"}).`);
+            if (read && read.rows.length) {
+              warnings.push(
+                `${doc.name}: AI perskaitė ${read.pages} psl. – ${read.rows.length} pozicijų, ${new Set(read.rows.map((r) => r.family)).size} produktų šeimų, ${priced} su kaina.` +
+                  (read.currency && read.currency !== "EUR" ? ` Dėmesio: kainos ${read.currency}, ne EUR.` : "")
+              );
+            }
+            // with prices it is a price list; a catalogue without prices goes on to the catalogue reader (photos for a separate price list)
+            if (read && priced > 0 && priced >= read.rows.length / 2) {
+              aiRead = true;
+              addPriceRows(read.rows, "", doc.name, true);
+              continue;
+            }
           }
           const fam = await extractCatalogueFamilies(doc.buffer).catch((e: unknown) => {
             warnings.push(`${doc.name}: katalogo skaitymas nepavyko (${e instanceof Error ? e.message.split("\n")[0] : "klaida"}).`);
