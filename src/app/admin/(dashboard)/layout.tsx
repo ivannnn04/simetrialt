@@ -20,6 +20,7 @@ const GROUPS: { title: string; items: { href: string; label: string; roles?: str
   {
     title: "Katalogas",
     items: [
+      { href: "/admin/showroom", label: "Katalogas klientams" },
       { href: "/admin/products", label: "Produktai ir kategorijos" },
       { href: "/admin/products/import", label: "Importas iš katalogų" },
     ],
@@ -51,9 +52,9 @@ const GROUPS: { title: string; items: { href: string; label: string; roles?: str
   },
 ];
 
-/** A showroom manager sees only the quotes; editors everything but user management; the admin everything. */
+/** A showroom manager sees the client catalogue and the quotes; editors everything but user management; the admin everything. */
 function navFor(role: string) {
-  if (role === "SHOWROOM") return [{ title: "Salonas", items: [{ href: "/admin/quotes", label: "Pasiūlymai" }] }];
+  if (role === "SHOWROOM") return [{ title: "Salonas", items: [{ href: "/admin/showroom", label: "Katalogas klientams" }, { href: "/admin/quotes", label: "Pasiūlymai" }] }];
   return GROUPS.map((g) => ({ ...g, items: g.items.filter((i) => !i.roles || i.roles.includes(role)) })).filter((g) => g.items.length);
 }
 
