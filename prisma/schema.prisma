@@ -195,14 +195,32 @@ model Note {
 // ---------- Customer accounts & moodboards ----------
 
 model Customer {
-  id           String       @id @default(cuid())
-  email        String       @unique
-  passwordHash String
-  name         String
-  company      String?
-  collections  Collection[]
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  id              String             @id @default(cuid())
+  email           String             @unique
+  passwordHash    String
+  name            String
+  company         String?
+  /**
+   * set once the visitor confirmed the 6-digit code sent to their email; null = registration not finished
+   */
+  emailVerifiedAt DateTime?
+  emailCode       CustomerEmailCode?
+  collections     Collection[]
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+}
+
+/**
+ * Pending email verification code of a customer (one at a time). Only an HMAC of the code is stored.
+ */
+model CustomerEmailCode {
+  id         String   @id @default(cuid())
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customerId String   @unique
+  codeHash   String
+  expiresAt  DateTime
+  attempts   Int      @default(0)
+  sentAt     DateTime @default(now())
 }
 
 model Collection {

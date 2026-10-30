@@ -1,6 +1,9 @@
 import { AuthPage } from "@/components/account/AuthPage";
+import { getT } from "@/i18n/server";
 
-export const metadata = { title: "Create account — Simetria LT" };
+export async function generateMetadata() {
+  return { title: (await getT()).auth.registerMeta };
+}
 
 export default function RegisterPage(props: { searchParams: Promise<{ next?: string }> }) {
   return <AuthPage mode="register" searchParams={props.searchParams} />;

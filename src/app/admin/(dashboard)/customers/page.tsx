@@ -74,7 +74,10 @@ export default async function CustomersAdmin() {
               <tr key={c.id} className="border-t border-zinc-100 hover:bg-zinc-50">
                 <td className="p-4">
                   <Link href={`/admin/customers/${c.id}`} className="font-medium underline">{c.name}</Link>
-                  <p className="text-xs text-zinc-500">{c.email}{c.company ? ` · ${c.company}` : ""}</p>
+                  <p className="text-xs text-zinc-500">
+                    {c.email}{c.company ? ` · ${c.company}` : ""}
+                    {!c.emailVerifiedAt && <span className="text-amber-600"> · el. paštas nepatvirtintas</span>}
+                  </p>
                 </td>
                 <td className="p-4 text-zinc-500">{c.createdAt.toLocaleDateString("lt-LT")}</td>
                 <td className="p-4 text-right tabular-nums">{r.albums}</td>
