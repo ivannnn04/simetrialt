@@ -153,7 +153,7 @@ export function CatalogueWizard({ blobUploads }: { blobUploads: boolean }) {
             pati atpažįsta, kas kuriame faile yra, sujungia produktus pagal SKU ir sudaro korteles su nuotraukomis, aprašymais,
             techniniais duomenimis ir kainomis. Jei kataloge nuotraukų nėra, jos surandamos internete.
             Tiekėjo kainoraštį PDF galima įkelti kartu su tiekėjų sąrašu (List.xlsx: prekės ženklas, svetainė, transporto %):
-            kainos perskaičiuojamos (katalogo kaina + transportas + PVM), o nuotraukos paimamos iš tiekėjo svetainės.
+            kainos perskaičiuojamos pagal pasirinktą kainų tipą, o nuotraukos paimamos iš tiekėjo svetainės.
           </p>
           <div className="grid gap-4 md:grid-cols-[1fr_1fr_260px]">
             <Field label="Dokumentai" hint={blobUploads ? "Galima pažymėti kelis failus iš karto, iki 300 MB kiekvienas." : "Galima pažymėti kelis failus iš karto. Iki 4 MB vienam įkėlimui; didesniems naudokite nuorodas."}>
@@ -166,6 +166,13 @@ export function CatalogueWizard({ blobUploads }: { blobUploads: boolean }) {
               <Input name="brand" placeholder="pvz. Marset" />
             </Field>
           </div>
+          <Field label="Kainos kataloge" hint="Kaip iš katalogo kainos gaunama kaina svetainėje">
+            <Select name="priceMode" defaultValue="retail" className="md:max-w-md">
+              <option value="retail">Mažmeninė kaina (jau su PVM) – rodyti kaip kataloge</option>
+              <option value="net">Tiekėjo kaina be PVM – pridėti transportą (List.xlsx) ir PVM</option>
+              <option value="vat">Kaina be PVM – pridėti tik PVM</option>
+            </Select>
+          </Field>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={webPhotos} onChange={(e) => setWebPhotos(e.target.checked)} />
             <input type="hidden" name="webPhotos" value={webPhotos ? "on" : "off"} />

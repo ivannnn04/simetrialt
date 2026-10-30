@@ -5,7 +5,7 @@ import { getDocumentProxy } from "unpdf";
 import { z } from "zod";
 import { aiEnabled } from "@/lib/ai";
 import type { BlockRow } from "@/lib/pricelist-blocks";
-import { photosOnPage } from "@/lib/pdf-images";
+import { familyPhotos } from "@/lib/pdf-images";
 
 /**
  * AI reading of a supplier PDF of any layout (price list, catalogue with prices, product sheets):
@@ -142,10 +142,10 @@ export async function readCatalogueWithAI(data: ArrayBuffer, brand: string): Pro
   if (famsByPage.size) {
     const doc = await getDocumentProxy(new Uint8Array(data.slice(0)));
     await mapLimit([...famsByPage.entries()], 4, async ([page, fams]) => {
-      const imgs = await photosOnPage(doc, page).catch(() => []);
-      if (!imgs.length) return;
-      if (fams.length === 1) photos.set(fams[0], imgs.slice(0, 3).map((i) => i.src));
-      else fams.forEach((f, i) => imgs[i] && photos.set(f, [imgs[i].src]));
+      for (const f of fams) {
+        const imgs = await familyPhotos(doc, page, { name: f }).catch(() => [] as string[]);
+        if (imgs.length) photos.set(f, imgs);
+      }
     });
   }
 

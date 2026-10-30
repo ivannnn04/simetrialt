@@ -37,6 +37,15 @@ const DRAFT_TTL_MS = 2 * 60 * 60 * 1000;
 const draftKey = (token: string) => `draft:${token}`;
 const MAX_FETCH_BYTES = 300 * 1024 * 1024;
 
+/** The supplier-list entry "Moooi CARPETS" matched a Moooi lamp list: show only the words the files name, at least the first. */
+function shownBrand(listed: string, hay: string): string {
+  const words = listed.split(/\s+/).filter(Boolean);
+  if (words.length < 2) return listed;
+  const h = hay.toLowerCase();
+  const kept = words.filter((w, i) => i === 0 || h.includes(w.toLowerCase()));
+  return kept.join(" ");
+}
+
 const cents = (n: number | null | undefined) => (n == null ? "" : (n / 100).toFixed(2));
 
 function fail(message: string): Draft {
@@ -121,6 +130,8 @@ async function photoDataUrl(buffer: ArrayBuffer): Promise<string> {
 export async function analyzeCatalogue(_prev: Draft | null | undefined, formData: FormData): Promise<Draft | null> {
   await requireEditor();
   const brand = String(formData.get("brand") ?? "").trim();
+  // "retail": catalogue prices already include VAT; "net": supplier price + transport % + VAT; "vat": + VAT only
+  const priceMode = String(formData.get("priceMode") ?? "net");
   const warnings: string[] = [];
 
   try {
@@ -372,12 +383,12 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
     let brandName = brand;
     if (priceList.rows.length > 0 || catalogue.blocks.length > 0) {
       info = matchBrand(brandList, { brand, text: `${priceList.text} ${catalogue.blocks.map((b) => b.family).join(" ")}`, filename: [...priceList.names, ...catalogue.names].join(" ") });
-      brandName = brand || info?.brand || "";
+      brandName = brand || shownBrand(info?.brand ?? "", `${[...priceList.names, ...catalogue.names].join(" ")} ${catalogue.blocks.map((b) => b.family).join(" ")}`);
       if (!brandName) warnings.push("Prekės ženklas nenustatytas – įrašykite jį laukelyje „Prekės ženklas“ ir analizuokite iš naujo.");
     }
     if (priceList.rows.length > 0) {
-      const vat = Number.parseFloat(process.env.IMPORT_VAT_PERCENT ?? "21") || 0;
-      const pct = info?.transportPct ?? 0;
+      const vat = priceMode === "retail" ? 0 : Number.parseFloat(process.env.IMPORT_VAT_PERCENT ?? "21") || 0;
+      const pct = priceMode === "net" ? info?.transportPct ?? 0 : 0;
       const products = priceList.rows.map((r) => productFromPriceRow(r, brandName));
       disambiguateNames(products);
       let withCatalogue = 0;
@@ -413,8 +424,10 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
         else photoTargets.push({ family: p.family, typeHint: p.typeHint, items: [item] });
       }
       warnings.push(
-        `Kainoraštis (${priceList.names.join(", ")}): ${products.length} pozicijų. Kaina svetainėje = katalogo kaina${pct ? ` + ${pct}% transportas` : ""} + ${vat}% PVM` +
-          (info ? ` (${info.brand}, pagal tiekėjų sąrašą).` : brandList.length ? ". Prekės ženklas tiekėjų sąraše nerastas – transporto % nepritaikytas; įrašykite prekės ženklą laukelyje." : ". Tiekėjų sąrašas (List.xlsx) neįkeltas – transporto % nepritaikytas.")
+        priceMode === "retail"
+          ? `Kainoraštis (${priceList.names.join(", ")}): ${products.length} pozicijų. Kaina svetainėje = kaina kaip kataloge (mažmeninė, su PVM).`
+          : `Kainoraštis (${priceList.names.join(", ")}): ${products.length} pozicijų. Kaina svetainėje = katalogo kaina${pct ? ` + ${pct}% transportas` : ""} + ${vat}% PVM` +
+            (priceMode === "vat" ? "." : info ? ` (${info.brand}, pagal tiekėjų sąrašą).` : brandList.length ? ". Prekės ženklas tiekėjų sąraše nerastas – transporto % nepritaikytas; įrašykite prekės ženklą laukelyje." : ". Tiekėjų sąrašas (List.xlsx) neįkeltas – transporto % nepritaikytas.")
       );
       if (catalogue.blocks.length) warnings.push(`Katalogas (${catalogue.names.join(", ")}): nuotraukos ir aprašymai priskirti ${withCatalogue} iš ${products.length} pozicijų pagal produkto šeimą.`);
     } else if (catalogue.blocks.length > 0) {

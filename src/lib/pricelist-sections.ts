@@ -1,6 +1,6 @@
 import { getDocumentProxy } from "unpdf";
 import type { BlockRow } from "@/lib/pricelist-blocks";
-import { photosOnPage } from "@/lib/pdf-images";
+import { familyPhotos } from "@/lib/pdf-images";
 
 /**
  * Reads a *sectioned* price list: each product family is printed as a large title, the designer
@@ -27,7 +27,7 @@ type Item = { x: number; y: number; w: number; size: number; text: string };
 type Line = { y: number; items: Item[]; text: string; size: number };
 
 type Model = { name: string; header: string; rows: { name: string; code: string; price: number }[]; complete: number | null; specs: [string, string][]; page: number };
-type Family = { name: string; designer: string; intro: string[]; section: string; page: number; y: number; models: Model[]; images: string[] };
+type Family = { name: string; designer: string; intro: string[]; section: string; page: number; y: number; until?: number; models: Model[]; images: string[] };
 
 const CODE_RE = /^(?:\d{8,14}|(?=[A-Z0-9.\-/]*\d[A-Z0-9.\-/]*\d[A-Z0-9.\-/]*\d)[A-Z0-9][A-Z0-9.\-/]{4,})$/;
 const MONEY_RE = /(?:€|EUR)\s*(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{1,2})?|\d+(?:[.,]\d{1,2})?)|(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{1,2})?|\d+(?:[.,]\d{1,2})?)\s*(?:€|EUR)\b/i;
@@ -109,10 +109,11 @@ export async function extractSectionPriceList(data: ArrayBuffer, opts: { withIma
 
   // body text size: the most common size by characters, over the first pages
   const sizeChars = new Map<number, number>();
-  const pagesItems: { items: Item[]; height: number }[] = [];
+  const pagesItems: { items: Item[]; height: number; width: number }[] = [];
   for (let p = 1; p <= pdf.numPages; p++) {
     const page = await pdf.getPage(p);
     const height = page.view[3] - page.view[1];
+    const width = page.view[2] - page.view[0];
     const content = await page.getTextContent();
     type Raw = { str: string; transform: number[]; width: number };
     const items: Item[] = [];
@@ -123,7 +124,7 @@ export async function extractSectionPriceList(data: ArrayBuffer, opts: { withIma
       items.push({ x: it.transform[4], y: height - it.transform[5], w: it.width || 0, size, text: unspace(it.str.trim()) });
       if (p <= 20) sizeChars.set(size, (sizeChars.get(size) ?? 0) + it.str.length);
     }
-    pagesItems.push({ items, height });
+    pagesItems.push({ items, height, width });
     // a document without a single code + price line in its first pages is not this kind of list
     if (p === 20 && !pagesItems.some((pi) => toLines(pi.items).some((l) => articleOf(l)))) return { rows: [], pages: pdf.numPages, families: 0, text: "" };
   }
@@ -135,7 +136,7 @@ export async function extractSectionPriceList(data: ArrayBuffer, opts: { withIma
   let mode: "intro" | "model" | "rows" | "specs" = "intro";
   const titlePages = new Map<number, Family[]>();
 
-  for (const [n, { items, height }] of pagesItems.entries()) {
+  for (const [n, { items, height, width }] of pagesItems.entries()) {
     const p = n + 1;
     const lines = toLines(items);
     if (p <= 3) textParts.push(lines.map((l) => l.text).join(" "));
@@ -147,9 +148,15 @@ export async function extractSectionPriceList(data: ArrayBuffer, opts: { withIma
       const t = line.text;
       if (line.y > height * 0.93) continue; // footer: edition, website, page number
       if (line.y < height * 0.09) {
-        // running header: the chapter ("FLOOR LAMPS")
-        if (isUpper(t) && !/\d/.test(t) && t.length < 40) section = t;
-        continue;
+        // running header: the chapter ("FLOOR LAMPS"), centred; spec labels continued at the top of a page are not
+        const x0 = Math.min(...line.items.map((i) => i.x));
+        const x1 = Math.max(...line.items.map((i) => i.x + i.w));
+        const centred = Math.abs((x0 + x1) / 2 - width / 2) < width * 0.12 && x1 - x0 < width * 0.5;
+        if (centred && isUpper(t) && !/\d/.test(t) && t.length < 40) {
+          section = t;
+          continue;
+        }
+        if (/^\d+$/.test(t)) continue;
       }
       const art = articleOf(line);
       if (art) {
@@ -169,6 +176,7 @@ export async function extractSectionPriceList(data: ArrayBuffer, opts: { withIma
       }
       const mm = t.match(MODEL_RE);
       if (mm && family && t.length < 60) {
+        if (family.page === p && family.until === undefined) family.until = line.y;
         model = { name: mm[1].trim(), header: "", rows: [], complete: null, specs: [], page: p };
         family.models.push(model);
         mode = "model";
@@ -217,10 +225,9 @@ export async function extractSectionPriceList(data: ArrayBuffer, opts: { withIma
   // the family photo: the first photos on the page of its title, below the title
   if (withImages) {
     for (const [p, fams] of titlePages) {
-      const photos = await photosOnPage(pdf, p);
-      for (const ph of photos) {
-        const owner = [...fams].reverse().find((f) => f.y <= ph.y + 20) ?? fams[0];
-        if (owner.images.length < 2) owner.images.push(ph.src);
+      for (const [k, f] of fams.entries()) {
+        const next = fams[k + 1]?.y;
+        f.images = await familyPhotos(pdf, p, { y: f.y, until: Math.min(f.until ?? Infinity, next ?? Infinity) }).catch(() => []);
       }
     }
   }
