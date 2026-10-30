@@ -55,7 +55,9 @@ export function productFromPriceRow(row: PriceListRow, brand: string): PriceList
     tokens.push(s.replace(/\s+\d+x[\d,.]+W.*$/i, "").trim());
   }
   const all = [...typeSize.filter((ts) => !tokens.some((t) => t.includes(ts.trim()))), ...tokens].filter(Boolean);
-  let name = `${family} ${shortType}`.trim();
+  // "Filigree Floor Lamp" already says what it is: no "floor lamp" after it
+  const noun = (s: string) => (s.toLowerCase().split(/\s+/).pop() ?? "").replace(/s$/, "");
+  let name = (shortType && noun(family) === noun(shortType) ? family : `${family} ${shortType}`).trim();
   if (all.length) name += ` – ${all.join(", ")}`;
   if (kelvin) name += `, ${kelvin}`;
   if (!all.length && led) name += ` – ${led[1]} LED`;
@@ -64,7 +66,7 @@ export function productFromPriceRow(row: PriceListRow, brand: string): PriceList
   const dimensions = all.filter((t) => SIZE_RE.test(t)).join(", ");
   const taxonomy = classify({ type: `${typeClean} ${name}`, name, section: family });
   const description = row.spec
-    ? `${family}${brand ? ` by ${brand}` : ""} – ${typeClean}${row.designer ? `, design ${row.designer}` : ""}.\n\n${row.variant ? `Finish: ${row.variant}\n` : ""}${row.spec}`
+    ? `${family}${brand ? ` by ${brand}` : ""}${typeClean ? ` – ${typeClean}` : ""}${row.designer ? `, design ${row.designer}` : ""}.\n\n${row.variant ? `Finish: ${row.variant}\n` : ""}${row.spec}`
     : `${family}${brand ? ` by ${brand}` : ""} – ${typeClean}.\n\nSpecification: ${row.desc}` + (kelvin ? `\nColour temperature: ${kelvin}` : "");
   return {
     sku: row.sku,

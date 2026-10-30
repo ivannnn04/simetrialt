@@ -22,6 +22,8 @@ import { looksLikeBrandList, matchBrand, parseBrandList, type BrandInfo } from "
 import { mapConcurrent, matchProductPage, pageImages, siteUrls } from "@/lib/brand-site";
 import { extractCatalogueFamilies, findFamily, type FamilyBlock } from "@/lib/catalogue-families";
 import { extractBlockPriceList, type BlockRow } from "@/lib/pricelist-blocks";
+import { extractSectionPriceList } from "@/lib/pricelist-sections";
+import { readCatalogueWithAI } from "@/lib/ai-catalogue";
 import { after } from "next/server";
 import { kickProductSync } from "@/lib/scoro/sync";
 
@@ -142,16 +144,49 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
     const prices = { rows: new Map<string, PriceRow>(), order: [] as string[] };
     // a price-list PDF (article number … price per line) and the supplier list (brand, website, transport %)
     const priceList: { rows: PriceListRow[]; text: string; names: string[] } = { rows: [], text: "", names: [] };
-    const blockRows = new Map<string, BlockRow>(); // price-list rows that carry their own photos / dimensions
+    const blockRows = new Map<PriceListRow, BlockRow>(); // price-list rows that carry their own photos / dimensions
+    const aiRows = new Set<PriceListRow>();
     const brandList: BrandInfo[] = [];
     // a presentation catalogue: one family per page with photos, materials, colours (no prices)
     const catalogue: { blocks: FamilyBlock[]; names: string[] } = { blocks: [], names: [] };
     let pageOffset = 0;
     let textPages = 0;
+    let aiRead = false;
+    const addPriceRows = (rows: BlockRow[], text: string, name: string, ai = false) => {
+      for (const r of rows) {
+        if (r.sku && priceList.rows.some((x) => x.sku === r.sku)) continue;
+        priceList.rows.push(r);
+        blockRows.set(r, r);
+        if (ai) aiRows.add(r);
+      }
+      priceList.text += `\n${text}`;
+      priceList.names.push(name);
+    };
     for (const doc of docs) {
       const ext = extOf(doc.name);
       try {
         if (ext === "pdf") {
+          // AI reads any layout like a person would; the rule-based readers below are the fallback
+          if (aiEnabled()) {
+            const read = await readCatalogueWithAI(doc.buffer, brand).catch((e: unknown) => {
+              warnings.push(`${doc.name}: AI skaitymas nepavyko (${e instanceof Error ? e.message.split("\n")[0] : "klaida"}) – skaitoma pagal taisykles.`);
+              return null;
+            });
+            const priced = read ? read.rows.filter((r) => r.price > 0).length : 0;
+            if (read && read.rows.length) {
+              warnings.push(
+                `${doc.name}: AI perskaitė ${read.pages} psl. – ${read.rows.length} pozicijų, ${new Set(read.rows.map((r) => r.family)).size} produktų šeimų, ${priced} su kaina.` +
+                  (read.failed ? ` ${read.failed} iš ${read.chunks} dalių perskaityti nepavyko (laiko ar API riba) – įkelkite tuos puslapius atskirai arba analizuokite dar kartą.` : "") +
+                  (read.currency && read.currency !== "EUR" ? ` Dėmesio: kainos ${read.currency}, ne EUR.` : "")
+              );
+            }
+            // with prices it is a price list; a catalogue without prices goes on to the catalogue reader (photos for a separate price list)
+            if (read && priced > 0 && priced >= read.rows.length / 2) {
+              aiRead = true;
+              addPriceRows(read.rows, "", doc.name, true);
+              continue;
+            }
+          }
           const pl = await extractPriceListPdf(doc.buffer).catch((e: unknown) => {
             warnings.push(`${doc.name}: kainoraščio skaitymas nepavyko (${e instanceof Error ? e.message.split("\n")[0] : "klaida"}).`);
             return null;
@@ -170,10 +205,17 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
             for (const r of bl.rows) {
               if (priceList.rows.some((x) => x.sku === r.sku)) continue;
               priceList.rows.push(r);
-              blockRows.set(r.sku, r);
+              blockRows.set(r, r);
             }
             priceList.text += `\n${bl.text}`;
             priceList.names.push(doc.name);
+            continue;
+          }
+          // a price list printed per family: title, designer, "Model:", article lines with code and € price, "complete" set price
+          const sl = await extractSectionPriceList(doc.buffer).catch(() => null);
+          if (sl && sl.rows.length >= 3) {
+            warnings.push(`${doc.name}: ${sl.pages} psl., ${sl.rows.length} pozicijų su kodais ir kainomis (${sl.families} produktų šeimų).`);
+            addPriceRows(sl.rows, sl.text, doc.name);
             continue;
           }
           const fam = await extractCatalogueFamilies(doc.buffer).catch((e: unknown) => {
@@ -230,7 +272,7 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
     }
 
     // --- optional AI pass: structure each block, or extract products from free text ---
-    let aiUsed = false;
+    let aiUsed = aiRead;
     let aiFree: AiProductFields[] = [];
     if (pdfProducts.length === 0 && lines.length > 0 && aiEnabled()) {
       aiFree = await extractProductsFromText(lines.map((l) => l.text).join("\n"), brand).catch((e: unknown) => {
@@ -339,11 +381,12 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
       const products = priceList.rows.map((r) => productFromPriceRow(r, brandName));
       disambiguateNames(products);
       let withCatalogue = 0;
-      for (const p of products) {
-        if (bySku.has(p.sku)) continue;
+      for (const [n, p] of products.entries()) {
+        if (p.sku && bySku.has(p.sku)) continue;
+        const row = priceList.rows[n];
         const fam = catalogue.blocks.length ? findFamily(catalogue.blocks, p.family, p.typeHint) : null;
         if (fam) withCatalogue++;
-        const own = blockRows.get(p.sku);
+        const own = blockRows.get(row);
         const item: DraftItem = {
           idx: items.length,
           sku: p.sku,
@@ -356,15 +399,15 @@ export async function analyzeCatalogue(_prev: Draft | null | undefined, formData
           colour: p.colour,
           dimensions: p.dimensions || own?.dimensions || fam?.dimensions || "",
           weight: "",
-          price: (Math.round(p.netPrice * (1 + pct / 100) * (1 + vat / 100) * 100) / 100).toFixed(2),
+          price: p.netPrice > 0 ? (Math.round(p.netPrice * (1 + pct / 100) * (1 + vat / 100) * 100) / 100).toFixed(2) : "",
           salePrice: "",
-          from: fam ? ["pricelist", "pdf"] : ["pricelist"],
+          from: [...(aiRows.has(row) ? (["ai"] as const) : []), ...(fam ? (["pricelist", "pdf"] as const) : (["pricelist"] as const))],
           page: fam?.page ?? null,
           existing: null,
           images: [...(own?.images ?? []), ...(fam?.images ?? [])].map((src, i) => ({ kind: "catalogue" as const, src, selected: i < 2 })),
         };
         items.push(item);
-        bySku.set(p.sku, item);
+        if (p.sku) bySku.set(p.sku, item);
         const key = photoTargets.find((t) => t.family === p.family && t.typeHint === p.typeHint);
         if (key) key.items.push(item);
         else photoTargets.push({ family: p.family, typeHint: p.typeHint, items: [item] });

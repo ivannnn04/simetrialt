@@ -187,7 +187,7 @@ export function CatalogueWizard({ blobUploads }: { blobUploads: boolean }) {
               <p>
                 Taip produktai atrodys svetainėje. Pataisykite tekstus, pažymėkite nuotraukas (pirma pažymėta – pagrindinė) ir nuimkite
                 varnelę nuo tų, kurių įtraukti nereikia.
-                {draft.aiUsed ? " Laukus sutvarkė AI." : " AI analizė išjungta (nėra ANTHROPIC_API_KEY) – laukai nuskaityti pagal taisykles."}
+                {draft.aiUsed ? " Laukus sutvarkė AI." : " AI skaitymas išjungtas – laukai nuskaityti pagal taisykles. Kad AI skaitytų bet kokio stiliaus katalogus, Vercel → Settings → Environment Variables pridėkite ANTHROPIC_API_KEY."}
                 {!draft.imageSearch && " Nuotraukų paieška internete išjungta (nėra SERPER_API_KEY)."}
               </p>
               {draft.warnings.map((w, i) => (
