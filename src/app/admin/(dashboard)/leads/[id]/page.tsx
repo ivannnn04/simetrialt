@@ -1,9 +1,65 @@
 import { notFound } from "next/navigation";
+import { after } from "next/server";
 import { db } from "@/lib/db";
 import { requireEditor } from "@/lib/auth";
 import { addLeadNote, deleteLead, updateLeadStatus } from "@/actions/leads";
 import { loadLeadProducts, parseLeadSections } from "@/lib/lead-items";
 import { LeadProducts } from "@/components/admin/LeadProducts";
+import { LeadEmails, type ThreadView } from "@/components/admin/LeadEmails";
+import { linkOrphanMail, syncMailboxes } from "@/lib/mail-sync";
+import { normalizeSubject, replySubject, splitQuoted } from "@/lib/mail-parse";
+
+export const maxDuration = 60;
+
+const when = (d: Date) => d.toLocaleString("lt-LT", { timeZone: "Europe/Vilnius", dateStyle: "short", timeStyle: "short" });
+
+/** E-mails of a lead grouped into conversations (newest conversation first, messages oldest → newest). */
+async function loadThreads(leadId: string, leadEmail: string | null) {
+  await linkOrphanMail(leadId, leadEmail).catch(() => 0);
+  const rows = await db.emailMessage.findMany({
+    where: { leadId },
+    orderBy: { date: "asc" },
+    take: 500,
+    include: { mailbox: { select: { email: true } } },
+  });
+  // viewing the lead reads its mail; the highlight is computed from the state before this visit
+  const unread = rows.filter((m) => m.direction === "IN" && !m.readAt).map((m) => m.id);
+  if (unread.length) await db.emailMessage.updateMany({ where: { id: { in: unread } }, data: { readAt: new Date() } });
+  const groups = new Map<string, typeof rows>();
+  for (const m of rows) groups.set(m.threadKey, [...(groups.get(m.threadKey) ?? []), m]);
+  const threads: ThreadView[] = [...groups.entries()].map(([key, ms]) => {
+    const last = ms[ms.length - 1];
+    const lastIn = [...ms].reverse().find((m) => m.direction === "IN");
+    return {
+      key,
+      subject: ms[0].subject,
+      messages: ms.map((m) => {
+        const { main, quoted } = splitQuoted(m.textBody);
+        return {
+          id: m.id,
+          direction: m.direction === "OUT" ? ("OUT" as const) : ("IN" as const),
+          from: m.fromName ? `${m.fromName} <${m.fromAddr}>` : m.fromAddr,
+          to: [...m.toAddrs, ...m.ccAddrs].join(", "),
+          date: when(m.date),
+          // shown only when it differs from the conversation's subject (beyond "Re:")
+          subject: normalizeSubject(m.subject) === normalizeSubject(ms[0].subject) ? "" : m.subject,
+          main,
+          quoted,
+          unread: unread.includes(m.id),
+          mailbox: m.mailbox.email,
+        };
+      }),
+      reply: {
+        id: last.id,
+        to: lastIn ? lastIn.fromAddr : last.toAddrs.join(", ") || (leadEmail ?? ""),
+        subject: replySubject(last.subject),
+        mailboxId: last.mailboxId,
+      },
+    };
+  });
+  const lastAt = (t: ThreadView) => rows.find((r) => r.id === t.messages[t.messages.length - 1].id)!.date.getTime();
+  return threads.sort((a, b) => lastAt(b) - lastAt(a));
+}
 
 const STATUS_LABELS: Record<string, string> = {
   NEW: "Nauja",
@@ -18,7 +74,7 @@ export default async function LeadDetail({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireEditor();
+  const user = await requireEditor();
   const { id } = await params;
   const lead = await db.lead.findUnique({
     where: { id },
@@ -28,9 +84,16 @@ export default async function LeadDetail({
   const products = await loadLeadProducts(lead.message, lead.productSku);
   const collection = lead.message.match(/^Kolekcija „(.+?)“/)?.[1];
   const structure = products.length ? parseLeadSections(lead.message) : { note: "", sections: [] };
+  const [threads, mailboxes] = await Promise.all([
+    loadThreads(lead.id, lead.email),
+    db.mailbox.findMany({ where: { active: true }, orderBy: { createdAt: "asc" }, select: { id: true, email: true, displayName: true, ownerUserId: true } }),
+  ]);
+  // fresh mail from Gmail after the page is sent (at most once a minute per mailbox); visible on the next load
+  if (mailboxes.length) after(() => syncMailboxes({ budgetMs: 25_000, minIntervalMs: 60_000 }).catch(() => undefined));
+  const defaultMailboxId = (mailboxes.find((b) => b.ownerUserId === user.id) ?? mailboxes[0])?.id ?? "";
 
   return (
-    <div className={`${products.length ? "max-w-5xl" : "max-w-2xl"} space-y-6`}>
+    <div className={`${products.length ? "max-w-5xl" : "max-w-3xl"} space-y-6`}>
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-semibold">{lead.name}</h1>
@@ -79,6 +142,15 @@ export default async function LeadDetail({
           reference={`SIM-${lead.createdAt.toISOString().slice(2, 10).replace(/-/g, "")}-${lead.id.slice(-4).toUpperCase()}`}
         />
       )}
+
+      <LeadEmails
+        leadId={lead.id}
+        leadEmail={lead.email ?? ""}
+        threads={threads}
+        mailboxes={mailboxes.map((b) => ({ id: b.id, label: b.displayName ? `${b.displayName} <${b.email}>` : b.email }))}
+        defaultMailboxId={defaultMailboxId}
+        isAdmin={user.role === "ADMIN"}
+      />
 
       <div className="rounded-xl bg-white p-5 shadow-sm">
         <h2 className="mb-3 text-sm font-medium text-zinc-500">Būsena</h2>

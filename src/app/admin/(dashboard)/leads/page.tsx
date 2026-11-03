@@ -34,6 +34,13 @@ export default async function LeadsList({
     orderBy: { createdAt: "desc" },
     take: board ? 500 : undefined,
   });
+  // e-mails per lead (all, and incoming not opened yet) for the card badge
+  const [mailCounts, unreadCounts] = await Promise.all([
+    db.emailMessage.groupBy({ by: ["leadId"], where: { leadId: { not: null } }, _count: { _all: true } }),
+    db.emailMessage.groupBy({ by: ["leadId"], where: { leadId: { not: null }, direction: "IN", readAt: null }, _count: { _all: true } }),
+  ]);
+  const mails = new Map(mailCounts.map((c) => [c.leadId, c._count._all]));
+  const unreadMails = new Map(unreadCounts.map((c) => [c.leadId, c._count._all]));
   const cards: BoardLead[] = board
     ? leads.map((l) => {
         const total = l.message.match(/^Orientacinė suma:\s*([\d\s\u00a0.,]+)/m)?.[1];
@@ -48,6 +55,8 @@ export default async function LeadsList({
           preview: l.message.split("\n").find((x) => x.trim())?.trim() ?? "",
           totalCents: total ? Math.round(Number(total.replace(/[\s\u00a0.]/g, "").replace(",", ".")) * 100) || 0 : 0,
           products: parseLeadLines(l.message, l.productSku).length,
+          emails: mails.get(l.id) ?? 0,
+          unreadEmails: unreadMails.get(l.id) ?? 0,
         };
       })
     : [];
@@ -106,6 +115,14 @@ export default async function LeadsList({
                     {lead.name}
                   </Link>
                   {lead.company && <span className="ml-2 text-zinc-500">({lead.company})</span>}
+                  {(mails.get(lead.id) ?? 0) > 0 && (
+                    <span
+                      className={`ml-2 rounded-full px-2 py-0.5 text-[11px] ${unreadMails.get(lead.id) ? "bg-[#c30a1e] font-semibold text-white" : "bg-zinc-100 text-zinc-600"}`}
+                      title={unreadMails.get(lead.id) ? "Yra neperskaitytų laiškų" : "Laiškai"}
+                    >
+                      ✉ {unreadMails.get(lead.id) ? `${unreadMails.get(lead.id)} nauj.` : mails.get(lead.id)}
+                    </span>
+                  )}
                 </td>
                 <td className="p-4 text-zinc-500">
                   {[lead.email, lead.phone].filter(Boolean).join(" · ") || "—"}

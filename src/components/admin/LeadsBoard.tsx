@@ -5,7 +5,7 @@ import Link from "next/link";
 import { updateLeadStatus } from "@/actions/leads";
 import { cn } from "@/lib/cn";
 
-export type BoardLead = { id: string; name: string; company: string; contact: string; source: string; status: string; date: string; preview: string; totalCents: number; products: number };
+export type BoardLead = { id: string; name: string; company: string; contact: string; source: string; status: string; date: string; preview: string; totalCents: number; products: number; emails: number; unreadEmails: number };
 
 const COLUMNS: { key: string; label: string; accent: string }[] = [
   { key: "NEW", label: "Nauja", accent: "bg-blue-500" },
@@ -83,9 +83,23 @@ export function LeadsBoard({ leads: initial }: { leads: BoardLead[] }) {
                   }}
                   className={cn("cursor-grab rounded-lg bg-white p-3 text-sm shadow-sm ring-1 ring-zinc-200 active:cursor-grabbing", dragging === l.id && "opacity-50")}
                 >
-                  <Link href={`/admin/leads/${l.id}`} className="block font-medium text-zinc-900 hover:underline">
-                    {l.name}
-                  </Link>
+                  <div className="flex items-start justify-between gap-2">
+                    <Link href={`/admin/leads/${l.id}`} className="block min-w-0 font-medium text-zinc-900 hover:underline">
+                      {l.name}
+                    </Link>
+                    {l.emails > 0 && (
+                      <Link
+                        href={`/admin/leads/${l.id}`}
+                        title={l.unreadEmails ? `Neperskaityti laiškai: ${l.unreadEmails}` : `Laiškai: ${l.emails}`}
+                        className={cn(
+                          "flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-[11px] leading-none",
+                          l.unreadEmails ? "bg-[#c30a1e] font-semibold text-white" : "bg-zinc-100 text-zinc-500"
+                        )}
+                      >
+                        {l.unreadEmails > 0 && <span className="h-1.5 w-1.5 rounded-full bg-white" />}✉ {l.unreadEmails || l.emails}
+                      </Link>
+                    )}
+                  </div>
                   {l.company && <p className="text-xs text-zinc-500">{l.company}</p>}
                   {l.preview && <p className="mt-1.5 line-clamp-3 text-xs leading-relaxed text-zinc-600">{l.preview}</p>}
                   <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-zinc-500">

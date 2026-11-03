@@ -11,18 +11,19 @@ datasource db {
 // ---------- Auth ----------
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  name         String
-  role         String   @default("ADMIN") // ADMIN (super admin) | EDITOR | SHOWROOM (showroom manager: quotes only)
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  passwordHash        String
+  name                String
+  role                String    @default("ADMIN") // ADMIN (super admin) | EDITOR | SHOWROOM (showroom manager: quotes only)
   /**
    * last time the notification bell was opened; website inquiries and sign-ups after it are unread
    */
   notificationsSeenAt DateTime?
-  quotes       Quote[]
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  quotes              Quote[]
+  mailboxes           Mailbox[]
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 }
 
 /**
@@ -169,14 +170,14 @@ model ProductImage {
 // ---------- CRM ----------
 
 model Lead {
-  id             String   @id @default(cuid())
+  id             String         @id @default(cuid())
   name           String
   email          String?
   phone          String?
   company        String?
-  message        String   @default("")
-  source         String   @default("website") // website | manual | import
-  status         String   @default("NEW") // NEW | CONTACTED | QUALIFIED | WON | LOST
+  message        String         @default("")
+  source         String         @default("website") // website | manual | import
+  status         String         @default("NEW") // NEW | CONTACTED | QUALIFIED | WON | LOST
   /**
    * product the visitor asked about (Inquire button on a product page)
    */
@@ -184,8 +185,9 @@ model Lead {
   scoroContactId Int?
   scoroQuoteId   Int?
   notes          Note[]
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  emails         EmailMessage[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 }
 
 model Note {
@@ -556,4 +558,67 @@ model ErpEvent {
 model ErpCounter {
   series String @id
   last   Int    @default(0)
+}
+
+// ---------- Gmail mailboxes (IMAP + SMTP with an app password) ----------
+
+/**
+ * A Gmail / Google Workspace address connected with an app password. Mail with CRM clients is
+ * copied from INBOX and the Sent folder into EmailMessage; replies are sent through its SMTP.
+ */
+model Mailbox {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  displayName   String         @default("")
+  /**
+   * AES-256-GCM encrypted app password (key derived from SESSION_SECRET); never sent to the browser
+   */
+  passwordEnc   String
+  imapHost      String         @default("imap.gmail.com")
+  smtpHost      String         @default("smtp.gmail.com")
+  owner         User?          @relation(fields: [ownerUserId], references: [id], onDelete: SetNull)
+  ownerUserId   String?
+  /**
+   * per-folder progress: { "<path>": { uidValidity, lastUid, initial } }
+   */
+  syncState     Json           @default("{}")
+  lastUid       Int            @default(0) // highest INBOX UID processed (informational)
+  lastSyncAt    DateTime?
+  syncStartedAt DateTime? // lock: a run in progress (stale after a few minutes)
+  lastError     String?
+  active        Boolean        @default(true)
+  messages      EmailMessage[]
+  createdAt     DateTime       @default(now())
+}
+
+/**
+ * One e-mail exchanged with a client (incoming or sent), deduplicated by Message-ID per mailbox.
+ */
+model EmailMessage {
+  id         String    @id @default(cuid())
+  mailbox    Mailbox   @relation(fields: [mailboxId], references: [id], onDelete: Cascade)
+  mailboxId  String
+  messageId  String
+  threadKey  String
+  lead       Lead?     @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  leadId     String?
+  direction  String // IN | OUT
+  fromAddr   String // lower case
+  fromName   String    @default("")
+  toAddrs    String[] // lower case
+  ccAddrs    String[] // lower case
+  subject    String    @default("")
+  date       DateTime
+  textBody   String    @default("")
+  snippet    String    @default("")
+  inReplyTo  String?
+  references String    @default("")
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@unique([mailboxId, messageId])
+  @@index([leadId, date])
+  @@index([fromAddr])
+  @@index([toAddrs], type: Gin)
+  @@index([createdAt])
 }

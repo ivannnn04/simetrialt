@@ -2,11 +2,12 @@ import { db } from "@/lib/db";
 import { sendMail, mailConfigured } from "@/lib/mail";
 
 /**
- * Staff notifications: website inquiries (and, for administrators, new client accounts) newer than
- * the moment the user last opened the bell are unread. Nothing is stored per event.
+ * Staff notifications: website inquiries, e-mails from CRM clients not opened yet (and, for
+ * administrators, new client accounts) newer than the moment the user last opened the bell are unread.
+ * Nothing is stored per event.
  */
 
-export type AdminNotification = { id: string; kind: "lead" | "customer"; title: string; body: string; href: string; at: string; unread: boolean };
+export type AdminNotification = { id: string; kind: "lead" | "customer" | "email"; title: string; body: string; href: string; at: string; unread: boolean };
 
 const canSeeLeads = (role: string) => role === "ADMIN" || role === "EDITOR";
 
@@ -14,13 +15,24 @@ export async function notificationsFor(user: { id: string; role: string; notific
   if (!canSeeLeads(user.role)) return { unread: 0, items: [] };
   // first use: only the last 7 days count as unread
   const seen = user.notificationsSeenAt ?? new Date(Date.now() - 7 * 24 * 3600 * 1000);
-  const [leads, unreadLeads, customers, unreadCustomers] = await Promise.all([
+  const unreadMailWhere = { direction: "IN", leadId: { not: null }, readAt: null, createdAt: { gt: seen } };
+  const [leads, unreadLeads, customers, unreadCustomers, mails, unreadMails] = await Promise.all([
     db.lead.findMany({ where: { source: "website" }, orderBy: { createdAt: "desc" }, take: 15, select: { id: true, name: true, message: true, productSku: true, createdAt: true } }),
     db.lead.count({ where: { source: "website", createdAt: { gt: seen } } }),
     user.role === "ADMIN"
       ? db.customer.findMany({ where: { emailVerifiedAt: { not: null } }, orderBy: { createdAt: "desc" }, take: 5, select: { id: true, name: true, email: true, createdAt: true } })
       : Promise.resolve([]),
     user.role === "ADMIN" ? db.customer.count({ where: { emailVerifiedAt: { not: null }, createdAt: { gt: seen } } }) : Promise.resolve(0),
+    // incoming mail linked to a lead and not opened yet (the history imported by a first sync is already read)
+    db.emailMessage
+      .findMany({
+        where: { direction: "IN", leadId: { not: null }, readAt: null },
+        orderBy: { createdAt: "desc" },
+        take: 15,
+        select: { id: true, subject: true, snippet: true, fromName: true, fromAddr: true, date: true, createdAt: true, leadId: true, lead: { select: { name: true } } },
+      })
+      .catch(() => []),
+    db.emailMessage.count({ where: unreadMailWhere }).catch(() => 0),
   ]);
   const items: AdminNotification[] = [
     ...leads.map((l) => ({
@@ -31,6 +43,15 @@ export async function notificationsFor(user: { id: string; role: string; notific
       href: `/admin/leads/${l.id}`,
       at: l.createdAt.toISOString(),
       unread: l.createdAt > seen,
+    })),
+    ...mails.map((m) => ({
+      id: `email-${m.id}`,
+      kind: "email" as const,
+      title: `Naujas laiškas: ${m.lead?.name || m.fromName || m.fromAddr}`,
+      body: [m.subject, m.snippet].filter(Boolean).join(" – ").slice(0, 160),
+      href: `/admin/leads/${m.leadId}`,
+      at: m.createdAt.toISOString(),
+      unread: m.createdAt > seen,
     })),
     ...customers.map((c) => ({
       id: `customer-${c.id}`,
@@ -44,7 +65,7 @@ export async function notificationsFor(user: { id: string; role: string; notific
   ]
     .sort((a, b) => b.at.localeCompare(a.at))
     .slice(0, 15);
-  return { unread: unreadLeads + unreadCustomers, items };
+  return { unread: unreadLeads + unreadCustomers + unreadMails, items };
 }
 
 export async function markNotificationsSeen(userId: string): Promise<void> {
