@@ -118,7 +118,7 @@ export function Filters({ groups, basePath = "/catalogue" }: { groups: FilterGro
 
   // Figma order: Typology, Brands, Price, On display, Material (Category first when the page lists several).
   // Category is never a sidebar group: it comes from the Products menu / footer links.
-  const ORDER = ["typology", "brand", "display", "material", "features"];
+  const ORDER = ["typology", "brand", "availability", "display", "material", "features"];
   const sorted = groups.filter((g) => g.key !== "category").sort((a, b) => ORDER.indexOf(a.key) - ORDER.indexOf(b.key));
   const sections: React.ReactNode[] = [];
   sorted.forEach((g) => {

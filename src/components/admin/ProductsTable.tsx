@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useTransition } from "react";
 import Link from "next/link";
-import { deleteProducts } from "@/actions/products";
+import { useRouter } from "next/navigation";
+import { deleteProducts, setProductsInStock } from "@/actions/products";
 import { Notice } from "@/components/admin/ui";
 import { formatPrice } from "@/lib/slug";
 
@@ -14,6 +15,7 @@ export type ProductRow = {
   priceCents: number;
   currency: string;
   published: boolean;
+  inStock: boolean;
   image: string | null;
 };
 
@@ -26,6 +28,18 @@ export function ProductsTable({ products }: { products: ProductRow[] }) {
   const allChecked = products.length > 0 && selected.size === products.length;
   const toggle = (id: string) => setSelected((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const toggleAll = () => setSelected(allChecked ? new Set() : new Set(products.map((p) => p.id)));
+  const router = useRouter();
+  const [stockPending, startStock] = useTransition();
+  // optimistic "in stock" switches until the list reloads
+  const [stockOverride, setStockOverride] = useState<Record<string, boolean>>({});
+  const inStock = (p: ProductRow) => stockOverride[p.id] ?? p.inStock;
+  const setStock = (ids: string[], value: boolean) => {
+    setStockOverride((o) => ({ ...o, ...Object.fromEntries(ids.map((id) => [id, value])) }));
+    startStock(async () => {
+      await setProductsInStock(ids, value);
+      router.refresh();
+    });
+  };
   const confirmDelete = (message: string) => (e: React.FormEvent<HTMLFormElement>) => {
     if (!window.confirm(message)) e.preventDefault();
   };
@@ -36,7 +50,13 @@ export function ProductsTable({ products }: { products: ProductRow[] }) {
         <p className="text-sm text-zinc-600">
           Produktų: <b>{products.length}</b>{selected.size > 0 && <> · pažymėta <b>{selected.size}</b></>}
         </p>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <button type="button" disabled={selected.size === 0 || stockPending} onClick={() => setStock([...selected], true)} className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-50 disabled:opacity-40">
+            Pažymėtus: yra sandėlyje
+          </button>
+          <button type="button" disabled={selected.size === 0 || stockPending} onClick={() => setStock([...selected], false)} className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-50 disabled:opacity-40">
+            Pažymėtus: nėra sandėlyje
+          </button>
           <form action={remove} onSubmit={confirmDelete(`Ištrinti pažymėtus produktus (${selected.size})? Veiksmo atšaukti negalima.`)}>
             {[...selected].map((id) => <input key={id} type="hidden" name="ids" value={id} />)}
             <button disabled={selected.size === 0 || removing} className="rounded-md border border-red-200 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 disabled:opacity-40">
@@ -61,6 +81,7 @@ export function ProductsTable({ products }: { products: ProductRow[] }) {
             <th className="p-4 font-medium">SKU</th>
             <th className="p-4 font-medium">Kategorija</th>
             <th className="p-4 font-medium">Kaina</th>
+            <th className="p-4 font-medium">Sandėlyje</th>
             <th className="p-4 font-medium">Būsena</th>
           </tr>
         </thead>
@@ -83,6 +104,18 @@ export function ProductsTable({ products }: { products: ProductRow[] }) {
               <td className="p-4 text-zinc-500">{p.category ?? "—"}</td>
               <td className="p-4">{formatPrice(p.priceCents, p.currency)}</td>
               <td className="p-4">
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={inStock(p)}
+                  aria-label={`${p.name}: yra sandėlyje`}
+                  onClick={() => setStock([p.id], !inStock(p))}
+                  className={"relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition " + (inStock(p) ? "bg-green-600" : "bg-zinc-300")}
+                >
+                  <span className={"inline-block h-4 w-4 rounded-full bg-white shadow transition " + (inStock(p) ? "translate-x-[18px]" : "translate-x-0.5")} />
+                </button>
+              </td>
+              <td className="p-4">
                 {p.published ? (
                   <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700">Paskelbtas</span>
                 ) : (
@@ -93,7 +126,7 @@ export function ProductsTable({ products }: { products: ProductRow[] }) {
           ))}
           {products.length === 0 && (
             <tr>
-              <td colSpan={6} className="p-6 text-center text-zinc-500">Produktų dar nėra.</td>
+              <td colSpan={7} className="p-6 text-center text-zinc-500">Produktų dar nėra.</td>
             </tr>
           )}
         </tbody>

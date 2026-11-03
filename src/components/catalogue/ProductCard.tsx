@@ -25,6 +25,8 @@ export type ProductCardData = {
   options?: number;
   /** the price shown is the lowest of the variants */
   fromPrice?: boolean;
+  /** available from stock (at least one variant) */
+  inStock?: boolean;
 };
 
 type Props = {
@@ -74,6 +76,12 @@ export function ProductCard({ product, className, imageClassName, compact = fals
             <p className={cn("text-[14px] tracking-[-0.04em] text-black transition-colors duration-300", hoverImage && "group-hover:text-white")}>{product.name}</p>
             <p className="text-[13px] tracking-[-0.04em] text-tertiary">{term(t, product.category)}</p>
           </div>
+          {product.inStock ? (
+            <span className={cn("flex w-fit items-center gap-1.5 text-[13px] leading-none tracking-[-0.04em] text-black transition-colors duration-300", hoverImage && "group-hover:text-white")}>
+              <span className="size-[6px] rounded-full bg-brand" aria-hidden />
+              {t.catalogue.inStock}
+            </span>
+          ) : null}
           {!compact && onSale && product.discount ? (
             <span className="w-fit border border-brand px-2 py-1 text-[14px] leading-[1.3] tracking-[-0.04em] text-brand">
               {t.catalogue.off(product.discount)}

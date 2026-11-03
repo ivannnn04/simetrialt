@@ -42,6 +42,11 @@ export async function saveProduct(id: string | null, formData: FormData) {
     typology: optional(formData.get("typology")),
     material: optional(formData.get("material")),
     inShowroom: formData.get("inShowroom") === "on",
+    inStock: formData.get("inStock") === "on",
+    stockQty: (() => {
+      const n = Number.parseInt(String(formData.get("stockQty") ?? ""), 10);
+      return Number.isFinite(n) && n >= 0 ? n : null;
+    })(),
     published: formData.get("published") === "on",
     categoryId,
   };
@@ -154,4 +159,15 @@ export async function deleteCategory(id: string) {
   await db.category.delete({ where: { id } });
   revalidatePath("/admin/products");
   revalidatePath("/catalogue");
+}
+
+/** "In stock" for one or many products at once (from the products list). */
+export async function setProductsInStock(ids: string[], inStock: boolean): Promise<{ updated: number }> {
+  await requireEditor();
+  const list = ids.filter((id) => typeof id === "string" && id).slice(0, 5000);
+  if (!list.length) return { updated: 0 };
+  const res = await db.product.updateMany({ where: { id: { in: list } }, data: { inStock } });
+  revalidatePath("/admin/products");
+  revalidatePath("/", "layout");
+  return { updated: res.count };
 }

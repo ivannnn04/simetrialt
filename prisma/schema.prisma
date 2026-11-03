@@ -121,6 +121,11 @@ model Product {
   typology       String?
   material       String?
   inShowroom     Boolean          @default(false)
+  /**
+   * available from Simetria's stock (delivered at once); stockQty optional, shown when set
+   */
+  inStock        Boolean          @default(false)
+  stockQty       Int?
   published      Boolean          @default(false)
   /**
    * Variants of one design share a group key; the catalogue shows one card per group.
@@ -156,6 +161,7 @@ model Product {
   updatedAt      DateTime         @updatedAt
 
   @@index([groupKey])
+  @@index([inStock])
 }
 
 model ProductImage {

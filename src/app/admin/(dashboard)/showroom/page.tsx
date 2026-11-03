@@ -37,6 +37,7 @@ export default async function ShowroomPage() {
       category: first.category?.name ?? "",
       typology: first.typology ?? "",
       inShowroom: members.some((m) => m.inShowroom),
+      inStock: members.some((m) => m.inStock),
       price: min > 0 ? `${members.length > 1 && members.some((m) => price(m) !== min) ? "nuo " : ""}${formatPrice(min, first.currency)}` : "",
       image: members.flatMap((m) => m.images.map((i) => i.url))[0] ?? null,
       variants: members.map((m) => {

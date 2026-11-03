@@ -40,6 +40,7 @@ export async function loadCatalogue(sp: Search, opts: { saleOnly?: boolean; perP
   const brand = list(sp.brand);
   const material = list(sp.material);
   const display = list(sp.display);
+  const availability = list(sp.availability);
   const features = list(sp.features);
   const min = Number(sp.min) || undefined;
   const max = Number(sp.max) || undefined;
@@ -57,6 +58,7 @@ export async function loadCatalogue(sp: Search, opts: { saleOnly?: boolean; perP
     ...(brand.length ? { brand: { in: brand } } : {}),
     ...(material.length ? { material: { in: material } } : {}),
     ...(display.length === 1 ? { inShowroom: display[0] === "In showroom" } : {}),
+    ...(availability.includes("In stock") ? { inStock: true } : {}),
     ...(min || max ? { priceCents: { ...(min ? { gte: min * 100 } : {}), ...(max ? { lte: max * 100 } : {}) } } : {}),
   };
 
@@ -72,7 +74,7 @@ export async function loadCatalogue(sp: Search, opts: { saleOnly?: boolean; perP
     // (the first match represents the group, so a colour filter shows the matching colour's photo);
     // full rows and photos are then loaded for the groups on this page alone, so the page stays fast
     // however large the catalogue grows.
-    const [light, categories, typologies, brands, materials] = await Promise.all([
+    const [light, categories, typologies, brands, materials, stocked] = await Promise.all([
       db.product.findMany({
         where,
         orderBy: SORTS[sort],
@@ -82,6 +84,7 @@ export async function loadCatalogue(sp: Search, opts: { saleOnly?: boolean; perP
       db.product.findMany({ where: { ...scope, typology: { not: null } }, distinct: ["typology"], select: { typology: true } }),
       db.product.findMany({ where: { ...scope, brand: { not: null } }, distinct: ["brand"], select: { brand: true } }),
       db.product.groupBy({ by: ["material"], where: { ...scope, material: { not: null } }, _count: { _all: true }, orderBy: { _count: { material: "desc" } } }),
+      db.product.count({ where: { ...scope, inStock: true } }),
     ]);
     // the material filter is useful only for short, shared values ("brass", "oak"), not for whole specification lines
     const materialOptions = materials
@@ -93,6 +96,7 @@ export async function loadCatalogue(sp: Search, opts: { saleOnly?: boolean; perP
     groups = [
       { key: "typology", label: "Typology", options: typologies.map((t) => t.typology!).filter(Boolean) },
       { key: "brand", label: "Brands", options: brands.map((b) => b.brand!).filter(Boolean) },
+      { key: "availability", label: "Availability", options: stocked ? ["In stock"] : [] },
       { key: "display", label: "On display", options: ["In showroom", "Online only"] },
       { key: "material", label: "Material", options: materialOptions },
     ].filter((g) => g.options.length > 0);

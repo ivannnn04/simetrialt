@@ -71,6 +71,7 @@ export default async function ProductsList() {
           priceCents: p.priceCents,
           currency: p.currency,
           published: p.published,
+          inStock: p.inStock,
           image: p.images[0]?.url ?? null,
         }))}
       />

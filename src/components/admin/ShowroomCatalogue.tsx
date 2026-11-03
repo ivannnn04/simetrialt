@@ -23,6 +23,7 @@ export type ShowroomItem = {
   category: string;
   typology: string;
   inShowroom: boolean;
+  inStock: boolean;
   price: string;
   image: string | null;
   variants: ShowroomVariant[];
@@ -110,7 +111,10 @@ export function ShowroomCatalogue({ items }: { items: ShowroomItem[] }) {
                 ) : (
                   <div className="flex h-full items-center justify-center text-zinc-400">Nuotraukos nėra</div>
                 )}
-                {item.inShowroom && <span className="absolute left-4 top-4 rounded-full bg-[#c30a1e] px-3 py-1 text-xs font-medium uppercase tracking-wide text-white">Salone</span>}
+                <span className="absolute left-4 top-4 flex gap-2">
+                  {item.inShowroom && <span className="rounded-full bg-[#c30a1e] px-3 py-1 text-xs font-medium uppercase tracking-wide text-white">Salone</span>}
+                  {item.inStock && <span className="rounded-full bg-zinc-900 px-3 py-1 text-xs font-medium uppercase tracking-wide text-white">Sandėlyje</span>}
+                </span>
                 {item.variants.length > 1 && <span className="absolute right-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs text-zinc-700">{item.variants.length} variantai</span>}
               </div>
               <div className="space-y-1 p-6">

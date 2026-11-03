@@ -21,6 +21,9 @@ export type ProductVariant = {
   description: string;
   details: ProductDetail[];
   material: string;
+  /** available from stock; quantity when known */
+  inStock?: boolean;
+  stockQty?: number | null;
 };
 export type ProductDetail = { title: string; body: string };
 
@@ -186,6 +189,8 @@ export async function loadProduct(slug: string): Promise<ProductView | null> {
           description: split.description || DESCRIPTION,
           details: split.details,
           material: v.material ?? "",
+          inStock: v.inStock,
+          stockQty: v.stockQty,
         };
       };
       const variants = siblings.map(toVariant);

@@ -111,10 +111,20 @@ export function ProductForm({
               <input name="variantAttrs" defaultValue={Object.entries((product?.variantAttrs as Record<string, string> | null) ?? {}).map(([k, v]) => `${k}=${v}`).join("; ")} placeholder="Colour=black; Colour temperature=2700K" className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" />
             </div>
           </div>
-          <label className="flex items-center gap-2 self-end pb-2 text-sm">
-            <input type="checkbox" name="inShowroom" defaultChecked={product?.inShowroom} />
-            Yra salone
-          </label>
+          <div className="flex flex-col gap-2 self-end pb-2 text-sm">
+            <label className="flex items-center gap-2">
+              <input type="checkbox" name="inShowroom" defaultChecked={product?.inShowroom} />
+              Yra salone (eksponuojamas)
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" name="inStock" defaultChecked={product?.inStock} />
+              Yra sandėlyje – galima įsigyti iš karto
+            </label>
+            <label className="flex items-center gap-2 text-zinc-600">
+              Kiekis sandėlyje
+              <input name="stockQty" type="number" min={0} defaultValue={product?.stockQty ?? ""} placeholder="nebūtina" className="w-24 rounded-md border border-zinc-300 px-2 py-1 text-sm" />
+            </label>
+          </div>
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium">Aprašymas</label>

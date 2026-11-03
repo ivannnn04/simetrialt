@@ -82,6 +82,13 @@ export function ProductInfo({ product, variant, onSelect }: Props) {
                 {variant.oldPrice && <span className="text-[16px] text-secondary line-through">{variant.oldPrice}</span>}
               </p>
               {variant.sku && <p className="text-[13px] leading-[1.3] tracking-[-0.04em] text-secondary">SKU {variant.sku}</p>}
+              {variant.inStock && (
+                <p className="flex items-center gap-2 text-[14px] leading-[1.3] tracking-[-0.04em] text-black">
+                  <span className="size-2 rounded-full bg-brand" aria-hidden />
+                  {t.product.inStock}
+                  {variant.stockQty ? <span className="text-secondary">· {t.product.stockQty(variant.stockQty)}</span> : null}
+                </p>
+              )}
             </div>
             <p className="max-w-[448px] whitespace-pre-line text-[16px] leading-[1.3] tracking-[-0.04em] text-[#2b2b2b]">{variant.description}</p>
           </div>

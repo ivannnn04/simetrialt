@@ -18,6 +18,7 @@ export function toCard(p: ProductWithRelations): ProductCardData {
     href: `/catalogue/${p.slug}`,
     image: p.images[0]?.url ?? null,
     hoverImage: p.images[1]?.url ?? null,
+    inStock: p.inStock,
   };
 }
 
@@ -43,6 +44,7 @@ export function groupCards(products: ProductWithRelations[]): ProductCardData[] 
       ...card,
       name: deriveVariant(first).baseName || first.name,
       options: members.length,
+      inStock: members.some((m) => m.inStock),
       fromPrice: !samePrice,
       price: formatPrice(cheapest.priceCents, cheapest.currency),
       salePrice: cheapest.salePriceCents != null && cheapest.salePriceCents < cheapest.priceCents ? formatPrice(cheapest.salePriceCents, cheapest.currency) : null,
