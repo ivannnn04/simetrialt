@@ -57,6 +57,48 @@ export function parseMoney(raw: string): number {
   return Number.parseFloat(s);
 }
 
+/** Words that lose their "fi" / "fl" / "ff" ligature in a broken font ("re ector" → "reflector"). */
+const LIGATURE_WORDS = new Set(["reflector", "reflectors", "reflective", "floor", "flush", "flex", "flexible", "fluted", "flat", "flower", "flame", "finish", "finishes", "finished", "fixture", "fixed", "filament", "fitting", "office", "profile", "diffuser", "diffused", "configuration", "chiffon", "fibreglass", "fiberglass", "fine", "field", "oﬀ", "off", "effect", "coffee", "buffet", "baffle", "shelf", "flannel", "fleece", "airflow", "inflatable", "unfinished", "satinfinish"]);
+
+const lowerShare = (s: string) => {
+  const t = s.replace(/\s/g, "");
+  return t.length ? (t.match(/[a-zà-ÿ]/g)?.length ?? 0) / t.length : 0;
+};
+
+/**
+ * Text drawn in a font without a Unicode map comes out with every letter shifted by a fixed amount
+ * (":KLWH" is "White", shifted by 29). Such runs have no lower-case letters and contain control or
+ * punctuation characters; the shift that turns them into lower-case words is undone.
+ */
+export function ungarble(raw: string): string {
+  if (lowerShare(raw) > 0.1 || !/[\u0000-\u001f:;<=>?@[\\\]^_`]/.test(raw) || raw.replace(/[\s\u0000-\u001f]/g, "").length < 3) return raw;
+  let best = raw;
+  let bestScore = 0;
+  for (let k = 1; k <= 40; k++) {
+    const out = [...raw].map((ch) => {
+      const c = ch.charCodeAt(0) + k;
+      return c >= 32 && c <= 126 ? String.fromCharCode(c) : ch;
+    }).join("");
+    const score = lowerShare(out);
+    if (score > bestScore && /[aeiou]/i.test(out)) {
+      best = out;
+      bestScore = score;
+    }
+  }
+  if (bestScore < 0.6) return raw;
+  // re-join words split where a ligature glyph was lost
+  // ligature glyphs ("ﬂ") become plain letters; unknown ones were lost as gaps
+  const words = best.normalize("NFKC").replace(/[\u0000-\u001f]/g, " ").replace(/\s+/g, " ").trim().split(" ");
+  const joined: string[] = [];
+  for (const w of words) {
+    const prev = joined[joined.length - 1];
+    const lig = prev !== undefined ? ["fl", "fi", "ff", "ffi", "ffl"].find((l) => LIGATURE_WORDS.has(`${prev}${l}${w}`.toLowerCase().replace(/[^a-z]/g, ""))) : undefined;
+    if (prev !== undefined && lig) joined[joined.length - 1] = `${prev}${lig}${w}`;
+    else joined.push(w);
+  }
+  return joined.join(" ");
+}
+
 /** Letter-spaced headings come out as "F L O O R" + "L A M P S". */
 const unspace = (s: string) => (/^(?:\S ){2,}\S$/.test(s) ? s.replace(/ /g, "") : s);
 
@@ -121,7 +163,7 @@ export async function extractSectionPriceList(data: ArrayBuffer, opts: { withIma
       if (typeof it.str !== "string" || !it.str.trim()) continue;
       if (Math.abs(it.transform[1]) > Math.abs(it.transform[0])) continue; // rotated text (drawing dimensions)
       const size = Math.round(Math.hypot(it.transform[0], it.transform[1]) * 2) / 2;
-      items.push({ x: it.transform[4], y: height - it.transform[5], w: it.width || 0, size, text: unspace(it.str.trim()) });
+      items.push({ x: it.transform[4], y: height - it.transform[5], w: it.width || 0, size, text: unspace(ungarble(it.str).trim()) });
       if (p <= 20) sizeChars.set(size, (sizeChars.get(size) ?? 0) + it.str.length);
     }
     pagesItems.push({ items, height, width });
@@ -325,7 +367,7 @@ export async function extractTablePriceList(data: ArrayBuffer, opts: { withImage
     for (const it of content.items as Raw[]) {
       if (typeof it.str !== "string" || !it.str.trim()) continue;
       if (Math.abs(it.transform[1]) > Math.abs(it.transform[0])) continue;
-      items.push({ x: it.transform[4], y: height - it.transform[5], w: it.width || 0, size: Math.round(Math.hypot(it.transform[0], it.transform[1]) * 2) / 2, text: unspace(it.str.trim()) });
+      items.push({ x: it.transform[4], y: height - it.transform[5], w: it.width || 0, size: Math.round(Math.hypot(it.transform[0], it.transform[1]) * 2) / 2, text: unspace(ungarble(it.str).trim()) });
     }
     const lines = toLines(items).filter((l) => l.y < height * 0.95);
     if (p <= 3) textParts.push(lines.map((l) => l.text).join(" "));

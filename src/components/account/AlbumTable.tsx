@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "@/components/ui/Link";
 import { removeFromAlbum, updateAlbumItem } from "@/lib/albums-store";
+import { sendCollectionEnquiry } from "@/actions/collection-enquiry";
 import {
   ProductCard,
   type ProductCardData,
@@ -113,6 +114,20 @@ export function AlbumTable({
   const remove = (productId: string) => {
     if (readOnly) setLocalRows((rs) => rs.filter((r) => r.productId !== productId));
     else removeFromAlbum(collectionId, productId);
+  };
+
+  const [enquiry, setEnquiry] = useState<"idle" | "sending" | "sent" | "failed" | "login">("idle");
+  const sendEnquiry = async () => {
+    setEnquiry("sending");
+    try {
+      const res = await sendCollectionEnquiry({
+        collectionName,
+        items: rows.map((r) => ({ productId: r.productId, quantity: Math.max(1, r.quantity), note: r.note ?? "" })),
+      });
+      setEnquiry(res.ok ? "sent" : res.error === "login" ? "login" : "failed");
+    } catch {
+      setEnquiry("failed");
+    }
   };
 
   const [exporting, setExporting] = useState(false);
@@ -396,12 +411,29 @@ export function AlbumTable({
               </p>
             </div>
             <div className="flex flex-col gap-3">
-              <Link
-                href={`/contact?collection=${encodeURIComponent(collectionId)}`}
-                className="flex h-[39px] items-center justify-center bg-dark px-8 text-[13px] font-medium text-white transition-colors duration-300 hover:bg-accent"
-              >
-                {a.summary.enquiry}
-              </Link>
+              {enquiry === "sent" ? (
+                <p role="status" className="border border-dark bg-white px-5 py-4 text-[15px] leading-[1.35] tracking-[-0.02em] text-black">
+                  {a.summary.sent}
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={sendEnquiry}
+                  disabled={enquiry === "sending" || rows.length === 0}
+                  className="flex h-[39px] items-center justify-center bg-dark px-8 text-[13px] font-medium text-white transition-colors duration-300 hover:bg-accent disabled:opacity-50"
+                >
+                  {enquiry === "sending" ? a.summary.sending : a.summary.enquiry}
+                </button>
+              )}
+              {enquiry === "failed" && <p role="alert" className="text-[14px] leading-[1.3] text-brand">{a.summary.failed}</p>}
+              {enquiry === "login" && (
+                <p role="alert" className="text-[14px] leading-[1.3] text-secondary">
+                  {a.summary.login}{" "}
+                  <Link href={`/account/login?next=${encodeURIComponent(`/account/albums/${collectionId}`)}`} className="text-black underline">
+                    {a.summary.signIn}
+                  </Link>
+                </p>
+              )}
               <button
                 type="button"
                 onClick={exportPdf}
