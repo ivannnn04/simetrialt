@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireEditor } from "@/lib/auth";
 import { addLeadNote, deleteLead, updateLeadStatus } from "@/actions/leads";
+import { loadLeadProducts } from "@/lib/lead-items";
+import { LeadProducts } from "@/components/admin/LeadProducts";
 
 const STATUS_LABELS: Record<string, string> = {
   NEW: "Nauja",
@@ -23,9 +25,11 @@ export default async function LeadDetail({
     include: { notes: { orderBy: { createdAt: "desc" } } },
   });
   if (!lead) notFound();
+  const products = await loadLeadProducts(lead.message, lead.productSku);
+  const collection = lead.message.match(/^Kolekcija „(.+?)“/)?.[1];
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className={`${products.length ? "max-w-5xl" : "max-w-2xl"} space-y-6`}>
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-semibold">{lead.name}</h1>
@@ -63,6 +67,15 @@ export default async function LeadDetail({
           </div>
         )}
       </div>
+
+      {products.length > 0 && (
+        <LeadProducts
+          items={products}
+          title={collection ?? `Užklausa – ${lead.name}`}
+          customer={{ name: lead.name, email: lead.email ?? "" }}
+          reference={`SIM-${lead.createdAt.toISOString().slice(2, 10).replace(/-/g, "")}-${lead.id.slice(-4).toUpperCase()}`}
+        />
+      )}
 
       <div className="rounded-xl bg-white p-5 shadow-sm">
         <h2 className="mb-3 text-sm font-medium text-zinc-500">Būsena</h2>

@@ -2,6 +2,8 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { requireEditor } from "@/lib/auth";
 import { createLead } from "@/actions/leads";
+import { parseLeadLines } from "@/lib/lead-items";
+import { LeadsBoard, type BoardLead } from "@/components/admin/LeadsBoard";
 
 const STATUS_LABELS: Record<string, string> = {
   NEW: "Nauja",
@@ -22,21 +24,54 @@ const STATUS_COLORS: Record<string, string> = {
 export default async function LeadsList({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; view?: string }>;
 }) {
   await requireEditor();
-  const { status } = await searchParams;
+  const { status, view } = await searchParams;
+  const board = view !== "list";
   const leads = await db.lead.findMany({
-    where: status ? { status } : undefined,
+    where: status && !board ? { status } : undefined,
     orderBy: { createdAt: "desc" },
+    take: board ? 500 : undefined,
   });
+  const cards: BoardLead[] = board
+    ? leads.map((l) => {
+        const total = l.message.match(/Orientacinė suma:\s*([\d\s\u00a0.,]+)/)?.[1];
+        return {
+          id: l.id,
+          name: l.name,
+          company: l.company ?? "",
+          contact: [l.email, l.phone].filter(Boolean).join(" · "),
+          source: l.source,
+          status: l.status,
+          date: l.createdAt.toLocaleDateString("lt-LT"),
+          preview: l.message.split("\n").find((x) => x.trim())?.trim() ?? "",
+          totalCents: total ? Math.round(Number(total.replace(/[\s\u00a0.]/g, "").replace(",", ".")) * 100) || 0 : 0,
+          products: parseLeadLines(l.message, l.productSku).length,
+        };
+      })
+    : [];
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Užklausos (CRM)</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold">Užklausos (CRM)</h1>
+        <div className="flex rounded-md border border-zinc-300 bg-white p-0.5 text-sm">
+          <Link href="/admin/leads" className={`rounded px-3 py-1.5 ${board ? "bg-zinc-900 text-white" : "text-zinc-600 hover:bg-zinc-100"}`}>
+            Lenta
+          </Link>
+          <Link href="/admin/leads?view=list" className={`rounded px-3 py-1.5 ${!board ? "bg-zinc-900 text-white" : "text-zinc-600 hover:bg-zinc-100"}`}>
+            Sąrašas
+          </Link>
+        </div>
+      </div>
 
+      {board ? (
+        <LeadsBoard leads={cards} />
+      ) : (
+      <>
       <div className="flex flex-wrap gap-2 text-sm">
         <Link
-          href="/admin/leads"
+          href="/admin/leads?view=list"
           className={`rounded-full px-3 py-1 ${!status ? "bg-zinc-900 text-white" : "bg-white shadow-sm hover:bg-zinc-50"}`}
         >
           Visos
@@ -44,7 +79,7 @@ export default async function LeadsList({
         {Object.entries(STATUS_LABELS).map(([key, label]) => (
           <Link
             key={key}
-            href={`/admin/leads?status=${key}`}
+            href={`/admin/leads?view=list&status=${key}`}
             className={`rounded-full px-3 py-1 ${status === key ? "bg-zinc-900 text-white" : "bg-white shadow-sm hover:bg-zinc-50"}`}
           >
             {label}
@@ -92,6 +127,8 @@ export default async function LeadsList({
           </tbody>
         </table>
       </div>
+      </>
+      )}
 
       <div className="rounded-xl bg-white p-5 shadow-sm">
         <h2 className="mb-3 text-lg font-medium">Pridėti užklausą rankiniu būdu</h2>

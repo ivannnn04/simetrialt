@@ -103,10 +103,10 @@ export function ShowroomCatalogue({ items }: { items: ShowroomItem[] }) {
         <div className="grid gap-6 sm:grid-cols-2 2xl:grid-cols-3">
           {list.map((item, n) => (
             <button key={item.id} type="button" onClick={() => setOpen(n)} className="group overflow-hidden rounded-xl bg-white text-left shadow-sm ring-1 ring-zinc-200 transition hover:shadow-lg">
-              <div className="relative aspect-[4/3] bg-[#f4f2ee]">
+              <div className="relative aspect-[4/3] overflow-hidden bg-[#f4f2ee]">
                 {item.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.image} alt={item.name} loading="lazy" className="h-full w-full object-contain p-6 transition duration-300 group-hover:scale-[1.03]" />
+                  <img src={item.image} alt={item.name} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" />
                 ) : (
                   <div className="flex h-full items-center justify-center text-zinc-400">Nuotraukos nėra</div>
                 )}
@@ -134,6 +134,7 @@ export function ShowroomCatalogue({ items }: { items: ShowroomItem[] }) {
 function Presenter({ item, onClose, onPrev, onNext, position }: { item: ShowroomItem; onClose: () => void; onPrev: () => void; onNext: () => void; position: string }) {
   const [vi, setVi] = useState(0);
   const [img, setImg] = useState(0);
+  const [fit, setFit] = useState<"cover" | "contain">("cover");
   const [pending, start] = useTransition();
   const [added, setAdded] = useState<{ quoteId?: string; error?: string } | null>(null);
   const v = item.variants[vi] ?? item.variants[0];
@@ -168,10 +169,13 @@ function Presenter({ item, onClose, onPrev, onNext, position }: { item: Showroom
       </div>
       <div className="grid min-h-0 flex-1 lg:grid-cols-[1.4fr_1fr]">
         <div className="flex min-h-0 flex-col gap-3 p-6">
-          <div className="relative min-h-0 flex-1 rounded-xl bg-[#f0ede6]">
+          <div className="relative min-h-0 flex-1 overflow-hidden rounded-xl bg-[#f0ede6]">
+            <button type="button" onClick={() => setFit(fit === "cover" ? "contain" : "cover")} className="absolute right-4 top-4 z-10 rounded-full bg-white/90 px-3 py-1.5 text-xs text-zinc-700 shadow-sm hover:bg-white">
+              {fit === "cover" ? "Rodyti visą nuotrauką" : "Užpildyti ekraną"}
+            </button>
             {images[img] ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img key={images[img]} src={images[img]} alt={item.name} className="absolute inset-0 h-full w-full object-contain p-8" />
+              <img key={images[img]} src={images[img]} alt={item.name} className={cn("absolute inset-0 h-full w-full", fit === "cover" ? "object-cover" : "object-contain")} />
             ) : (
               <div className="flex h-full items-center justify-center text-zinc-400">Nuotraukos nėra</div>
             )}
@@ -181,7 +185,7 @@ function Presenter({ item, onClose, onPrev, onNext, position }: { item: Showroom
               {images.map((src, i) => (
                 <button key={src + i} type="button" onClick={() => setImg(i)} className={cn("h-20 w-20 shrink-0 overflow-hidden rounded-md bg-[#f0ede6] ring-2", i === img ? "ring-zinc-900" : "ring-transparent")}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={src} alt="" className="h-full w-full object-contain p-1" />
+                  <img src={src} alt="" className="h-full w-full object-cover" />
                 </button>
               ))}
             </div>
