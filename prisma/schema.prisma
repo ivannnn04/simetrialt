@@ -16,6 +16,10 @@ model User {
   passwordHash String
   name         String
   role         String   @default("ADMIN") // ADMIN (super admin) | EDITOR | SHOWROOM (showroom manager: quotes only)
+  /**
+   * last time the notification bell was opened; website inquiries and sign-ups after it are unread
+   */
+  notificationsSeenAt DateTime?
   quotes       Quote[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

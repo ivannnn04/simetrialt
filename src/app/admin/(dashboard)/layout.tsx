@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { requireUser, ROLE_LABELS, type Role } from "@/lib/auth";
 import { logoutAction } from "@/actions/auth";
-import { dbStatus } from "@/lib/db";
+import { db, dbStatus } from "@/lib/db";
 import { SetupNotice } from "@/components/admin/SetupNotice";
+import { NotificationBell } from "@/components/admin/NotificationBell";
 
 const GROUPS: { title: string; items: { href: string; label: string; roles?: string[] }[] }[] = [
   {
@@ -68,11 +69,17 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     );
   }
   const user = await requireUser();
+  const staff = user.role === "ADMIN" || user.role === "EDITOR";
+  // inquiries nobody has handled yet, shown next to the CRM link
+  const newLeads = staff ? await db.lead.count({ where: { status: "NEW" } }).catch(() => 0) : 0;
   return (
     <div className="flex min-h-screen bg-zinc-100 text-zinc-900">
       <aside className="flex w-64 shrink-0 flex-col border-r border-zinc-200 bg-white">
         <div className="border-b border-zinc-200 p-4">
-          <p className="notranslate text-lg font-semibold tracking-tight" translate="no">Simetria</p>
+          <div className="flex items-center justify-between">
+            <p className="notranslate text-lg font-semibold tracking-tight" translate="no">Simetria</p>
+            {staff && <NotificationBell />}
+          </div>
           <p className="text-xs text-zinc-500">{ROLE_LABELS[user.role as Role] ?? "Administravimas"} · {user.email}</p>
         </div>
         <nav className="flex-1 space-y-5 p-3">
@@ -80,8 +87,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <div key={g.title}>
               <p className="mb-1 px-3 text-[11px] font-semibold uppercase tracking-wide text-zinc-400">{g.title}</p>
               {g.items.map((item) => (
-                <Link key={item.href} href={item.href} className="block rounded-md px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100">
+                <Link key={item.href} href={item.href} className="flex items-center justify-between rounded-md px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100">
                   {item.label}
+                  {item.href === "/admin/leads" && newLeads > 0 && (
+                    <span className="rounded-full bg-[#c30a1e] px-2 py-0.5 text-[11px] font-semibold text-white" title="Neapdorotos užklausos (būsena „Nauja“)">
+                      {newLeads}
+                    </span>
+                  )}
                 </Link>
               ))}
             </div>

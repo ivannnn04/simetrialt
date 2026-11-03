@@ -8,6 +8,7 @@ import { requireEditor } from "@/lib/auth";
 import { getT } from "@/i18n/server";
 import { after } from "next/server";
 import { enqueue, runSync, wantsPush } from "@/lib/scoro/sync";
+import { emailNewLead } from "@/lib/notifications";
 
 const contactSchema = (m: { firstName: string; email: string; message: string }) =>
   z.object({
@@ -52,6 +53,8 @@ export async function submitContact(
       productSku,
     },
   });
+  // the team gets an e-mail (when a mail provider is set); sent after the response
+  after(() => emailNewLead(lead.id).catch((e) => console.error("lead e-mail failed", e)));
   // Scoro: contact + quote, sent after the response so the visitor never waits for it
   if (await wantsPush("lead").catch(() => false)) {
     await enqueue("lead", lead.id);
