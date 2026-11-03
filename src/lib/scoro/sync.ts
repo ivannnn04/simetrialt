@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
-import { VAT_PCT, quoteNumber } from "@/lib/quotes";
+import { VAT_PCT, parseQuoteSections, quoteNumber } from "@/lib/quotes";
 import { isConfigured, saveScoroConfig, scoroCall, scoroConfig, scoroLog, ScoroError, type ScoroConfig } from "./client";
 
 /**
@@ -232,13 +232,16 @@ export async function pushQuote(c: ScoroConfig, quoteId: string): Promise<string
   if (!quote) return "pasiūlymas ištrintas";
   if (!quote.customerName && !quote.company && !quote.customerEmail) return "praleista: nėra kliento";
   const contactId = await ensureContact(c, { name: quote.customerName || quote.company, email: quote.customerEmail, phone: quote.customerPhone, company: quote.company });
+  const sectionName = new Map(parseQuoteSections(quote.sections).map((s) => [s.id, s.name]));
   const lines: LineOut[] = [];
   for (const it of quote.items) {
+    // the room / floor goes on a second comment line (a pull back from Scoro reads the name from the first one)
+    const section = it.sectionId ? sectionName.get(it.sectionId) : undefined;
     const pid = await scoroProductId(c, it.product);
     const photos = it.product ? imageUrls(it.product).slice(0, 3) : it.image ? [it.image] : [];
     lines.push({
       ...(pid ? { product_id: pid } : {}),
-      comment: `${it.name}${it.sku ? ` (${it.sku})` : ""}`,
+      comment: `${it.name}${it.sku ? ` (${it.sku})` : ""}${section ? `\nSkyrius: ${section}` : ""}`,
       price: toNet(it.unitCents),
       amount: it.quantity,
       discount: it.discountPct,
@@ -291,7 +294,7 @@ function mapStatus(q: ScoroQuote): string {
 
 /** Scoro quote (from a webhook) → admin offer. */
 export async function applyScoroQuote(c: ScoroConfig, q: ScoroQuote): Promise<string> {
-  const existing = await db.quote.findUnique({ where: { scoroId: q.id } });
+  const existing = await db.quote.findUnique({ where: { scoroId: q.id }, include: { items: { orderBy: { sort: "asc" } } } });
   if (q.is_deleted) {
     if (!existing) return "ištrintas, nebuvo svetainėje";
     if (existing.source === "scoro") await db.quote.delete({ where: { id: existing.id } });
@@ -315,9 +318,14 @@ export async function applyScoroQuote(c: ScoroConfig, q: ScoroQuote): Promise<st
   const items: Prisma.QuoteItemCreateWithoutQuoteInput[] = [];
   for (const [n, l] of (q.lines ?? []).entries()) {
     const product = await websiteProductFor(l);
+    const name = (String(l.product_name || "") || stripHtml(String(l.comment || "")).split("\n")[0] || "Pozicija").slice(0, 200);
+    // Scoro knows nothing of the website's rooms / floors: a line that is still the same one keeps its section
+    const before = existing?.items[n];
+    const keepSection = before?.sectionId && ((product && before.productId === product.id) || before.name === name) ? before.sectionId : null;
     items.push({
       ...(product ? { product: { connect: { id: product.id } } } : {}),
-      name: (String(l.product_name || "") || stripHtml(String(l.comment || "")).split("\n")[0] || "Pozicija").slice(0, 200),
+      ...(keepSection ? { sectionId: keepSection } : {}),
+      name,
       sku: String(l.product_code ?? product?.sku ?? "").slice(0, 80),
       image: product ? (imageUrls(product)[0] ?? "") : "",
       unitCents: toGross(l.price),

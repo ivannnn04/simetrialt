@@ -43,6 +43,10 @@ model Quote {
    */
   discountPct   Float       @default(0)
   validUntil    DateTime?
+  /**
+   * rooms / floors of the project: [{ id, name, note, sort }]; lines point to them by QuoteItem.sectionId
+   */
+  sections      Json        @default("[]")
   author        User?       @relation(fields: [authorId], references: [id], onDelete: SetNull)
   authorId      String?
   items         QuoteItem[]
@@ -76,6 +80,10 @@ model QuoteItem {
    * discount on this line, percent
    */
   discountPct Float    @default(0)
+  /**
+   * one of Quote.sections; null (or unknown) = "Be skyriaus"
+   */
+  sectionId   String?
   sort        Int      @default(0)
 }
 

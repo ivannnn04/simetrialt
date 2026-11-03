@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { deleteQuote } from "@/actions/quotes";
-import { quoteNumber } from "@/lib/quotes";
+import { parseQuoteSections, quoteNumber } from "@/lib/quotes";
 import { PageTitle } from "@/components/admin/ui";
 import { ConfirmButton } from "@/components/admin/ConfirmButton";
 import { QuoteEditor } from "@/components/admin/QuoteEditor";
@@ -15,6 +15,7 @@ export default async function QuotePage({ params }: { params: Promise<{ id: stri
   const { id } = await params;
   const q = await db.quote.findUnique({ where: { id }, include: { items: { orderBy: { sort: "asc" } } } });
   if (!q) notFound();
+  const sections = parseQuoteSections(q.sections);
   return (
     <div className="space-y-6">
       <PageTitle
@@ -41,7 +42,18 @@ export default async function QuotePage({ params }: { params: Promise<{ id: stri
           discountPct: q.discountPct,
           status: q.status,
           validUntil: q.validUntil ? q.validUntil.toISOString().slice(0, 10) : "",
-          items: q.items.map((i) => ({ id: i.id, productId: i.productId, name: i.name, sku: i.sku, image: i.image, unitCents: i.unitCents, quantity: i.quantity, discountPct: i.discountPct })),
+          sections,
+          items: q.items.map((i) => ({
+            id: i.id,
+            productId: i.productId,
+            name: i.name,
+            sku: i.sku,
+            image: i.image,
+            unitCents: i.unitCents,
+            quantity: i.quantity,
+            discountPct: i.discountPct,
+            sectionId: i.sectionId && sections.some((s) => s.id === i.sectionId) ? i.sectionId : null,
+          })),
         }}
       />
     </div>

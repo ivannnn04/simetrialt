@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { after } from "next/server";
 import { enqueue, runSync, wantsPush } from "@/lib/scoro/sync";
+import { parseQuoteSections, QUOTE_NOTE_MAX, type QuoteSection } from "@/lib/quotes";
 
 /** Quotes are prepared by showroom managers, editors and administrators alike. */
 
@@ -18,6 +19,8 @@ export type QuoteItemInput = {
   unitCents: number;
   quantity: number;
   discountPct: number;
+  /** one of the quote's sections; null = "Be skyriaus" */
+  sectionId: string | null;
 };
 
 export type QuoteInput = {
@@ -29,6 +32,8 @@ export type QuoteInput = {
   discountPct: number;
   status: string;
   validUntil: string;
+  /** rooms / floors of the project, in order */
+  sections: QuoteSection[];
   items: QuoteItemInput[];
 };
 
@@ -46,6 +51,9 @@ export async function saveQuote(id: string, input: QuoteInput): Promise<{ ok?: s
   await requireUser();
   const quote = await db.quote.findUnique({ where: { id }, select: { id: true } });
   if (!quote) return { error: "Pasiūlymas nerastas." };
+  if (Array.isArray(input.sections) && input.sections.length > 50) return { error: "Daugiausia 50 skyrių viename pasiūlyme." };
+  const sections = parseQuoteSections((input.sections ?? []).map((s, n) => ({ ...s, sort: n })));
+  const sectionIds = new Set(sections.map((s) => s.id));
   const items = input.items
     .filter((i) => i.name.trim())
     .map((i, n) => ({
@@ -56,6 +64,7 @@ export async function saveQuote(id: string, input: QuoteInput): Promise<{ ok?: s
       unitCents: Math.max(0, Math.round(Number(i.unitCents) || 0)),
       quantity: Math.max(1, Math.round(Number(i.quantity) || 1)),
       discountPct: clampPct(Number(i.discountPct)),
+      sectionId: i.sectionId && sectionIds.has(i.sectionId) ? i.sectionId : null,
       sort: n,
     }));
   const validUntil = input.validUntil ? new Date(input.validUntil) : null;
@@ -68,7 +77,8 @@ export async function saveQuote(id: string, input: QuoteInput): Promise<{ ok?: s
         customerEmail: input.customerEmail.trim().toLowerCase().slice(0, 200),
         customerPhone: input.customerPhone.trim().slice(0, 60),
         company: input.company.trim().slice(0, 200),
-        note: input.note.slice(0, 4000),
+        note: input.note.slice(0, QUOTE_NOTE_MAX),
+        sections,
         discountPct: clampPct(Number(input.discountPct)),
         status: STATUSES.includes(input.status) ? input.status : "DRAFT",
         validUntil: validUntil && !Number.isNaN(validUntil.getTime()) ? validUntil : null,
@@ -117,14 +127,29 @@ export async function searchProductsForQuote(q: string): Promise<ProductHit[]> {
   }));
 }
 
-/** From a product page: puts the product into the signed-in staff member's open draft (or a new one). */
-export async function addProductToMyQuote(productId: string): Promise<{ quoteId?: string; error?: string }> {
+/** The signed-in staff member's open draft quote and its sections (for the showroom "Į pasiūlymą" picker). */
+export async function myDraftQuoteSections(): Promise<{ quoteId: string | null; sections: { id: string; name: string }[] }> {
+  const me = await requireUser();
+  const quote = await db.quote.findFirst({ where: { authorId: me.id, status: "DRAFT" }, orderBy: { updatedAt: "desc" }, select: { id: true, sections: true } });
+  if (!quote) return { quoteId: null, sections: [] };
+  return { quoteId: quote.id, sections: parseQuoteSections(quote.sections).map((s) => ({ id: s.id, name: s.name })) };
+}
+
+/**
+ * From a product page or the showroom catalogue: puts the product into the signed-in staff member's open
+ * draft (or a new one), into the given section when it is one of the quote's ("Be skyriaus" otherwise).
+ * The same product already in that section gets one more piece.
+ */
+export async function addProductToMyQuote(productId: string, sectionId?: string | null): Promise<{ quoteId?: string; error?: string }> {
   const me = await requireUser();
   const p = await db.product.findUnique({ where: { id: productId }, include: { images: { orderBy: { sort: "asc" }, take: 1 } } });
   if (!p) return { error: "Produktas nerastas." };
   let quote = await db.quote.findFirst({ where: { authorId: me.id, status: "DRAFT" }, orderBy: { updatedAt: "desc" }, include: { items: true } });
   if (!quote) quote = await db.quote.create({ data: { authorId: me.id }, include: { items: true } });
-  const existing = quote.items.find((i) => i.productId === p.id);
+  const ids = new Set(parseQuoteSections(quote.sections).map((s) => s.id));
+  const target = sectionId && ids.has(sectionId) ? sectionId : null;
+  const inSection = (sid: string | null) => (sid && ids.has(sid) ? sid : null) === target;
+  const existing = quote.items.find((i) => i.productId === p.id && inSection(i.sectionId));
   if (existing) await db.quoteItem.update({ where: { id: existing.id }, data: { quantity: existing.quantity + 1 } });
   else
     await db.quoteItem.create({
@@ -135,7 +160,8 @@ export async function addProductToMyQuote(productId: string): Promise<{ quoteId?
         sku: p.sku ?? "",
         image: p.images[0]?.url ?? "",
         unitCents: p.salePriceCents != null && p.salePriceCents < p.priceCents ? p.salePriceCents : p.priceCents,
-        sort: quote.items.length,
+        sectionId: target,
+        sort: quote.items.reduce((m, i) => Math.max(m, i.sort + 1), 0),
       },
     });
   await db.quote.update({ where: { id: quote.id }, data: { updatedAt: new Date() } });

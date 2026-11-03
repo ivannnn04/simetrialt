@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
-import { addProductToMyQuote } from "@/actions/quotes";
+import { addProductToMyQuote, myDraftQuoteSections } from "@/actions/quotes";
 import { cn } from "@/lib/cn";
 
 export type ShowroomVariant = {
@@ -36,6 +36,22 @@ export function ShowroomCatalogue({ items }: { items: ShowroomItem[] }) {
   const [brand, setBrand] = useState("");
   const [onlyShowroom, setOnlyShowroom] = useState(false);
   const [open, setOpen] = useState<number | null>(null);
+  // sections (rooms / floors) of the manager's open draft quote: "Į pasiūlymą" can put a product straight into one
+  const [sections, setSections] = useState<{ id: string; name: string }[]>([]);
+  const [target, setTarget] = useState("");
+  const isOpen = open !== null;
+  useEffect(() => {
+    if (!isOpen) return;
+    let live = true;
+    myDraftQuoteSections()
+      .then((d) => {
+        if (live) setSections(d.sections);
+      })
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, [isOpen]);
 
   const categories = useMemo(() => [...new Set(items.map((i) => i.category).filter(Boolean))].sort(), [items]);
   const brands = useMemo(() => [...new Set(items.map((i) => i.brand).filter(Boolean))].sort((a, b) => a.localeCompare(b)), [items]);
@@ -130,17 +146,35 @@ export function ShowroomCatalogue({ items }: { items: ShowroomItem[] }) {
         </div>
       )}
 
-      {open !== null && list[open] && <Presenter item={list[open]} onClose={() => setOpen(null)} onPrev={() => setOpen((open - 1 + list.length) % list.length)} onNext={() => setOpen((open + 1) % list.length)} position={`${open + 1} / ${list.length}`} />}
+      {open !== null && list[open] && <Presenter item={list[open]} sections={sections} target={sections.some((x) => x.id === target) ? target : ""} onTarget={setTarget} onClose={() => setOpen(null)} onPrev={() => setOpen((open - 1 + list.length) % list.length)} onNext={() => setOpen((open + 1) % list.length)} position={`${open + 1} / ${list.length}`} />}
     </div>
   );
 }
 
-function Presenter({ item, onClose, onPrev, onNext, position }: { item: ShowroomItem; onClose: () => void; onPrev: () => void; onNext: () => void; position: string }) {
+function Presenter({
+  item,
+  sections,
+  target,
+  onTarget,
+  onClose,
+  onPrev,
+  onNext,
+  position,
+}: {
+  item: ShowroomItem;
+  sections: { id: string; name: string }[];
+  target: string;
+  onTarget: (id: string) => void;
+  onClose: () => void;
+  onPrev: () => void;
+  onNext: () => void;
+  position: string;
+}) {
   const [vi, setVi] = useState(0);
   const [img, setImg] = useState(0);
   const [fit, setFit] = useState<"cover" | "contain">("cover");
   const [pending, start] = useTransition();
-  const [added, setAdded] = useState<{ quoteId?: string; error?: string } | null>(null);
+  const [added, setAdded] = useState<{ quoteId?: string; error?: string; section?: string } | null>(null);
   const v = item.variants[vi] ?? item.variants[0];
   const images = v.images.length ? v.images : item.image ? [item.image] : [];
 
@@ -241,10 +275,23 @@ function Presenter({ item, onClose, onPrev, onNext, position }: { item: Showroom
           )}
           {v.sku && <p className="text-sm text-zinc-500">Kodas: {v.sku}</p>}
           <div className="flex flex-wrap items-center gap-3 pb-4">
+            {sections.length > 0 && (
+              <select
+                value={target}
+                onChange={(e) => onTarget(e.target.value)}
+                aria-label="Į kurį pasiūlymo skyrių pridėti"
+                className="h-12 max-w-full rounded-full border border-zinc-300 bg-white px-4 text-base focus:border-zinc-500 focus:outline-none"
+              >
+                <option value="">Be skyriaus</option>
+                {sections.map((x) => (
+                  <option key={x.id} value={x.id}>{x.name}</option>
+                ))}
+              </select>
+            )}
             <button
               type="button"
               disabled={pending}
-              onClick={() => start(async () => setAdded(await addProductToMyQuote(v.id)))}
+              onClick={() => start(async () => setAdded({ ...(await addProductToMyQuote(v.id, target || null)), section: sections.find((x) => x.id === target)?.name }))}
               className="h-12 rounded-full bg-[#c30a1e] px-6 text-base font-medium text-white disabled:opacity-50"
             >
               {pending ? "Pridedama…" : "Į pasiūlymą"}
@@ -254,7 +301,7 @@ function Presenter({ item, onClose, onPrev, onNext, position }: { item: Showroom
             </a>
             {added?.quoteId && (
               <a href={`/admin/quotes/${added.quoteId}`} className="text-sm underline">
-                Pridėta – atidaryti pasiūlymą
+                Pridėta{added.section ? ` į „${added.section}“` : ""} – atidaryti pasiūlymą
               </a>
             )}
             {added?.error && <span className="text-sm text-red-600">{added.error}</span>}
