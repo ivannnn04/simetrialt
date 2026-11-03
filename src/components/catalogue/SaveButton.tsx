@@ -7,7 +7,7 @@ import { createPortal } from "react-dom";
 import { HeartIcon } from "@/components/ui/Icons";
 import { cn } from "@/lib/cn";
 import { useT } from "@/i18n/client";
-import { addToAlbum, createAlbum, isSavedAnywhere, useAlbums, type SavedProduct } from "@/lib/albums-store";
+import { addToAlbum, createAlbum, isSavedAnywhere, moveItemToSection, useAlbums, type SavedProduct } from "@/lib/albums-store";
 import { PRODUCT_PLACEHOLDER_IMAGE } from "@/lib/placeholder";
 import { loadAccount, useAccount } from "@/lib/account-client";
 import { LoginPrompt } from "@/components/account/LoginPrompt";
@@ -42,7 +42,10 @@ export function SaveButton({ productId, product, className, light, saved: forced
   const [open, setOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
-  const [saved, setSaved] = useState<string | null>(null);
+  const [saved, setSaved] = useState<{ id: string; name: string } | null>(null);
+  // the album just saved to: when it has sections, the product can be put into one of them
+  const savedAlbum = saved ? albums.find((a) => a.id === saved.id) : undefined;
+  const savedItem = savedAlbum?.items.find((i) => i.product.id === productId);
   const pending = false;
 
   const collections = albums.map((a) => ({ id: a.id, name: a.name, count: a.items.length, hasProduct: a.items.some((i) => i.product.id === productId) }));
@@ -97,7 +100,7 @@ export function SaveButton({ productId, product, className, light, saved: forced
     const target = collectionId === "new" ? createAlbum(name ?? "") : albums.find((a) => a.id === collectionId);
     if (!target) return;
     addToAlbum(target.id, product);
-    setSaved(target.name);
+    setSaved({ id: target.id, name: target.name });
     setCreating(false);
     setNewName("");
   };
@@ -213,7 +216,29 @@ export function SaveButton({ productId, product, className, light, saved: forced
                       {t.create}
                     </button>
                   )}
-                  {saved && <p className="w-full text-[13px] text-secondary">{t.savedTo(saved)}</p>}
+                  {saved && (
+                    <div className="flex w-full flex-col gap-3">
+                      <p className="w-full text-[13px] text-secondary">{t.savedTo(saved.name)}</p>
+                      {savedAlbum && savedItem && savedAlbum.sections.length > 0 && (
+                        <label className="flex w-full items-center gap-3 text-[13px] tracking-[-0.02em]">
+                          <span className="shrink-0 text-secondary">{t.section}</span>
+                          <select
+                            value={savedItem.sectionId ?? ""}
+                            aria-label={t.sectionFor(savedAlbum.name)}
+                            onChange={(e) => moveItemToSection(savedAlbum.id, productId, e.target.value || null)}
+                            className="h-[36px] min-w-0 flex-1 border border-[#ddd] bg-white px-2 text-[14px] text-[#1a1c18] focus:border-dark focus:outline-none"
+                          >
+                            <option value="">{t.unsorted}</option>
+                            {savedAlbum.sections.map((s) => (
+                              <option key={s.id} value={s.id}>
+                                {s.name}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      )}
+                    </div>
+                  )}
                 </>
               )}
             </>

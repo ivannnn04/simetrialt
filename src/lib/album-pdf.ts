@@ -14,11 +14,19 @@ export type AlbumPdfRow = {
   note: string;
 };
 
+/** Products of one album section; an empty name = no heading (album without sections). */
+export type AlbumPdfGroup = { name: string; note: string; rows: AlbumPdfRow[] };
+
 export type AlbumPdfInput = {
   collectionName: string;
   reference: string;
   customer?: { name: string; email: string } | null;
-  rows: AlbumPdfRow[];
+  /** all products without sections (used when `groups` is not given) */
+  rows?: AlbumPdfRow[];
+  /** products by section, in order, each under its name and note */
+  groups?: AlbumPdfGroup[];
+  /** general notes about the project, printed above the products */
+  note?: string;
   labels: AlbumPdfLabels;
 };
 
@@ -146,22 +154,55 @@ export async function downloadAlbumPdf(input: AlbumPdfInput) {
   doc.setTextColor(BODY);
   if (input.customer?.email) doc.text(input.customer.email, M, 91);
 
-  // Line items
-  const units = input.rows.reduce((n, r) => n + r.quantity, 0);
-  const subtotal = input.rows.reduce((n, r) => n + r.unitCents * r.quantity, 0);
+  // General notes about the project (a one-cell table so a long text continues on the next page)
+  let startY = 100;
+  const note = input.note?.trim();
+  if (note) {
+    autoTable(doc, {
+      startY,
+      margin: { left: M, right: M },
+      head: [[L.notes]],
+      body: [[note]],
+      styles: { font, fontSize: 9, textColor: INK, cellPadding: { top: 2, right: 4, bottom: 4, left: 4 }, lineWidth: 0 },
+      headStyles: { fillColor: CREAM, textColor: SECONDARY, fontStyle: "normal", fontSize: 8, cellPadding: { top: 4, right: 4, bottom: 1, left: 4 } },
+      bodyStyles: { fillColor: CREAM },
+    });
+    startY = ((doc as jsPDF & { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? startY) + 8;
+  }
+
+  // Line items, grouped by section: a heading row with the section subtotal, its note, then the products
+  const groups: AlbumPdfGroup[] = input.groups ?? [{ name: "", note: "", rows: input.rows ?? [] }];
+  const rows = groups.flatMap((g) => g.rows);
+  const units = rows.reduce((n, r) => n + r.quantity, 0);
+  const subtotal = rows.reduce((n, r) => n + r.unitCents * r.quantity, 0);
+  type Cell = string | { content: string; colSpan?: number; styles?: Record<string, unknown> };
+  const body: Cell[][] = [];
+  const kinds: ("row" | "noted" | "section" | "note")[] = [];
+  let n = 0;
+  for (const g of groups) {
+    if (g.name) {
+      const sum = g.rows.reduce((t, r) => t + r.unitCents * r.quantity, 0);
+      body.push([
+        { content: g.name, colSpan: 5, styles: { fontStyle: "bold", fontSize: 11, fillColor: CREAM, cellPadding: { top: 5, right: 3, bottom: 3, left: 3 } } },
+        { content: g.rows.length ? `${L.subtotal}  ${eur(sum)}` : "", colSpan: 2, styles: { halign: "right", fontStyle: "bold", fillColor: CREAM, cellPadding: { top: 5, right: 3, bottom: 3, left: 3 } } },
+      ]);
+      kinds.push("section");
+      if (g.note.trim()) {
+        body.push([{ content: g.note.trim(), colSpan: 7, styles: { textColor: BODY, fontStyle: "normal", fillColor: CREAM, cellPadding: { top: 0, right: 3, bottom: 4, left: 3 } } }]);
+        kinds.push("note");
+      }
+    }
+    for (const r of g.rows) {
+      n += 1;
+      body.push([String(n), r.note ? `${r.name}\n${r.note}` : r.name, r.category, r.brand, String(r.quantity), eur(r.unitCents), eur(r.unitCents * r.quantity)]);
+      kinds.push(r.note ? "noted" : "row");
+    }
+  }
   autoTable(doc, {
-    startY: 100,
+    startY,
     margin: { left: M, right: M },
     head: [[...L.columns]],
-    body: input.rows.map((r, i) => [
-      String(i + 1),
-      r.note ? `${r.name}\n${r.note}` : r.name,
-      r.category,
-      r.brand,
-      String(r.quantity),
-      eur(r.unitCents),
-      eur(r.unitCents * r.quantity),
-    ]),
+    body: body as never,
     styles: { font, fontSize: 9, textColor: INK, cellPadding: 3, lineColor: LINE, lineWidth: { bottom: 0.2 } },
     headStyles: { fillColor: LIGHT, textColor: INK, fontStyle: "bold", lineWidth: 0 },
     columnStyles: {
@@ -171,10 +212,11 @@ export async function downloadAlbumPdf(input: AlbumPdfInput) {
       6: { halign: "right", cellWidth: 30 },
     },
     didParseCell: (data) => {
-      // notes render in grey under the product name
-      if (data.section === "body" && data.column.index === 1 && input.rows[data.row.index]?.note) {
-        data.cell.styles.textColor = INK;
-      }
+      if (data.section !== "body") return;
+      const kind = kinds[data.row.index];
+      // a section heading and its note read as one block
+      if (kind === "section" && kinds[data.row.index + 1] === "note") data.cell.styles.lineWidth = 0;
+      if (kind === "section" || kind === "note") data.cell.styles.textColor = kind === "note" ? BODY : INK;
     },
   });
 
@@ -182,7 +224,7 @@ export async function downloadAlbumPdf(input: AlbumPdfInput) {
   const afterTable = (doc as jsPDF & { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 120;
   let y = afterTable + 10;
   const totals: [string, string, boolean][] = [
-    [L.products, String(input.rows.length), false],
+    [L.products, String(rows.length), false],
     [L.units, String(units), false],
     [L.total, `${L.from} ${eur(subtotal)}`, true],
   ];
@@ -199,15 +241,16 @@ export async function downloadAlbumPdf(input: AlbumPdfInput) {
     y += 8;
   });
 
-  // Footnote
+  // Footnote (on a new page when it would run into the page footer)
+  const footnote = doc.splitTextToSize(L.footnote, W - 2 * M);
+  if (y + 6 + footnote.length * 4 > doc.internal.pageSize.getHeight() - 16) {
+    doc.addPage();
+    y = 14;
+  }
   doc.setFont(font, "normal");
   doc.setFontSize(8);
   doc.setTextColor(SECONDARY);
-  doc.text(
-    doc.splitTextToSize(L.footnote, W - 2 * M),
-    M,
-    y + 6
-  );
+  doc.text(footnote, M, y + 6);
 
   const pages = doc.getNumberOfPages();
   for (let p = 1; p <= pages; p++) {

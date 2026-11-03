@@ -233,6 +233,14 @@ model Collection {
   customer   Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
   customerId String
   items      CollectionItem[]
+  /**
+   * the customer's general notes about the project
+   */
+  note       String           @default("")
+  /**
+   * customer-made sections (rooms, floors…): [{ id, name, note, sort }]; items point to one by sectionId
+   */
+  sections   Json             @default("[]")
   createdAt  DateTime         @default(now())
   updatedAt  DateTime         @updatedAt
 }
@@ -251,6 +259,10 @@ model CollectionItem {
    * free-text note shown in the album table
    */
   note         String     @default("")
+  /**
+   * id of the collection section (Collection.sections) the product is in; null = unsorted
+   */
+  sectionId    String?
   createdAt    DateTime   @default(now())
 
   @@unique([collectionId, productId])

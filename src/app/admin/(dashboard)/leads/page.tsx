@@ -36,7 +36,7 @@ export default async function LeadsList({
   });
   const cards: BoardLead[] = board
     ? leads.map((l) => {
-        const total = l.message.match(/Orientacinė suma:\s*([\d\s\u00a0.,]+)/)?.[1];
+        const total = l.message.match(/^Orientacinė suma:\s*([\d\s\u00a0.,]+)/m)?.[1];
         return {
           id: l.id,
           name: l.name,

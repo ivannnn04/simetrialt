@@ -59,6 +59,7 @@ export function AlbumDetail({ id }: { id: string }) {
         priceCents: item.product.priceCents,
         quantity: item.quantity,
         note: item.note,
+        sectionId: item.sectionId,
         href: item.product.href,
         image: item.product.image ?? PRODUCT_PLACEHOLDER_IMAGE,
         card: {
@@ -124,7 +125,15 @@ export function AlbumDetail({ id }: { id: string }) {
       </div>
 
       <section className="mx-auto w-full max-w-[1440px] px-4 md:px-10">
-        <AlbumTable collectionId={id} collectionName={name} customer={null} rows={rows} readOnly={sample} />
+        <AlbumTable
+          collectionId={id}
+          collectionName={name}
+          customer={null}
+          rows={rows}
+          readOnly={sample}
+          sections={album?.sections}
+          note={album?.note}
+        />
       </section>
     </div>
   );

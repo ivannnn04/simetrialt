@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireEditor } from "@/lib/auth";
 import { addLeadNote, deleteLead, updateLeadStatus } from "@/actions/leads";
-import { loadLeadProducts } from "@/lib/lead-items";
+import { loadLeadProducts, parseLeadSections } from "@/lib/lead-items";
 import { LeadProducts } from "@/components/admin/LeadProducts";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -27,6 +27,7 @@ export default async function LeadDetail({
   if (!lead) notFound();
   const products = await loadLeadProducts(lead.message, lead.productSku);
   const collection = lead.message.match(/^Kolekcija „(.+?)“/)?.[1];
+  const structure = products.length ? parseLeadSections(lead.message) : { note: "", sections: [] };
 
   return (
     <div className={`${products.length ? "max-w-5xl" : "max-w-2xl"} space-y-6`}>
@@ -73,6 +74,8 @@ export default async function LeadDetail({
           items={products}
           title={collection ?? `Užklausa – ${lead.name}`}
           customer={{ name: lead.name, email: lead.email ?? "" }}
+          sections={structure.sections}
+          note={structure.note}
           reference={`SIM-${lead.createdAt.toISOString().slice(2, 10).replace(/-/g, "")}-${lead.id.slice(-4).toUpperCase()}`}
         />
       )}

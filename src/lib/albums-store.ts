@@ -23,9 +23,52 @@ export type SavedProduct = {
   href: string;
 };
 
-export type AlbumItem = { product: SavedProduct; quantity: number; note: string; addedAt: number };
+/** `sectionId` points to one of the album's sections; missing = "Unsorted". */
+export type AlbumItem = { product: SavedProduct; quantity: number; note: string; addedAt: number; sectionId?: string };
 
-export type Album = { id: string; name: string; createdAt: number; updatedAt: number; items: AlbumItem[] };
+/** A customer-made part of the project (a room, a floor…) with a free-text note. */
+export type AlbumSection = { id: string; name: string; note: string; sort: number };
+
+export type Album = {
+  id: string;
+  name: string;
+  createdAt: number;
+  updatedAt: number;
+  items: AlbumItem[];
+  /** general notes about the project */
+  note: string;
+  sections: AlbumSection[];
+};
+
+export const SECTION_NAME_MAX = 120;
+export const NOTE_MAX = 5000;
+export const SECTIONS_MAX = 50;
+
+/**
+ * Fills in what older copies (localStorage or account) lack: no note, no sections. Item section ids
+ * that no longer exist fall back to unsorted; sections come back in their saved order.
+ */
+export function normalizeAlbum(raw: Partial<Album> & { id: string; name: string }): Album {
+  const sections = (Array.isArray(raw.sections) ? raw.sections : [])
+    .filter((s): s is AlbumSection => !!s && typeof s.id === "string" && typeof s.name === "string")
+    .map((s, i) => ({ id: s.id, name: s.name, note: typeof s.note === "string" ? s.note : "", sort: Number.isFinite(s.sort) ? s.sort : i }))
+    .sort((a, b) => a.sort - b.sort)
+    .map((s, i) => ({ ...s, sort: i }));
+  const ids = new Set(sections.map((s) => s.id));
+  const items = (Array.isArray(raw.items) ? raw.items : []).map((i) => {
+    const { sectionId, ...rest } = i;
+    return sectionId && ids.has(sectionId) ? { ...rest, sectionId } : rest;
+  });
+  return {
+    id: raw.id,
+    name: raw.name,
+    createdAt: raw.createdAt ?? Date.now(),
+    updatedAt: raw.updatedAt ?? raw.createdAt ?? Date.now(),
+    items,
+    note: typeof raw.note === "string" ? raw.note : "",
+    sections,
+  };
+}
 
 type State = { albums: Album[] };
 
@@ -58,7 +101,8 @@ function read(): State {
   if (cache) return cache;
   try {
     const raw = localStorage.getItem(KEY);
-    cache = raw ? (JSON.parse(raw) as State) : EMPTY;
+    const parsed = raw ? (JSON.parse(raw) as { albums?: Album[] }) : null;
+    cache = Array.isArray(parsed?.albums) ? { albums: parsed.albums.map(normalizeAlbum) } : EMPTY;
   } catch {
     cache = EMPTY;
   }
@@ -119,11 +163,11 @@ export async function connectAccount(status: AccountStatus): Promise<void> {
   if (!server) return;
   const previous = storage.get(OWNER_KEY);
   const local = read().albums;
-  let albums: Album[] = server;
+  let albums: Album[] = server.map(normalizeAlbum);
   let push = false;
   if (!previous && local.length) {
     const ids = new Set(server.map((a) => a.id));
-    albums = [...local.filter((a) => !ids.has(a.id)), ...server];
+    albums = [...local.filter((a) => !ids.has(a.id)), ...albums];
     push = albums.length !== server.length;
   }
   owner = status.id;
@@ -156,7 +200,7 @@ const newId = () => `c${Date.now().toString(36)}${Math.random().toString(36).sli
 
 export function createAlbum(name: string): Album {
   const now = Date.now();
-  const album: Album = { id: newId(), name: name.trim() || "My collection", createdAt: now, updatedAt: now, items: [] };
+  const album: Album = { id: newId(), name: name.trim() || "My collection", createdAt: now, updatedAt: now, items: [], note: "", sections: [] };
   update((as) => [album, ...as]);
   return album;
 }
@@ -169,14 +213,92 @@ export function deleteAlbum(id: string) {
   update((as) => as.filter((a) => a.id !== id));
 }
 
-export function addToAlbum(id: string, product: SavedProduct) {
+export function addToAlbum(id: string, product: SavedProduct, sectionId?: string) {
   update((as) =>
     as.map((a) =>
       a.id !== id || a.items.some((i) => i.product.id === product.id)
         ? a
-        : { ...a, updatedAt: Date.now(), items: [{ product, quantity: 1, note: "", addedAt: Date.now() }, ...a.items] }
+        : {
+            ...a,
+            updatedAt: Date.now(),
+            items: [
+              { product, quantity: 1, note: "", addedAt: Date.now(), ...(sectionId && a.sections.some((s) => s.id === sectionId) ? { sectionId } : {}) },
+              ...a.items,
+            ],
+          }
     )
   );
+}
+
+const editAlbum = (id: string, fn: (a: Album) => Album) => update((as) => as.map((a) => (a.id === id ? { ...fn(a), updatedAt: Date.now() } : a)));
+
+/** General notes about the project. */
+export function setAlbumNote(id: string, note: string) {
+  editAlbum(id, (a) => ({ ...a, note: note.slice(0, NOTE_MAX) }));
+}
+
+/** Adds a section at the end and returns its id (null when the album is missing or full). */
+export function addSection(id: string, name: string): string | null {
+  const album = read().albums.find((a) => a.id === id);
+  if (!album || album.sections.length >= SECTIONS_MAX) return null;
+  const sectionId = `s${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+  editAlbum(id, (a) => ({
+    ...a,
+    sections: [...a.sections, { id: sectionId, name: name.trim().slice(0, SECTION_NAME_MAX) || "Section", note: "", sort: a.sections.length }],
+  }));
+  return sectionId;
+}
+
+export function updateSection(id: string, sectionId: string, patch: { name?: string; note?: string }) {
+  editAlbum(id, (a) => ({
+    ...a,
+    sections: a.sections.map((s) =>
+      s.id === sectionId
+        ? {
+            ...s,
+            name: patch.name != null ? patch.name.trim().slice(0, SECTION_NAME_MAX) || s.name : s.name,
+            note: patch.note != null ? patch.note.slice(0, NOTE_MAX) : s.note,
+          }
+        : s
+    ),
+  }));
+}
+
+/** Moves a section one place up (-1) or down (+1). */
+export function moveSection(id: string, sectionId: string, dir: -1 | 1) {
+  editAlbum(id, (a) => {
+    const list = [...a.sections];
+    const i = list.findIndex((s) => s.id === sectionId);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= list.length) return a;
+    [list[i], list[j]] = [list[j], list[i]];
+    return { ...a, sections: list.map((s, k) => ({ ...s, sort: k })) };
+  });
+}
+
+/** Deletes a section; its products stay in the album as unsorted. */
+export function deleteSection(id: string, sectionId: string) {
+  editAlbum(id, (a) => ({
+    ...a,
+    sections: a.sections.filter((s) => s.id !== sectionId).map((s, k) => ({ ...s, sort: k })),
+    items: a.items.map((i) => {
+      if (i.sectionId !== sectionId) return i;
+      const { sectionId: _drop, ...rest } = i; // eslint-disable-line @typescript-eslint/no-unused-vars
+      return rest;
+    }),
+  }));
+}
+
+/** Puts a product into a section, or back to unsorted with null. */
+export function moveItemToSection(id: string, productId: string, sectionId: string | null) {
+  editAlbum(id, (a) => ({
+    ...a,
+    items: a.items.map((i) => {
+      if (i.product.id !== productId) return i;
+      const { sectionId: _old, ...rest } = i; // eslint-disable-line @typescript-eslint/no-unused-vars
+      return sectionId && a.sections.some((s) => s.id === sectionId) ? { ...rest, sectionId } : rest;
+    }),
+  }));
 }
 
 export function removeFromAlbum(id: string, productId: string) {
