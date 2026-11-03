@@ -1,3 +1,4 @@
+import { deriveVariant } from "@/lib/variants";
 import type { Prisma } from "@prisma/client";
 import { db, tryDb } from "@/lib/db";
 import { groupCards } from "@/lib/products";
@@ -67,13 +68,15 @@ export async function loadCatalogue(sp: Search, opts: { saleOnly?: boolean; perP
   let activeCategory: string | undefined;
 
   if (hasProducts) {
-    // every matching variant is loaded, then collapsed to one card per group (the first match
-    // represents the group, so a colour filter shows the matching colour's photo)
-    const [products, categories, typologies, brands, materials] = await Promise.all([
+    // Every matching variant is listed with a few light fields only, collapsed to one card per group
+    // (the first match represents the group, so a colour filter shows the matching colour's photo);
+    // full rows and photos are then loaded for the groups on this page alone, so the page stays fast
+    // however large the catalogue grows.
+    const [light, categories, typologies, brands, materials] = await Promise.all([
       db.product.findMany({
         where,
         orderBy: SORTS[sort],
-        include: { category: true, images: { orderBy: { sort: "asc" }, take: 2 } },
+        select: { id: true, groupKey: true, name: true, brand: true, typology: true, sku: true },
       }),
       db.category.findMany({ orderBy: { sort: "asc" }, where: { products: { some: { published: true } } } }),
       db.product.findMany({ where: { ...scope, typology: { not: null } }, distinct: ["typology"], select: { typology: true } }),
@@ -95,9 +98,33 @@ export async function loadCatalogue(sp: Search, opts: { saleOnly?: boolean; perP
     ].filter((g) => g.options.length > 0);
     const categoryLabel = new Map(categories.map((c) => [c.slug, c.name]));
     activeCategory = category.length === 1 ? categoryLabel.get(category[0]) : undefined;
-    const grouped = groupCards(products);
-    total = grouped.length;
-    cards = grouped.slice((page - 1) * perPage, page * perPage);
+    // rows saved before the variants feature have no stored key: their description can hold the colour temperature
+    const legacy = light.filter((p) => !p.groupKey).map((p) => p.id);
+    const descriptions = new Map(
+      legacy.length ? (await db.product.findMany({ where: { id: { in: legacy } }, select: { id: true, description: true } })).map((d) => [d.id, d.description]) : []
+    );
+    const order: string[] = [];
+    const members = new Map<string, string[]>();
+    for (const p of light) {
+      const key = p.groupKey ?? deriveVariant({ ...p, description: descriptions.get(p.id) ?? "" }).groupKey;
+      if (!members.has(key)) {
+        members.set(key, []);
+        order.push(key);
+      }
+      members.get(key)!.push(p.id);
+    }
+    total = order.length;
+    const pageIds = order.slice((page - 1) * perPage, page * perPage).flatMap((k) => members.get(k)!);
+    const position = new Map(light.map((p, i) => [p.id, i]));
+    const products = pageIds.length
+      ? (
+          await db.product.findMany({
+            where: { id: { in: pageIds } },
+            include: { category: true, images: { orderBy: { sort: "asc" }, take: 2 } },
+          })
+        ).sort((a, b) => position.get(a.id)! - position.get(b.id)!)
+      : [];
+    cards = groupCards(products);
   } else {
     // No published products yet: static catalogue so the filters, grid and pagination can be exercised.
     groups = sampleGroups(category, opts.saleOnly);
