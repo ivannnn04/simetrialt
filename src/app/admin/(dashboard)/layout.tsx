@@ -24,6 +24,7 @@ const GROUPS: { title: string; items: { href: string; label: string; roles?: str
       { href: "/admin/showroom", label: "Katalogas klientams" },
       { href: "/admin/products", label: "Produktai ir kategorijos" },
       { href: "/admin/products/import", label: "Importas iš katalogų" },
+      { href: "/admin/prices", label: "Kainų keitimas pagal ženklą", roles: ["ADMIN"] },
     ],
   },
   {
