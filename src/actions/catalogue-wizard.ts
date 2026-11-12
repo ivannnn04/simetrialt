@@ -730,9 +730,18 @@ export async function publishDraft(_prev: PublishResult | null | undefined, form
         product = await db.product.update({ where: { id: existing.id }, data });
         result.updated++;
       } else {
+        // long names that differ only at the end (sizes, coverings) cut to the same 80 characters:
+        // the code (or a random tail) goes after the cut so the address stays unique
+        const suffix = () => slugify(sku ?? "").slice(-30).replace(/^-+/, "") || randomBytes(3).toString("hex");
         let slug = slugify(name);
-        if (await db.product.findUnique({ where: { slug } })) slug = slugify(`${name}-${sku ?? it.idx}`);
-        product = await db.product.create({ data: { ...data, slug } });
+        if (await db.product.findUnique({ where: { slug } })) slug = `${slugify(name).slice(0, 80 - 31).replace(/-+$/, "")}-${suffix()}`;
+        try {
+          product = await db.product.create({ data: { ...data, slug } });
+        } catch (e) {
+          // taken meanwhile (parallel batch) or the code repeats: one retry with a random tail
+          if (!(e instanceof Error && /Unique constraint/i.test(e.message) && /slug/i.test(e.message))) throw e;
+          product = await db.product.create({ data: { ...data, slug: `${slugify(name).slice(0, 72).replace(/-+$/, "")}-${randomBytes(3).toString("hex")}` } });
+        }
         result.created++;
       }
       result.products.push({ id: product.id, slug: product.slug, name: product.name });
