@@ -6,6 +6,8 @@ import { db } from "@/lib/db";
 import { requireEditor } from "@/lib/auth";
 import { slugify } from "@/lib/slug";
 import { saveImage } from "@/lib/uploads";
+import { storeRemoteImage } from "@/lib/remote-images";
+import { Prisma } from "@prisma/client";
 import { deriveVariant } from "@/lib/variants";
 import { after } from "next/server";
 import { kickProductSync, queueDeactivations } from "@/lib/scoro/sync";
@@ -170,4 +172,54 @@ export async function setProductsInStock(ids: string[], inStock: boolean): Promi
   revalidatePath("/admin/products");
   revalidatePath("/", "layout");
   return { updated: res.count };
+}
+
+/** Product photos that still point to another website (e.g. a supplier's), as distinct URLs. */
+async function externalPhotoUrls(take?: number): Promise<string[]> {
+  const rows = await db.$queryRaw<{ url: string }[]>`
+    SELECT DISTINCT url FROM "ProductImage"
+    WHERE url LIKE 'http%' AND url NOT LIKE '%.blob.vercel-storage.com/%'
+    ORDER BY url ${take ? Prisma.sql`LIMIT ${take}` : Prisma.empty}`;
+  return rows.map((r) => r.url);
+}
+
+export async function countExternalPhotos(): Promise<number> {
+  await requireEditor();
+  const [{ n }] = await db.$queryRaw<{ n: number }[]>`
+    SELECT COUNT(DISTINCT url)::int AS n FROM "ProductImage" WHERE url LIKE 'http%' AND url NOT LIKE '%.blob.vercel-storage.com/%'`;
+  return n;
+}
+
+/**
+ * Copies a batch of external product photos into our own storage and points every product that uses
+ * them at the copy. Called repeatedly by the admin button until nothing is left.
+ */
+export async function storeExternalPhotos(): Promise<{ stored: number; failed: string[]; remaining: number }> {
+  await requireEditor();
+  const started = Date.now();
+  const failed: string[] = [];
+  let stored = 0;
+  const skip = new Set<string>();
+  while (Date.now() - started < 40_000) {
+    const batch = (await externalPhotoUrls(12 + skip.size)).filter((u) => !skip.has(u)).slice(0, 6);
+    if (!batch.length) break;
+    await Promise.all(
+      batch.map(async (src) => {
+        try {
+          const url = await storeRemoteImage(src);
+          await db.productImage.updateMany({ where: { url: src }, data: { url } });
+          stored++;
+        } catch (e) {
+          skip.add(src);
+          failed.push(`${src}: ${e instanceof Error ? e.message : "klaida"}`);
+        }
+      })
+    );
+  }
+  const remaining = (await externalPhotoUrls()).filter((u) => !skip.has(u)).length;
+  if (stored) {
+    revalidatePath("/catalogue");
+    revalidatePath("/admin/products");
+  }
+  return { stored, failed, remaining };
 }

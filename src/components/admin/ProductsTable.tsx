@@ -20,7 +20,8 @@ export type ProductRow = {
 };
 
 /** Products list with row selection, "delete selected" and "delete all". */
-export function ProductsTable({ products }: { products: ProductRow[] }) {
+export function ProductsTable({ products, total }: { products: ProductRow[]; total?: number }) {
+  const totalCount = total ?? products.length;
   const [result, remove, removing] = useActionState(deleteProducts, null);
   const [picked, setSelected] = useState<Set<string>>(new Set());
   // ignore ids of rows that are gone (deleted meanwhile)
@@ -48,7 +49,7 @@ export function ProductsTable({ products }: { products: ProductRow[] }) {
     <div className="overflow-hidden rounded-xl bg-white shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-100 px-4 py-3">
         <p className="text-sm text-zinc-600">
-          Produktų: <b>{products.length}</b>{selected.size > 0 && <> · pažymėta <b>{selected.size}</b></>}
+          Šiame puslapyje: <b>{products.length}</b> iš <b>{totalCount}</b>{selected.size > 0 && <> · pažymėta <b>{selected.size}</b></>}
         </p>
         <div className="flex flex-wrap gap-2">
           <button type="button" disabled={selected.size === 0 || stockPending} onClick={() => setStock([...selected], true)} className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-50 disabled:opacity-40">
@@ -63,9 +64,9 @@ export function ProductsTable({ products }: { products: ProductRow[] }) {
               Ištrinti pažymėtus
             </button>
           </form>
-          <form action={remove} onSubmit={confirmDelete(`Ištrinti VISUS produktus (${products.length}) kartu su nuotraukomis? Veiksmo atšaukti negalima.`)}>
+          <form action={remove} onSubmit={confirmDelete(`Ištrinti VISUS produktus (${totalCount}) kartu su nuotraukomis? Veiksmo atšaukti negalima.`)}>
             <input type="hidden" name="all" value="on" />
-            <button disabled={products.length === 0 || removing} className="rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-40">
+            <button disabled={totalCount === 0 || removing} className="rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-40">
               {removing ? "Trinama…" : "Ištrinti visus"}
             </button>
           </form>
