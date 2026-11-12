@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { randomBytes } from "crypto";
+import { createHash, randomBytes } from "crypto";
 import { db } from "@/lib/db";
 import { requireEditor } from "@/lib/auth";
 import { slugify } from "@/lib/slug";
@@ -740,36 +740,37 @@ export async function publishDraft(_prev: PublishResult | null | undefined, form
       // images: replace the product's photos with the selected ones (fetched in parallel, resized before upload)
       const stored = draft.items[it.idx];
       const base = sku ?? slugify(name);
-      const fetched = await Promise.all(
-        it.images.map(async (ref, n): Promise<File | null> => {
+      // a web photo already stored by an earlier import (all variants of a model share their photos) is reused,
+      // not downloaded and uploaded again
+      const cacheKey = (src: string) => `imgcache:${createHash("sha1").update(src).digest("hex")}`;
+      const uploaded = await Promise.all(
+        it.images.map(async (ref, n): Promise<string | null> => {
           try {
+            let file: File | null = null;
+            let webSrc: string | null = null;
             if (ref.kind === "catalogue") {
               const src = stored?.images[ref.index]?.src;
-              return src ? dataUrlToFile(src, `${base}-${n + 1}.jpg`) : null;
-            }
-            if (ref.kind === "pool") {
+              file = src ? dataUrlToFile(src, `${base}-${n + 1}.jpg`) : null;
+            } else if (ref.kind === "pool") {
               const src = draft.pool[ref.index]?.src;
-              return src ? dataUrlToFile(src, `${base}-${n + 1}.jpg`) : null;
+              file = src ? dataUrlToFile(src, `${base}-${n + 1}.jpg`) : null;
+            } else if (/^https?:\/\//.test(ref.src)) {
+              webSrc = ref.src;
+              const hit = await db.setting.findUnique({ where: { key: cacheKey(webSrc) } });
+              if (hit) return hit.value;
+              file = await fetchImageAsFile(webSrc, `${base}-${n + 1}.jpg`);
             }
-            return /^https?:\/\//.test(ref.src) ? await fetchImageAsFile(ref.src, `${base}-${n + 1}.jpg`) : null;
+            if (!file) return null;
+            const url = await saveImage(await optimizeImage(file));
+            if (webSrc) await db.setting.upsert({ where: { key: cacheKey(webSrc) }, create: { key: cacheKey(webSrc), value: url }, update: { value: url } }).catch(() => undefined);
+            return url;
           } catch (e) {
             result.errors.push(`${name}: ${e instanceof Error ? e.message : "nuotraukos klaida"}`);
             return null;
           }
         })
       );
-      const files = fetched.filter((f): f is File => f !== null);
-      if (files.length > 0) {
-        const uploaded = await Promise.all(
-          files.map(async (file) => {
-            try {
-              return await saveImage(await optimizeImage(file));
-            } catch (e) {
-              result.errors.push(`${name}: ${e instanceof Error ? e.message : "nuotraukos klaida"}`);
-              return null;
-            }
-          })
-        );
+      {
         const urls = uploaded.filter((u): u is string => Boolean(u));
         if (urls.length > 0) {
           await db.productImage.deleteMany({ where: { productId: product.id } });
