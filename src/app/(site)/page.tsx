@@ -3,7 +3,7 @@ import { ProjectsSlider } from "@/components/home/ProjectsSlider";
 import { getSlides } from "@/lib/site-content";
 import { getT } from "@/i18n/server";
 import { getFeaturedProducts } from "@/lib/products";
-import { AboutSection, BrandsSection, Hero, ProductLine } from "@/components/home/HomeSections";
+import { BrandsSection, Hero, ProductLine } from "@/components/home/HomeSections";
 import { ScrollReveal } from "@/components/home/ScrollReveal";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +20,7 @@ export default async function HomePage() {
       <BrandsSection />
       <ServicesList stack />
       <ProjectsSlider image={slidesData.image} slides={t.home.projects.slides} cta={{ label: t.home.projects.cta, href: "/projects" }} />
-      <AboutSection />
+      {/* "About us" block (AboutSection in components/home/HomeSections) hidden for now — add it back here to show it */}
       <LetsTalk />
     </>
   );
