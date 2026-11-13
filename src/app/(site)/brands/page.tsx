@@ -45,7 +45,8 @@ export default async function BrandsPage() {
                     <BrandMark brand={brand} />
                   </span>
                   <span className="relative flex flex-col gap-2">
-                    <span className="text-[18px] font-semibold leading-none tracking-[-0.04em]">{brand.name}</span>
+                    {/* the logo already shows the name; keep it for screen readers only */}
+                    <span className="sr-only">{brand.name}</span>
                     <span className="text-[14px] leading-[1.3] tracking-[-0.04em] text-label group-hover:text-tertiary">
                       {b.categories[brand.category] ?? brand.category} · {b.countries[brand.country] ?? brand.country}
                     </span>
