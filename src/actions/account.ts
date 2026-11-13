@@ -1,9 +1,12 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
+import { requestPasswordReset, resetPassword } from "@/lib/password-reset";
 import { z } from "zod";
 import {
   clearPending,
+  setSession,
   loginCustomer,
   logoutCustomer,
   registerCustomer,
@@ -97,4 +100,35 @@ export async function cancelVerificationAction(): Promise<void> {
 export async function logoutCustomerAction(): Promise<void> {
   await logoutCustomer();
   redirect("/");
+}
+
+/** "Forgot password": emails a reset link. Always answers "sent" so nobody can probe which emails have accounts. */
+export async function forgotPasswordAction(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  const t = (await getT()).auth;
+  const email = String(formData.get("email") ?? "").trim();
+  if (!z.string().email().safeParse(email).success) return { error: t.emailInvalid };
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host");
+  const proto = h.get("x-forwarded-proto") ?? (host?.startsWith("localhost") ? "http" : "https");
+  const origin = host ? `${proto}://${host}` : process.env.SITE_URL || "https://simetria.lt";
+  const result = await requestPasswordReset(email, await getLocale(), origin).catch((err) => {
+    console.error("[password-reset]", err);
+    return { ok: false as const, reason: "failed" as const };
+  });
+  if (!result.ok) return { error: result.reason === "not_configured" ? t.resetMailNotConfigured : t.resetMailFailed };
+  return { notice: t.resetSent(email) };
+}
+
+/** New password from the reset link: saves it, signs the customer in and opens their albums. */
+export async function resetPasswordAction(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  const t = (await getT()).auth;
+  const token = String(formData.get("token") ?? "");
+  const password = String(formData.get("password") ?? "");
+  if (password.length < 8) return { error: t.passwordShort };
+  if (password !== String(formData.get("confirm") ?? "")) return { error: t.passwordMismatch };
+  const customer = await resetPassword(token, password);
+  if (!customer) return { error: t.resetLinkInvalid };
+  await clearPending();
+  await setSession(customer.id);
+  redirect("/account/albums");
 }

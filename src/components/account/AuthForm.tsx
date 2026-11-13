@@ -106,6 +106,11 @@ export function AuthForm({
             error={errors.password}
           />
           {state?.error && <p role="alert" className="text-[14px] text-[#fb3b30]">{state.error}</p>}
+          {mode === "login" && (
+            <Link href="/account/forgot" className="-mt-6 self-start text-[14px] tracking-[-0.04em] text-secondary underline transition-colors hover:text-black">
+              {t.forgot}
+            </Link>
+          )}
         </div>
         <div className="flex flex-col gap-6">
           <DotButton type="submit" className="w-full" disabled={pending}>

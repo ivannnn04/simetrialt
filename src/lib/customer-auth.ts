@@ -10,7 +10,8 @@ import type { Locale } from "@/i18n/config";
 const COOKIE_NAME = "simetria_customer";
 const MAX_AGE_S = 60 * 60 * 24 * 30; // 30 days
 
-async function setSession(customerId: string) {
+/** Signs the customer in on this browser (e.g. after setting a new password from a reset link). */
+export async function setSession(customerId: string) {
   const store = await cookies();
   store.set(COOKIE_NAME, signToken(customerId, MAX_AGE_S), cookieOptions(MAX_AGE_S));
 }
